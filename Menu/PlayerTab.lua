@@ -19,7 +19,7 @@ function PlayerTab.initMovementSection(groupbox)
 		Default = 200,
 		Min = 0,
 		Max = 300,
-		Suffix = "studs",
+		Suffix = "/s",
 		Rounding = 0,
 	})
 
@@ -38,7 +38,7 @@ function PlayerTab.initMovementSection(groupbox)
 		Default = 200,
 		Min = 0,
 		Max = 300,
-		Suffix = "studs",
+		Suffix = "/s",
 		Rounding = 0,
 	})
 
@@ -47,7 +47,7 @@ function PlayerTab.initMovementSection(groupbox)
 		Default = 150,
 		Min = 0,
 		Max = 300,
-		Suffix = "studs",
+		Suffix = "/s",
 		Rounding = 0,
 	})
 
@@ -82,7 +82,7 @@ function PlayerTab.initMovementSection(groupbox)
 		Default = 5,
 		Min = -30,
 		Max = 30,
-		Suffix = "studs",
+		Suffix = "s",
 		Rounding = 0,
 	})
 
@@ -91,7 +91,7 @@ function PlayerTab.initMovementSection(groupbox)
 		Default = 0,
 		Min = -30,
 		Max = 30,
-		Suffix = "studs",
+		Suffix = "s",
 		Rounding = 0,
 	})
 
@@ -108,7 +108,7 @@ function PlayerTab.initMovementSection(groupbox)
 		Default = 50,
 		Min = 0,
 		Max = 500,
-		Suffix = "studs",
+		Suffix = "/s",
 		Rounding = 0,
 	})
 
@@ -271,7 +271,7 @@ function PlayerTab.initRemovalSection(groupbox)
 		Default = 0,
 		Min = 0,
 		Max = 255,
-		Suffix = "br",
+		Suffix = "+",
 		Rounding = 0,
 	})
 

@@ -150,7 +150,7 @@ function AutomationTab.initAstralSection(groupbox)
 		Min = 10,
 		Max = 200,
 		Rounding = 0,
-		Suffix = "studs",
+		Suffix = "/s",
 	})
 
 	astralDepBox:AddToggle("AstralCarnivore", {
