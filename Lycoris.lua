@@ -16,6 +16,9 @@ local Menu = require("Menu")
 ---@module Features
 local Features = require("Features")
 
+---@module Game.PlayerScanning
+local PlayerScanning = require("Game/PlayerScanning")
+
 -- Services.
 local memStorageService = game:GetService("MemStorageService")
 local replicatedStorage = game:GetService("ReplicatedStorage")
@@ -134,6 +137,8 @@ function Lycoris.init()
 
 	Features.init()
 
+	PlayerScanning.init()
+
 	Menu.init()
 
 	if memStorageService:HasItem("HandleStartMenu") then
@@ -148,6 +153,8 @@ function Lycoris.detach()
 	Menu.detach()
 
 	Features.detach()
+
+	PlayerScanning.detach()
 
 	ControlModule.detach()
 

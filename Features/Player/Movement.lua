@@ -161,10 +161,6 @@ local function updateSpeedHack(rootPart, humanoid)
 		return
 	end
 
-	if Configuration.expectToggleValue("Fly") then
-		return
-	end
-
 	rootPart.AssemblyAngularVelocity = rootPart.AssemblyAngularVelocity * Vector3.new(0, 1, 0)
 
 	local moveDirection = humanoid.MoveDirection
@@ -172,16 +168,13 @@ local function updateSpeedHack(rootPart, humanoid)
 		return
 	end
 
-	rootPart.AssemblyAngularVelocity = rootPart.AssemblyAngularVelocity + moveDirection.Unit * Options.Speedhack.Value
+	rootPart.AssemblyAngularVelocity = rootPart.AssemblyAngularVelocity
+		+ moveDirection.Unit * Configuration.expectOptionValue("SpeedhackSpeed")
 end
 
 ---Update infinite jump.
 ---@param rootPart BasePart
 local function updateInfiniteJump(rootPart)
-	if Configuration.expectToggleValue("Fly") then
-		return
-	end
-
 	if not userInputService:IsKeyDown(Enum.KeyCode.Space) then
 		return
 	end
@@ -195,7 +188,7 @@ local function updateInfiniteJump(rootPart)
 
 	rootPart.AssemblyAngularVelocity = rootPart.AssemblyAngularVelocity * Vector3.new(0, 1, 0)
 	rootPart.AssemblyAngularVelocity = rootPart.AssemblyAngularVelocity
-		+ Vector3.new(0, Options.InfiniteJumpBoost.Value, 0)
+		+ Vector3.new(0, Configuration.expectOptionValue("InfiniteJumpBoost"), 0)
 end
 
 ---Update fly hack.
@@ -207,10 +200,11 @@ local function updateFlyHack(rootPart)
 	end
 
 	local flyBodyVelocity = InstanceWrapper.create(movementMaid, "FlyBodyVelocity", "BodyVelocity", rootPart)
-	local flyVelocity = camera.CFrame:VectorToWorldSpace(ControlModule.getMoveVector() * Options.FlySpeed.Value)
+	local flyVelocity =
+		camera.CFrame:VectorToWorldSpace(ControlModule.getMoveVector() * Configuration.expectOptionValue("FlySpeed"))
 
 	if userInputService:IsKeyDown(Enum.KeyCode.Space) then
-		flyVelocity = flyVelocity + Vector3.new(0, Options.FlyUpSpeed.Value, 0)
+		flyVelocity = flyVelocity + Vector3.new(0, Configuration.expectOptionValue("FlyUpSpeed"), 0)
 	end
 
 	flyBodyVelocity.Velocity = flyVelocity
@@ -228,10 +222,10 @@ local function updateAttachToBack(rootPart)
 		return setAttachTarget(nil)
 	end
 
-	rootPart.CFrame = rootPart.CFrame:Lerp(
-		attachTargetHrp.CFrame * CFrame.new(0, Options.HeightOffset.Value, Options.BackOffset.Value),
-		0.3
-	)
+	local offsetCFrame =
+		CFrame.new(0.0, Configuration.expectOptionValue("HeightOffset"), Configuration.expectOptionValue("BackOffset"))
+
+	rootPart.CFrame = rootPart.CFrame:Lerp(attachTargetHrp.CFrame * offsetCFrame, 0.3)
 end
 
 ---Update agility spoofer.
