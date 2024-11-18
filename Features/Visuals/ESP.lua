@@ -22,6 +22,12 @@ local HumanoidESP = require("Features/Visuals/Objects/HumanoidESP")
 ---@module Menu.VisualsTab
 local VisualsTab = require("Menu/VisualsTab")
 
+---@module Utility.Profiler
+local Profiler = require("Utility/Profiler")
+
+---@module GUI.Configuration
+local Configuration = require("GUI/Configuration")
+
 -- ESP module.
 local ESP = {}
 
@@ -37,8 +43,8 @@ local workspaceDescendantRemoving = Signal.new(workspace.DescendantRemoving)
 -- Maids.
 local espMaid = Maid.new()
 
--- Objects.
-local espObjects = {}
+-- Maps.
+local espMap = {}
 
 -- Constants.
 local ESP_DISTANCE_FORMAT = "%s [%i]"
@@ -89,88 +95,112 @@ local function createESPNameCallback(espName)
 	return nameCallback
 end
 
--- Update ESP.
+---Update ESP.
 local function updateESP()
-	for _, espObject in pairs(espObjects) do
-		espObject:update()
+	local function updateGroup(group)
+		for _, object in next, group.objects do
+			Profiler.run(string.format("ESP_Update_%s", object.identifier), object.update, object)
+		end
+
+		group.updating = true
+	end
+
+	local function setInvisibleGroup(group)
+		for _, object in next, group.objects do
+			object:setVisible(false)
+		end
+
+		group.updating = false
+	end
+
+	for identifier, group in next, espMap do
+		if Configuration.expectToggleValue(VisualsTab.identify(identifier, "Enable")) then
+			updateGroup(group)
+		elseif group.updating then
+			setInvisibleGroup(group)
+		end
 	end
 end
 
--- On descendant added.
+---Emplace object.
+---@param instance Instance
+---@param object BasicESP
+local function emplaceObject(instance, object)
+	local groupData = {
+		objects = {},
+		updating = false,
+	}
+
+	if not espMap[object.identifier] then
+		espMap[object.identifier] = groupData
+	end
+
+	espMap[object.identifier].objects[instance] = object
+end
+
+---On descendant added.
 ---@param descendant Instance
 local function onDescendantAdded(descendant)
-	local isPlayerCharacter = players:GetPlayerFromCharacter(descendant)
+	local playerFromCharacter = players:GetPlayerFromCharacter(descendant)
 	local isInLiveFolder = descendant.Parent == workspace:WaitForChild("Live")
 
 	if descendant:IsA("Model") then
-		if isInLiveFolder and isPlayerCharacter then
-			espObjects[descendant] = HumanoidESP.new("Player", descendant, humanoidESPNameCallback)
+		if isInLiveFolder and playerFromCharacter and playerFromCharacter ~= players.LocalPlayer then
+			emplaceObject(descendant, HumanoidESP.new("Player", descendant, humanoidESPNameCallback))
 			return
 		end
 
-		if isInLiveFolder and not isPlayerCharacter then
-			espObjects[descendant] = HumanoidESP.new("Mob", descendant, humanoidESPNameCallback)
+		if isInLiveFolder and not playerFromCharacter then
+			emplaceObject(descendant, HumanoidESP.new("Mob", descendant, humanoidESPNameCallback))
 			return
 		end
 
 		if descendant.Parent == workspace:WaitForChild("NPCs") then
-			espObjects[descendant] = HumanoidESP.new("NPC", descendant, humanoidESPNameCallback)
+			emplaceObject(descendant, HumanoidESP.new("NPC", descendant, humanoidESPNameCallback))
 			return
 		end
 	end
 
-	if descendant.Name == "AreaMarker" then
-		espObjects[descendant] = BasicESP.new("AreaMarker", descendant, areaMarkerESPNameCallback)
-		return
-	end
-
-	if descendant.Name == "LootUpdated" then
-		espObjects[descendant] = BasicESP.new("Chest", descendant.Parent, createESPNameCallback("Chest"))
-		return
-	end
-
 	if descendant.Name == "JobBoard" then
-		espObjects[descendant] = BasicESP.new("JobBoard", descendant, createESPNameCallback("Job Board"))
+		emplaceObject(descendant, BasicESP.new("JobBoard", descendant, createESPNameCallback("Job Board")))
 		return
 	end
 
 	if descendant.Name == "BigArtifact" then
-		espObjects[descendant] = BasicESP.new("Artifact", descendant, createESPNameCallback("Artifact"))
+		emplaceObject(descendant, BasicESP.new("Artifact", descendant, createESPNameCallback("Artifact")))
 		return
 	end
 
 	if descendant.Name == "DepthsWhirlpool" then
-		espObjects[descendant] = BasicESP.new("Whirlpool", descendant, createESPNameCallback("Whirlpool"))
+		emplaceObject(descendant, BasicESP.new("Whirlpool", descendant, createESPNameCallback("Whirlpool")))
 		return
 	end
 
 	if descendant.Name == "ExplodeCrate" then
-		espObjects[descendant] = BasicESP.new("ExplosiveBarrel", descendant, createESPNameCallback("Explosive Barrel"))
+		emplaceObject(
+			descendant,
+			BasicESP.new("ExplosiveBarrel", descendant, createESPNameCallback("Explosive Barrel"))
+		)
 		return
 	end
 
 	if descendant.Name == "EventFeatherRef" then
-		espObjects[descendant] = BasicESP.new("OwlFeathers", descendant, createESPNameCallback("Owl Feathers"))
+		emplaceObject(descendant, BasicESP.new("OwlFeathers", descendant, createESPNameCallback("Owl Feathers")))
 		return
 	end
 
 	if descendant.Name:match("GuildDoor") then
-		espObjects[descendant] = BasicESP.new("GuildDoor", descendant, createESPNameCallback("Guild Door"))
+		emplaceObject(descendant, BasicESP.new("GuildDoor", descendant, createESPNameCallback("Guild Door")))
 		return
 	end
 
 	if descendant.Name == "GuildBanner" then
-		espObjects[descendant] = BasicESP.new("GuildBanner", descendant, createESPNameCallback("Guild Banner"))
+		emplaceObject(descendant, BasicESP.new("GuildBanner", descendant, createESPNameCallback("Guild Banner")))
 		return
 	end
 
 	if descendant.Name == "Obelisk" then
-		espObjects[descendant] = BasicESP.new("Obelisk", descendant, createESPNameCallback("Obelisk"))
-		return
-	end
-
-	if descendant.Parent == workspace.Ingredients then
-		espObjects[descendant] = BasicESP.new("Ingredient", descendant, createESPNameCallback(descendant.Name))
+		emplaceObject(descendant, BasicESP.new("Obelisk", descendant, createESPNameCallback("Obelisk")))
 		return
 	end
 
@@ -183,32 +213,47 @@ local function onDescendantAdded(descendant)
 			armorBrickName = "Unknown Armor Brick"
 		end
 
-		espObjects[descendant] = BasicESP.new("ArmorBrick", descendant, createESPNameCallback(armorBrickName))
+		emplaceObject(descendant, BasicESP.new("ArmorBrick", descendant, createESPNameCallback(armorBrickName)))
+		return
+	end
+
+	if descendant.Name == "AreaMarker" then
+		emplaceObject(descendant, BasicESP.new("AreaMarker", descendant.Parent, areaMarkerESPNameCallback))
+		return
+	end
+
+	if descendant.Name == "LootUpdated" then
+		emplaceObject(descendant, BasicESP.new("Chest", descendant.Parent, createESPNameCallback("Chest")))
+		return
+	end
+
+	if descendant.Parent == workspace.Ingredients then
+		emplaceObject(descendant, BasicESP.new("Ingredient", descendant, createESPNameCallback("Chest")))
 		return
 	end
 
 	if descendant.Name == "BellMeteor" then
-		espObjects[descendant] = BasicESP.new("BellMeteor", descendant, createESPNameCallback("Bell Meteor"))
+		emplaceObject(descendant, BasicESP.new("BellMeteor", descendant, createESPNameCallback("Bell Meteor")))
 		return
 	end
 
 	if descendant.Name == "RareObelisk" then
-		espObjects[descendant] = BasicESP.new("RareObelisk", descendant, createESPNameCallback("Rare Obelisk"))
+		emplaceObject(descendant, BasicESP.new("RareObelisk", descendant, createESPNameCallback("Rare Obelisk")))
 		return
 	end
 
 	if descendant.Name == "HealBrick" then
-		espObjects[descendant] = BasicESP.new("HealBrick", descendant, createESPNameCallback("Heal Brick"))
+		emplaceObject(descendant, BasicESP.new("HealBrick", descendant, createESPNameCallback("Heal Brick")))
 		return
 	end
 
 	if descendant.Name == "MantraObelisk" then
-		espObjects[descendant] = BasicESP.new("MantraObelisk", descendant, createESPNameCallback("Mantra Obelisk"))
+		emplaceObject(descendant, BasicESP.new("MantraObelisk", descendant, createESPNameCallback("Mantra Obelisk")))
 		return
 	end
 
 	if descendant:IsA("MeshPart") and descendant:FindFirstChild("InteractPrompt") then
-		espObjects[descendant] = BasicESP.new("BRWeapon", descendant, createESPNameCallback(descendant.Name))
+		emplaceObject(descendant, BasicESP.new("BRWeapon", descendant, createESPNameCallback(descendant.Name)))
 		return
 	end
 end
@@ -216,12 +261,14 @@ end
 -- On descendant removing.
 ---@param descendant Instance
 local function onDescendantRemoving(descendant)
-	if not espObjects[descendant] then
-		return
-	end
+	for _, group in next, espMap do
+		if not group.objects[descendant] then
+			return
+		end
 
-	espObjects[descendant]:detach()
-	espObjects[descendant] = nil
+		group.objects[descendant]:detach()
+		group.objects[descendant] = nil
+	end
 end
 
 -- Initialize ESP.
@@ -241,8 +288,10 @@ end
 function ESP.detach()
 	espMaid:clean()
 
-	for _, espObject in pairs(espObjects) do
-		espObject:detach()
+	for _, group in next, espMap do
+		for _, object in next, group.objects do
+			object:detach()
+		end
 	end
 end
 

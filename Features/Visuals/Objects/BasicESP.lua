@@ -15,11 +15,14 @@ BasicESP.__index = BasicESP
 
 ---Update basic esp.
 function BasicESP:update()
-	if not Configuration.expectToggleValue(VisualsTab.identify(self.identifier, "Enable")) then
+	local identifier = self.identifier
+	local instance = self.instance
+
+	if not Configuration.expectToggleValue(VisualsTab.identify(identifier, "Enable")) then
 		return self:setVisible(false)
 	end
 
-	local parent = self.instance.Parent
+	local parent = instance.Parent
 	if not parent then
 		return self:setVisible(false)
 	end
@@ -27,26 +30,26 @@ function BasicESP:update()
 	local position = Vector3.zero
 
 	if self.usePivot then
-		position = self.instance:GetPivot().Position
+		position = instance:GetPivot().Position
 	elseif self.usePosition then
-		position = self.instance.Position
+		position = instance.Position
 	end
 
 	local currentCamera = workspace.CurrentCamera
 	local distance = (currentCamera.CFrame.Position - position).Magnitude
 
-	if distance > Configuration.expectOptionValue(VisualsTab.identify(self.identifier, "DistanceThreshold")) then
+	if distance > Configuration.expectOptionValue(VisualsTab.identify(identifier, "DistanceThreshold")) then
 		return self:setVisible(false)
 	end
 
-	local headPosition, onScreen = currentCamera:WorldToViewportPoint(position + Vector3.new(0, 3, 0))
+	local instPosition, onScreen = currentCamera:WorldToViewportPoint(position)
 
 	if not onScreen then
 		return self:setVisible(false)
 	end
 
 	local text = self:getDrawing("baseText")
-	text:set("Position", headPosition)
+	text:set("Position", Vector2.new(instPosition.X, instPosition.Y))
 	text:set("Text", self.nameCallback(self, distance, parent))
 	text:set("Color", Configuration.expectOptionValue(VisualsTab.identify(self.identifier, "Color")))
 	text:set("Visible", true)

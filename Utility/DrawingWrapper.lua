@@ -1,6 +1,6 @@
 ---@class DrawingWrapper
 ---@field object table Underlying drawing object
--- Wrapper of multiple drawing object types & allows for the use of default properties.
+---Wrapper of drawing object & allows for the use of default properties.
 local DrawingWrapper = {}
 DrawingWrapper.__index = DrawingWrapper
 
@@ -26,15 +26,13 @@ end
 
 ---Create new drawing object.
 ---@param data table
----@return Drawing
+---@return DrawingWrapper
 function DrawingWrapper.new(data)
 	local self = setmetatable({}, DrawingWrapper)
 	self.object = Drawing.new(data.type)
-
 	self:set("Visible", data.visible ~= nil and data.visible or true)
 	self:set("Transparency", data.transparency ~= nil and data.transparency or 1.0)
 	self:set("Color", data.color ~= nil and data.color or Color3.new(0.0, 0.0, 0.0))
-
 	return self
 end
 

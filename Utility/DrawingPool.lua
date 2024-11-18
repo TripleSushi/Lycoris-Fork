@@ -1,5 +1,5 @@
 ---@class DrawingPool
----@field drawings Drawing[]
+---@field drawings DrawingWrapper[]
 local DrawingPool = {}
 DrawingPool.__index = DrawingPool
 
@@ -24,7 +24,7 @@ end
 ---Create drawing into pool.
 ---@param identifier string
 ---@param data table
----@return Drawing
+---@return DrawingWrapper
 function DrawingPool:createDrawing(identifier, data)
 	local drawingObject = DrawingWrapper.new(data)
 
@@ -35,7 +35,7 @@ end
 
 ---get drawing from pool
 ---@param identifier string
----@return Drawing
+---@return DrawingWrapper
 function DrawingPool:getDrawing(identifier)
 	return self.drawings[identifier]
 end
