@@ -39,6 +39,8 @@ local players = game:GetService("Players")
 local renderStepped = Signal.new(runService.RenderStepped)
 local workspaceDescendantAdded = Signal.new(workspace.DescendantAdded)
 local workspaceDescendantRemoving = Signal.new(workspace.DescendantRemoving)
+local playerAdded = Signal.new(players.PlayerAdded)
+local playerRemoving = Signal.new(players.PlayerRemoving)
 
 -- Maids.
 local espMaid = Maid.new()
@@ -166,15 +168,10 @@ end
 ---On descendant added.
 ---@param descendant Instance
 local function onDescendantAdded(descendant)
-	local playerFromCharacter = players:GetPlayerFromCharacter(descendant)
 	local isInLiveFolder = descendant.Parent == workspace:WaitForChild("Live")
+	local playerFromCharacter = players:GetPlayerFromCharacter(descendant)
 
 	if descendant:IsA("Model") then
-		if playerFromCharacter and playerFromCharacter ~= players.LocalPlayer then
-			emplaceObject(descendant, HumanoidESP.new("Player", descendant, playerESPNameCallback))
-			return
-		end
-
 		if isInLiveFolder and not playerFromCharacter then
 			emplaceObject(descendant, HumanoidESP.new("Mob", descendant, mobESPNameCallback))
 			return
@@ -283,7 +280,7 @@ local function onDescendantAdded(descendant)
 	end
 end
 
--- On descendant removing.
+---On descendant removing.
 ---@param descendant Instance
 local function onDescendantRemoving(descendant)
 	for _, group in next, espMap do
@@ -296,16 +293,59 @@ local function onDescendantRemoving(descendant)
 	end
 end
 
+---On player removing.
+---@param player Player
+local function onPlayerRemoving(player)
+	for _, group in next, espMap do
+		if not group.objects[player] then
+			return
+		end
+
+		group.objects[player]:detach()
+		group.objects[player] = nil
+	end
+end
+
+---On player added.
+---@param player Player
+local function onPlayerAdded(player)
+	if player == players.LocalPlayer then
+		return
+	end
+
+	local function onCharacterAdded(character)
+		emplaceObject(player, HumanoidESP.new("Player", character, playerESPNameCallback))
+	end
+
+	local characterAdded = Signal.new(player.CharacterAdded)
+	local characterRemoving = Signal.new(player.CharacterRemoving)
+
+	---@note: Clean these up when the player is removed?
+	espMaid:add(characterAdded:connect("ESP_OnCharacterAdded", onCharacterAdded))
+	espMaid:add(characterRemoving:connect("ESP_OnCharacterRemoving", onPlayerRemoving))
+
+	if player.Character then
+		emplaceObject(player, HumanoidESP.new("Player", player.Character, playerESPNameCallback))
+	end
+end
+
 -- Initialize ESP.
 function ESP.init()
 	espMaid:add(renderStepped:connect("ESP_RenderStepped", updateESP))
 	espMaid:add(workspaceDescendantAdded:connect("ESP_DescendantAdded", onDescendantAdded))
 	espMaid:add(workspaceDescendantRemoving:connect("ESP_DescendantRemoving", onDescendantRemoving))
+	espMaid:add(playerAdded:connect("ESP_PlayerAdded", onPlayerAdded))
+	espMaid:add(playerRemoving:connect("ESP_PlayerRemoving", onPlayerRemoving))
 
 	---@note: Massive freeze here while loading.
 	---When I'm not lazy, let's try to more specifically search for the instances we need.
 	for _, descendant in pairs(workspace:GetDescendants()) do
 		onDescendantAdded(descendant)
+	end
+
+	---@note: We need to seperate player scanning because they will not be detected when new characters are added.
+	for _, player in pairs(players:GetPlayers()) do
+		onPlayerAdded(player)
 	end
 end
 
