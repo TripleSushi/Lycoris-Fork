@@ -80,10 +80,6 @@ end
 
 ---Setup drawings of basic esp.
 function HumanoidESP:setupDrawings()
-	local baseBox = self:createDrawing("baseBox", { type = "Square", color = Color3.fromHex("FFFFFF") })
-	baseBox:set("Size", Vector2.new(40, 50))
-	baseBox:set("Filled", false)
-
 	local healthBarOutline = self:createDrawing("healthBarOutline", {
 		type = "Line",
 		color = Color3.fromHex("000000"),
