@@ -357,7 +357,7 @@ local function onDescendantRemoving(descendant)
 
 		object:detach()
 
-		stack[idx] = nil
+		table.remove(stack, idx)
 	end
 end
 
