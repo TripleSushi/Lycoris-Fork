@@ -122,11 +122,8 @@ local function updateNoClip(character, rootPart)
 	end
 
 	local effectReplicatorModule = require(effectReplicator)
-	local shouldCollide = false
-
-	if effectReplicatorModule:FindEffect("Knocked") and Configuration.expectToggleValue("NoClipCollisionsKnocked") then
-		shouldCollide = true
-	end
+	local knockedRestore = effectReplicatorModule:FindEffect("Knocked")
+		and Configuration.expectToggleValue("NoClipCollisionsKnocked")
 
 	for _, instance in pairs(character:GetDescendants()) do
 		if not instance:IsA("BasePart") then
@@ -137,7 +134,7 @@ local function updateNoClip(character, rootPart)
 			originalCanCollideMap[instance] = instance.CanCollide
 		end
 
-		instance.CanCollide = shouldCollide
+		instance.CanCollide = knockedRestore and originalCanCollideMap[instance] or false
 	end
 end
 
