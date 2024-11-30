@@ -58,7 +58,7 @@ function Menu.init()
 	local window = Library:CreateWindow({
 		Title = MENU_TITLE,
 		Center = true,
-		AutoShow = false,
+		AutoShow = true,
 		TabPadding = 8,
 		MenuFadeTime = 0.0,
 	})
