@@ -1,5 +1,24 @@
 local httpService = game:GetService("HttpService")
 
+---Export UDim2 to a serializable table.
+---@param udim2 UDim2
+---@return table
+local function uDIm2Export(udim2)
+	return {
+		xScale = udim2.X.Scale,
+		xOffset = udim2.X.Offset,
+		yScale = udim2.Y.Scale,
+		yOffset = udim2.Y.Offset,
+	}
+end
+
+---Import UDim2 from a serializable table.
+---@param serialized table
+---@return UDim2
+local function uDim2Import(serialized)
+	return UDim2.new(serialized.xScale, serialized.xOffset, serialized.yScale, serialized.yOffset)
+end
+
 local SaveManager = {}
 do
 	SaveManager.Folder = "LinoriaLibSettings"
@@ -109,6 +128,7 @@ do
 
 		local data = {
 			objects = {},
+			keybindFramePosition = uDIm2Export(self.Library.KeybindFrame.Position),
 		}
 
 		for idx, toggle in next, Toggles do
@@ -152,6 +172,10 @@ do
 		local success, decoded = pcall(httpService.JSONDecode, httpService, readfile(file))
 		if not success then
 			return false, "decode error"
+		end
+
+		if decoded.keybindFramePosition then
+			self.Library.KeybindFrame.Position = uDim2Import(decoded.keybindFramePosition)
 		end
 
 		for _, option in next, decoded.objects do
