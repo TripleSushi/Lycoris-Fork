@@ -50,7 +50,7 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
         - Allow Attacks While Rolling ❌
         - Attack Animation Speed ❌
             - Animation Speed Slider (0.5x - 1x - 2x) ❌ 
-            ###### side note: if this was to be made, what u would do is that you would make it force speed 0 at .15s until desired speed slider, making it look more legit and not breaking deepwoken's mechanics
+            - Side note: Current animation speed is multiplied instead of being incremental. Solves any pausing and is more consistent.
         - Maximum Momentum ❌
         - Perfect Mantra Cast ❌
 
@@ -77,8 +77,9 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
         - Attach To Back ✅
             - Height Offset ✅
             - Back Offset ✅
-        - Freestylers Band Spoofer ✅    --> group these 2 as talent spoofer
-        - Konga's Clutch Ring Spoofer ✅ ^
+        - Freestylers Band Spoofer ✅
+        - Konga's Clutch Ring Spoofer ✅
+            - Side note: Add these into a inventory spoofer option.
         - Emote Spoofer ✅ 
         - Remove "Loot All" CD ❌
     - Effect Removals ✅
@@ -166,19 +167,13 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
     Check out "Danger Timer ESP"
 
 - Automation ✅
-    - Astral Farm ⚠️⚠️ (optimize route and more stablilty) **REMOVAL SINCE ASTRAL IS ALOT MORE EASIER TO GET + MORE WAYS NOW**
-        - Astral Speed ✅
-        - Use Carnivore ✅
-        - Hunger Level ✅
-        - Water Level ✅
-        - Webhook Notification ✅
-            - Webhook Link ✅
-    - Maestro Farm ⚠️⚠️ (auto-eat and optimize route) (they fr can just enchant with gluttony but ok)
+    - Maestro Farm ⚠️⚠️ (auto-eat and optimize route)
         - Use Critical ✅
         - Webhook Link ✅
-        - Auto Sell after X amount of Maestro kills ❌
-            - Sell to Guildbase Antiquarian ❌
-            ###### spawn a gb and sell to the antiquarian in it, or as default it would "tween" into the antiquarian near training area (tween below them)
+        - Auto Sell ❌
+            - Inventory Threshold (10% - 100%) ❌
+            - Sell to Guild Base Antiquarian ❌
+            - Side Note: As a default, it should tween below the antiquarian near the training area.
     - Fish Farm ⚠️⚠️⚠️ (rework fish farm)
         - Hold Time ✅
         - Kill Caught Mudskippers ✅
@@ -205,7 +200,7 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
         - Move While Knocked ✅
 
     Check out "Extended Item Pickup"
-    ###### mostly with firetouchdetector, we can find these itempickups by tags from collectionservice aswell
+    - Side Note: We can do this with "firetouchdetector" and find "ItemPickup" tags for quick item searching
 
 - Lycoris ✅
     - Cheat Settings ✅
