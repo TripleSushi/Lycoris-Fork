@@ -20,34 +20,38 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
             - Add Username To Whitelist ❌
             - Remove Selected Username ❌
         - FOV Limit ❌
+        - Distance Limit ❌
+        - Visible Check ❌
         - Ignore Mobs ❌
         - Ignore Friends ❌
         - Must Face Target ❌
+        - Max Targets ❌
     - Auto Defense ✅
         - Enable Auto Defense ❌
-        - Auto Defense Confinguration ❌
+        - Auto Defense Configuration ❌
         - Auto Defense Notifications ❌
         - Auto Defense Visualizations ❌
     - Feint Detection ✅
         - Detect M1 Feints ❌
         - Detect Mantra Feints ❌
         - React To Feints ❌
+            - Feint Reaction Type ❌
+                - Dodge ❌
+                - Parry ❌
             - Feint Reaction Chance ❌
     - Attack Assistance ✅
         - Feint M1 While Defending ❌
         - Feint Mantras While Defending ❌
-    - Input Assistance ✅
-        - Block M1 While Defending ❌
-        - Block Critical While Defending ❌
-        - Block Mantras While Defending ❌
-        - Block Seconds ❌
+        - Block Punishable M1s ❌
+        - Block Punishable Criticals❌
+        - Block Punishable Mantras ❌
     - Combat Assistance ✅
         - Silent Aim ❌
         - Allow Flourish Feints ❌
         - Allow Attacks While Rolling ❌
         - Attack Animation Speed ❌
             - Animation Speed Slider (0.5x - 1x - 2x) ❌ 
-            ###### side note: if this was to be made, what u would do is that you would make it force speed 0 at .15s until desired speed slider, making it look more legit and not breaking deepwoken's mechanics
+            - Side note: Current animation speed is multiplied instead of being incremental. Solves any pausing and is more consistent.
         - Maximum Momentum ❌
         - Perfect Mantra Cast ❌
 
@@ -56,6 +60,147 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
     Account for Hyperarmor in Auto Defense
 
     Hold Block For Auto Defense
+
+- Builder ❌
+    - Save Manager ❌
+        - Config Name ❌
+        - Config List ❌
+        - Create Config & Load Config ❌
+        - Overwrite Config ❌
+        - Refresh Config ❌
+        - Set To Auto Load ❌
+    - Merge Manager ❌
+        - Config Name ❌
+        - Config List ❌
+        - Merge Config Type
+            - Add New Timings ❌
+            - Overwrite Timings ❌
+        - Merge Config ❌
+    - Keyframe ❌
+        - Timing Name ❌
+        - Timing Type ❌
+            - Undefined ❌
+            - Critical ❌
+            - Mantra ❌
+            - M1 ❌
+        - Hitbox Length ❌
+        - Hitbox Width ❌
+        - Hitbox Height ❌
+        - Animation ID ❌
+        - Delay Until In Hitbox ❌
+        - Keyframe Window ❌
+        - Keyframe Timeline (0.0 - Track Length) ❌
+        - Repeat Parry Until Animation End ❌
+            - Repeat Parry Delay ❌
+        - No Repeat Parry Until Animation End ❌
+            - Keyframe Actions ❌
+            - Keyframe Action Type ❌
+                - Parry ❌
+                - Dodge ❌
+                - Start Block ❌
+                - End Block ❌
+            - Add Action To List ❌
+            - Remove Actions From List ❌
+    - Animation ❌
+        - Timing Name ❌
+        - Timing Type ❌
+            - Undefined ❌
+            - Critical ❌
+            - Mantra ❌
+            - M1 ❌
+        - Hitbox Length ❌
+        - Hitbox Width ❌
+        - Hitbox Height ❌
+        - Animation ID ❌
+        - Delay Until In Hitbox ❌
+        - Repeat Parry Until Animation End ❌
+            - Repeat Parry Delay ❌
+        - No Repeat Parry Until Animation End ❌
+            - Animation Actions ❌
+            - Animation Action Delay ❌
+            - Animation Action Type ❌
+                - Parry ❌
+                - Dodge ❌
+                - Start Block ❌
+                - End Block ❌
+            - Add Action To List ❌
+            - Remove Actions From List ❌
+    - Part ❌
+        - Timing Name ❌
+        - Timing Type ❌
+            - Undefined ❌
+            - Critical ❌
+            - Mantra ❌
+            - M1 ❌
+        - Part Name ❌
+        - Part Content Filter ❌
+        - Part Content Name ❌
+        - Add Name To Filter ❌
+        - Remove Selected From Filter ❌
+        - Hitbox Length ❌
+        - Hitbox Width ❌
+        - Hitbox Height ❌
+        - Delay Until In Hitbox ❌
+        - No Delay Until In Hitbox ❌
+            - Timing Delay ❌
+        - Initial Minimum Distance ❌
+        - Part Actions ❌
+        - Part Action Delay ❌
+        - Part Action Type ❌
+            - Parry ❌
+            - Dodge ❌
+            - Start Block ❌
+            - End Block ❌
+        - Add Action To List ❌
+        - Remove Actions From List ❌
+    - Sound ❌
+        - Timing Name ❌
+        - Timing Type ❌
+            - Undefined ❌
+            - Critical ❌
+            - Mantra ❌
+            - M1 ❌
+        - Sound ID ❌
+        - Hitbox Length ❌
+        - Hitbox Width ❌
+        - Hitbox Height ❌
+        - Delay Until In Hitbox ❌
+        - Repeat Parry Until Sound End ❌
+            - Repeat Parry Delay ❌
+        - No Repeat Parry Until Sound End ❌
+            - Sound Actions ❌
+            - Sound Action Delay ❌
+            - Sound Action Type ❌
+                - Parry ❌
+                - Dodge ❌
+                - Start Block ❌
+                - End Block ❌
+            - Add Action To List ❌
+            - Remove Actions From List ❌
+    - Effect ❌
+        - Timing Name ❌
+        - Timing Type ❌
+            - Undefined ❌
+            - Critical ❌
+            - Mantra ❌
+            - M1 ❌
+        - Effect Name ❌
+        - Hitbox Length ❌
+        - Hitbox Width ❌
+        - Hitbox Height ❌
+        - Delay Until In Hitbox ❌
+        - Repeat Parry Until Effect End ❌
+            - Repeat Parry Delay ❌
+        - No Repeat Parry Until Effect End ❌
+            - Effect Actions ❌
+            - Effect Action Delay ❌
+            - Effect Action Type ❌
+                - Parry ❌
+                - Dodge ❌
+                - Start Block ❌
+                - End Block ❌
+            - Add Action To List ❌
+            - Remove Actions From List ❌
 
 - Game ✅
     - Local Character ✅
@@ -74,8 +219,9 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
         - Attach To Back ✅
             - Height Offset ✅
             - Back Offset ✅
-        - Freestylers Band Spoofer ✅    --> group these 2 as talent spoofer
-        - Konga's Clutch Ring Spoofer ✅ ^
+        - Freestylers Band Spoofer ✅
+        - Konga's Clutch Ring Spoofer ✅
+            - Side note: Add these into a inventory spoofer option.
         - Emote Spoofer ✅ 
         - Remove "Loot All" CD ❌
     - Effect Removals ✅
@@ -96,6 +242,7 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
         - Void Walker Contract Notifications ✅
         - Legendary Weapon Notifications ✅
         - Mod Notifications ✅
+        - Show Roblox Chat ✅
         - Show All Players in Map ❌
         - Chat Spy ❌
     
@@ -121,8 +268,6 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
         - Object Check Delay ✅
             - Ignore Humanoids ✅
             - Delay Time ✅
-    - Interface Visuals ✅
-        - Show Roblox Chat ✅
     - World Visuals ✅
         - Modify Field Of View ✅
             - FOV Slider ✅
@@ -163,19 +308,13 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
     Check out "Danger Timer ESP"
 
 - Automation ✅
-    - Astral Farm ⚠️⚠️ (optimize route and more stablilty) **REMOVAL SINCE ASTRAL IS ALOT MORE EASIER TO GET + MORE WAYS NOW**
-        - Astral Speed ✅
-        - Use Carnivore ✅
-        - Hunger Level ✅
-        - Water Level ✅
-        - Webhook Notification ✅
-            - Webhook Link ✅
-    - Maestro Farm ⚠️⚠️ (auto-eat and optimize route) (they fr can just enchant with gluttony but ok)
+    - Maestro Farm ⚠️⚠️ (auto-eat and optimize route)
         - Use Critical ✅
         - Webhook Link ✅
-        - Auto Sell after X amount of Maestro kills ❌
-            - Sell to Guildbase Antiquarian ❌
-            ###### spawn a gb and sell to the antiquarian in it, or as default it would "tween" into the antiquarian near training area (tween below them)
+        - Auto Sell ❌
+            - Inventory Threshold (10% - 100%) ❌
+            - Sell to Guild Base Antiquarian ❌
+            - Side Note: As a default, it should tween below the antiquarian near the training area.
     - Fish Farm ⚠️⚠️⚠️ (rework fish farm)
         - Hold Time ✅
         - Kill Caught Mudskippers ✅
@@ -202,7 +341,7 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
         - Move While Knocked ✅
 
     Check out "Extended Item Pickup"
-    ###### mostly with firetouchdetector, we can find these item drops by tags from collectionservice aswell
+    - Side Note: We can do this with "firetouchdetector" and find "ItemPickup" tags for quick item searching
 
 - Lycoris ✅
     - Cheat Settings ✅
