@@ -202,7 +202,7 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
         - Move While Knocked ✅
 
     Check out "Extended Item Pickup"
-    ###### mostly with firetouchdetector, we can find these itempickups by tags from collectionservice aswell
+    ###### mostly with firetouchdetector, we can find these item drops by tags from collectionservice aswell
 
 - Lycoris ✅
     - Cheat Settings ✅
