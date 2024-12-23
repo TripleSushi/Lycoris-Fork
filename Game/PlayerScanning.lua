@@ -19,6 +19,9 @@ local Logger = require("Utility/Logger")
 ---@module Utility.Configuration
 local Configuration = require("Utility/Configuration")
 
+---@module Utility.TaskSpawner
+local TaskSpawner = require("Utility.TaskSpawner")
+
 -- Services.
 local players = game:GetService("Players")
 local httpService = game:GetService("HttpService")
@@ -81,7 +84,7 @@ local function runPlayerScans()
 
 		if not collectionService:HasTag(backpack, "Loaded") or #backpack:GetChildren() < 1 then
 			if not PlayerScanning.waitingForLoad[player] then
-				--Logger.notify("Player scanning is waiting for %s to load in the game.", player.Name)
+				Logger.warn("Player scanning is waiting for %s to load in the game.", player.Name)
 			end
 
 			PlayerScanning.waitingForLoad[player] = true
@@ -154,11 +157,11 @@ local function runPlayerScans()
 
 		PlayerScanning.scanQueue[player] = nil
 
-		--Logger.notify("Player scanning finished scanning %s in queue.", player.Name)
+		Logger.warn("Player scanning finished scanning %s in queue.", player.Name)
 
-		playerScanningMaid:add(task.spawn(function()
+		playerScanningMaid:add(TaskSpawner.spawn("PlayerScanning_FriendCheck", function()
 			-- Perform a friend check that will yield.
-			local success, result = pcall(player.IsFriendsWith, player, players.LocalPlayer.UserId)
+			local success, result = pcall(localPlayer.IsFriendsWith, localPlayer, player.UserId)
 
 			-- Check success.
 			if not success then
