@@ -1700,6 +1700,10 @@ do
 		Groupbox:Resize()
 	end
 
+	---Add input function.
+	---@param Idx string
+	---@param Info table
+	---@return any
 	function Funcs:AddInput(Idx, Info)
 		assert(Info.Text, "AddInput: Missing `Text` string.")
 
@@ -3153,6 +3157,9 @@ function Library:CreateWindow(...)
 		WindowLabel.Text = Title
 	end
 
+	---Add a tab to the window.
+	---@param Name string
+	---@return table
 	function Window:AddTab(Name)
 		local Tab = {
 			GroupboxCount = 0,

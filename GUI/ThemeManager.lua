@@ -1,7 +1,7 @@
 local httpService = game:GetService("HttpService")
 local ThemeManager = {}
 do
-	ThemeManager.Folder = "LinoriaLibSettings"
+	ThemeManager.Folder = "Lycoris-Rewrite-Themes"
 	ThemeManager.Library = nil
 	ThemeManager.BuiltInThemes = {
 		["Default"] = {

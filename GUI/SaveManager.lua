@@ -21,7 +21,7 @@ end
 
 local SaveManager = {}
 do
-	SaveManager.Folder = "LinoriaLibSettings"
+	SaveManager.Folder = "Lycoris-Rewrite-Configs"
 	SaveManager.Ignore = {}
 	SaveManager.Parser = {
 		Toggle = {

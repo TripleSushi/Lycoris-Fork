@@ -28,8 +28,16 @@ local Spoofing = require("Features/Game/Spoofing")
 ---@module Utility.Logger
 local Logger = require("Utility/Logger")
 
+---@module Features.Combat.Defense
+local Defense = require("Features/Combat/Defense")
+
+---@module Features.Combat.Timings.SaveManager
+local SaveManager = require("Features/Combat/Timings/SaveManager")
+
 ---Initialize features.
 function Features.init()
+	SaveManager.init()
+	Defense.init()
 	Visuals.init()
 	Movement.init()
 	Monitoring.init()

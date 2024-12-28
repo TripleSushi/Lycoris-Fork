@@ -69,8 +69,8 @@ end
 
 ---Update no fog.
 local function updateNoFog()
-	noFogMap:add(lighting, "FogStart", 0)
-	noFogMap:add(lighting, "FogEnd", 0)
+	noFogMap:add(lighting, "FogStart", math.huge)
+	noFogMap:add(lighting, "FogEnd", math.huge)
 
 	local atmosphere = lighting:FindFirstChildOfClass("Atmosphere")
 	if not atmosphere then

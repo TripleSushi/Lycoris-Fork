@@ -145,7 +145,6 @@ function Defender:dodge(hrp, humanoid)
 
 	local environment, inputs = fetchInputClientData()
 	local rollFunction = environment.Roll
-
 	if not environment or not inputs or not rollFunction then
 		return
 	end

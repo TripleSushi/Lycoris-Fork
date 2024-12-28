@@ -61,22 +61,24 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
 
     Hold Block For Auto Defense
 
-- Builder ❌
-    - Save Manager ❌
-        - Config Name ❌
-        - Config List ❌
-        - Create Config & Load Config ❌
-        - Overwrite Config ❌
-        - Refresh Config ❌
-        - Set To Auto Load ❌
-    - Merge Manager ❌
-        - Config Name ❌
-        - Config List ❌
+- Builder ✅
+    - Save Manager ✅
+        - Config Name ✅
+        - Config List ✅
+        - Create Config & Load Config ✅
+        - Overwrite Config ✅
+        - Refresh Config List ✅
+        - Set To Auto Load ✅
+    - Merge Manager ✅
+        - Config List ✅
         - Merge Config Type
-            - Add New Timings ❌
-            - Overwrite Timings ❌
-        - Merge Config ❌
+            - Add New Timings ✅
+            - Overwrite Timings ✅
+        - Merge With Current Config ✅
+    - Logger ✅
+        - Show Logger Window ✅
     - Keyframe ❌
+        - Timing List ❌
         - Timing Name ❌
         - Timing Type ❌
             - Undefined ❌
@@ -102,6 +104,7 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
             - Add Action To List ❌
             - Remove Actions From List ❌
     - Animation ❌
+        - Timing List ❌
         - Timing Name ❌
         - Timing Type ❌
             - Undefined ❌
@@ -126,23 +129,24 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
             - Add Action To List ❌
             - Remove Actions From List ❌
     - Part ❌
+        - Timing List ❌
         - Timing Name ❌
         - Timing Type ❌
             - Undefined ❌
             - Critical ❌
             - Mantra ❌
             - M1 ❌
-        - Part Name ❌
-        - Part Content Filter ❌
-        - Part Content Name ❌
-        - Add Name To Filter ❌
-        - Remove Selected From Filter ❌
         - Hitbox Length ❌
         - Hitbox Width ❌
         - Hitbox Height ❌
         - Delay Until In Hitbox ❌
         - No Delay Until In Hitbox ❌
             - Timing Delay ❌
+        - Part Name ❌
+        - Part Content Filter ❌
+        - Part Content Name ❌
+        - Add Name To Filter ❌
+        - Remove Selected From Filter ❌
         - Initial Minimum Distance ❌
         - Part Actions ❌
         - Part Action Delay ❌
@@ -154,6 +158,7 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
         - Add Action To List ❌
         - Remove Actions From List ❌
     - Sound ❌
+        - Timing List ❌
         - Timing Name ❌
         - Timing Type ❌
             - Undefined ❌
@@ -178,6 +183,7 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
             - Add Action To List ❌
             - Remove Actions From List ❌
     - Effect ❌
+        - Timing List ❌
         - Timing Name ❌
         - Timing Type ❌
             - Undefined ❌

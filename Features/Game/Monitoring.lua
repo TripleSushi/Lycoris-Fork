@@ -177,6 +177,7 @@ local function updatePlayerProximity()
 		Monitoring.seen[player] = true
 	end
 end
+
 ---Update monitoring.
 local function updateMonitoring()
 	if Configuration.expectToggleValue("PlayerSpectating") then
