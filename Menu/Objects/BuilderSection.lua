@@ -268,7 +268,12 @@ function BuilderSection:builder()
 			return
 		end
 
+		if self.pair:config():find(self.timingName.Value) then
+			return Logger.longNotify("The timing name '%s' already exists in the list.", self.timingName.Value)
+		end
+
 		self:write()
+
 		self:overwrite()
 	end)
 
