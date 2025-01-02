@@ -54,6 +54,11 @@ function TimingContainer:overwrite(timing)
 		return
 	end
 
+	---@note: Every timing must have unique names.
+	if self:find(timing.name) then
+		return error(string.format("Timing name '%s' already exists in container.", timing.name))
+	end
+
 	self.timings[id] = timing
 end
 
