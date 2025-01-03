@@ -46,7 +46,12 @@ local workspaceDescendantRemoving = Signal.new(workspace.DescendantRemoving)
 ---Update no echo modifiers.
 ---@param localPlayer Player
 local function updateNoEchoModifiers(localPlayer)
-	for _, instance in pairs(localPlayer.Backpack:GetChildren()) do
+	local backpack = localPlayer:FindFirstChild("Backpack")
+	if not backpack then
+		return
+	end
+
+	for _, instance in pairs(backpack:GetChildren()) do
 		if not instance.Name:match("EchoMod") then
 			continue
 		end
@@ -96,7 +101,11 @@ local function updateNoBlind(localPlayer)
 	noBlindMap:add(sanityDof, "Enabled", false)
 	noBlindMap:add(sanityCorrect, "Enabled", false)
 
-	local backpack = localPlayer.Backpack
+	local backpack = localPlayer:FindFirstChild("Backpack")
+	if not backpack then
+		return
+	end
+
 	local blindInstance = backpack:FindFirstChild("Talent:Blinded") or backpack:FindFirstChild("Flaw:Blind")
 	if not blindInstance then
 		return

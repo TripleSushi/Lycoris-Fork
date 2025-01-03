@@ -46,22 +46,22 @@ end
 function Targeting.viable()
 	local live = workspace:FindFirstChild("Live")
 	if not live then
-		return
+		return {}
 	end
 
 	local localCharacter = players.LocalPlayer.Character
 	if not localCharacter then
-		return
+		return {}
 	end
 
 	local localRootPart = localCharacter and localCharacter:FindFirstChild("HumanoidRootPart")
 	if not localRootPart then
-		return
+		return {}
 	end
 
 	local currentCamera = workspace.CurrentCamera
 	if not currentCamera then
-		return
+		return {}
 	end
 
 	local targets = {}
@@ -127,26 +127,22 @@ end
 ---@return Target[]
 function Targeting.best()
 	local targets = Targeting.viable()
-	if not targets then
-		return
-	end
-
 	local sortType = Configuration.expectOptionValue("PlayerSelectionType")
 	local sortFunction = nil
 
-	if sortType == 1 then
+	if sortType == "Closest To Crosshair" then
 		sortFunction = function(first, second)
 			return first.dc < second.dc
 		end
 	end
 
-	if sortType == 2 then
+	if sortType == "Closest In Distance" then
 		sortFunction = function(first, second)
 			return first.du < second.du
 		end
 	end
 
-	if sortType == 3 then
+	if sortType == "Least Health" then
 		sortFunction = function(first, second)
 			return first.humanoid.Health < second.humanoid.Health
 		end

@@ -77,9 +77,9 @@ local function runPlayerScans()
 			PlayerScanning.scanDataCache[player] = { staffRank = result }
 		end
 
-		local backpack = player.Backpack
+		local backpack = localPlayer:FindFirstChild("Backpack")
 		if not backpack then
-			continue
+			return
 		end
 
 		if not collectionService:HasTag(backpack, "Loaded") or #backpack:GetChildren() < 1 then
@@ -94,7 +94,7 @@ local function runPlayerScans()
 
 		if
 			Configuration.expectToggleValue("NotifyVoidWalker")
-			and player.Backpack:FindFirstChild("Talent:Voidwalker Contract")
+			and backpack:FindFirstChild("Talent:Voidwalker Contract")
 		then
 			Logger.longNotify("%s has the Voidwalker Contract talent.", player.Name)
 		end
