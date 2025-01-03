@@ -278,7 +278,7 @@ function BuilderSection:builder()
 
 	self.initialMaximumDistance = tab:AddSlider(nil, {
 		Text = "Initial Maximum Distance",
-		Min = 300,
+		Min = 0,
 		Max = 2500,
 		Suffix = "s",
 		Default = 1000,

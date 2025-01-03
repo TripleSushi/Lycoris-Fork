@@ -72,6 +72,18 @@ function TimingContainer:clear()
 	self.timings = {}
 end
 
+---Get timing count.
+---@return number
+function TimingContainer:count()
+	local count = 0
+
+	for _ in next, self.timings do
+		count = count + 1
+	end
+
+	return count
+end
+
 ---Load from partial values.
 ---@param values table
 function TimingContainer:load(values)

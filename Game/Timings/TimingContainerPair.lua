@@ -69,6 +69,8 @@ function TimingContainerPair:names()
 		end
 	end
 
+	table.sort(names)
+
 	return names
 end
 

@@ -205,6 +205,8 @@ end
 ---Load timing from config name.
 ---@param name string
 function SaveManager.load(name)
+	local timestamp = os.clock()
+
 	if not name or #name <= 0 then
 		return Logger.longNotify("Config name cannot be empty.")
 	end
@@ -230,22 +232,41 @@ function SaveManager.load(name)
 	end
 
 	if typeof(result) ~= "table" then
-		Logger.longNotify("Failed to load config file %s.", name)
+		Logger.longNotify("Failed to process config file %s.", name)
 
-		return Logger.warn("Timing manager failed to load config %s with result %s.", name, tostring(result))
+		return Logger.warn("Timing manager failed to process config %s with result %s.", name, tostring(result))
 	end
 
 	SaveManager.config:clear()
 
-	SaveManager.config:load(result)
+	success, result = pcall(SaveManager.config.load, SaveManager.config, result)
 
-	Logger.notify("Config file %s has loaded.", name)
+	if not success then
+		Logger.longNotify("Failed to load config file %s.", name)
+
+		return Logger.warn("Timing manager ran into the error '%s' while attempting to load config %s.", result, name)
+	end
+
+	Logger.notify(
+		"Config file %s has loaded with %i timings in %.2f seconds.",
+		name,
+		SaveManager.config:count(),
+		os.clock() - timestamp
+	)
 end
 
 ---Initialize SaveManager.
 function SaveManager.init()
+	local timestamp = os.clock()
+
 	---@todo: Load default timings from server.
 	SaveManager.default:load({})
+
+	Logger.notify(
+		"Default timings have loaded with %i timings in %.2f seconds.",
+		SaveManager.default:count(),
+		os.clock() - timestamp
+	)
 
 	-- Attempt to read auto-load config.
 	local success, result = pcall(fs.read, fs, "autoload.txt")

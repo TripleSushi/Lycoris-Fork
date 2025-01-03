@@ -75,6 +75,18 @@ function TimingSave:load(values)
 	end
 end
 
+---Get timing save count.
+---@return number
+function TimingSave:count()
+	local count = 0
+
+	for _, container in next, self._data do
+		count = count + container:count()
+	end
+
+	return count
+end
+
 ---Return a serializable table.
 ---@return table
 function TimingSave:serialize()
