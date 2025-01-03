@@ -47,6 +47,7 @@ end
 
 ---Detach features.
 function Features.detach()
+	Defense.detach()
 	CharismaFarm.detach()
 	IntelligenceFarm.detach()
 	Spoofing.detach()

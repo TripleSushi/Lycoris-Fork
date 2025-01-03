@@ -76,12 +76,12 @@ end
 ---@param animator Animator
 ---@return AnimatorDefender
 function AnimatorDefender.new(animator)
-	local self = setmetatable(Defender.new(), { __index = AnimatorDefender })
+	local self = setmetatable(Defender.new(), AnimatorDefender)
 	local animationPlayed = Signal.new(animator.AnimationPlayed)
 
 	self.entity = animator:FindFirstAncestorWhichIsA("Model")
 	self.maid = Maid.new()
-	self.maid:add(animationPlayed:connect("AnimatorDefender_OnAnimationPlayed", function(track)
+	self.maid:mark(animationPlayed:connect("AnimatorDefender_OnAnimationPlayed", function(track)
 		self:process(track)
 	end))
 

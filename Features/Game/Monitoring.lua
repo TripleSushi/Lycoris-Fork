@@ -140,6 +140,11 @@ local function updatePlayerProximity()
 		return
 	end
 
+	local backpack = players.LocalPlayer:FindFirstChild("Backpack")
+	if not backpack then
+		return
+	end
+
 	for player, _ in next, Monitoring.seen do
 		local isInPlayerRange = table.find(playersInRange, player)
 
@@ -159,7 +164,7 @@ local function updatePlayerProximity()
 
 		if
 			Configuration.expectToggleValue("PlayerProximityVW")
-			and not player.Backpack:FindFirstChild("Talent:Voidwalker Contract")
+			and not backpack:FindFirstChild("Talent:Voidwalker Contract")
 		then
 			continue
 		end

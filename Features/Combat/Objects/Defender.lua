@@ -34,7 +34,7 @@ local function fetchInputClientData()
 		end
 
 		local consts = debug.getconstants(func)
-		if consts[241] ~= ".lastHBCheck" then
+		if not table.find(consts, ".lastHBCheck") then
 			continue
 		end
 
@@ -88,7 +88,7 @@ function Defender:parry()
 	end
 
 	local environment, inputs = fetchInputClientData()
-	local sprintFunction = environment.Sprint
+	local sprintFunction = environment and environment.Sprint
 
 	if not environment or not inputs or not sprintFunction then
 		return
@@ -142,7 +142,8 @@ function Defender:dodge(hrp, humanoid)
 	end
 
 	local environment, inputs = fetchInputClientData()
-	local rollFunction = environment.Roll
+	local rollFunction = environment and environment.Roll
+
 	if not environment or not inputs or not rollFunction then
 		return
 	end
@@ -188,7 +189,7 @@ end
 
 ---Create new Defender object.
 function Defender.new()
-	return setmetatable({}, { __index = Defender })
+	return setmetatable({}, Defender)
 end
 
 -- Return Defender module.
