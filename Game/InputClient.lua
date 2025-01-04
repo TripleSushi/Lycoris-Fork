@@ -2,12 +2,13 @@
 local InputClient = {
 	sprintFunctionCache = nil,
 	rollFunctionCache = nil,
-	oldWaitForContainer = nil,
 }
+
+---@module Utility.Logger
+local Logger = require("Utility/Logger")
 
 -- Services.
 local runService = game:GetService("RunService")
-local replicatedStorage = game:GetService("ReplicatedStorage")
 
 ---Check if table has non-boolean values.
 ---@param tbl table
@@ -60,58 +61,67 @@ function InputClient.getInputData()
 	return inputData
 end
 
----Initialize InputClient module.
-function InputClient.init()
-	-- Cache sprint and roll functions for the first time.
-	-- @note: I sold my soul to the GC gods because there's no other way. Updates are quick though.
+---Validate function.
+---@param func function
+---@return boolean
+function InputClient.validate(func)
+	local upvalues = debug.getupvalues(func)
+
+	if not upvalues or #upvalues <= 0 then
+		Logger.warn("Skipping function (%s) with no upvalues.", tostring(func))
+		return false
+	end
+
+	return true
+end
+
+---Update cache.
+---@param consts any[]
+function InputClient.update(consts)
+	if consts[2] ~= "wait" then
+		return Logger.warn("Ignoring bad update cache call for performance.")
+	end
+
+	InputClient.cache()
+end
+
+---Cache InputClient module.
+-- @note: I sold my soul to the GC gods because there's no other way. Updates are only done when needed.
+function InputClient.cache()
 	for _, value in next, getgc() do
-		if typeof(value) ~= "function" or iscclosure(value) then
+		if typeof(value) ~= "function" or iscclosure(value) or isexecutorclosure(value) then
 			continue
 		end
 
 		local functionName = debug.getinfo(value).name
+		if not functionName then
+			continue
+		end
+
+		if functionName ~= "Sprint" and functionName ~= "Roll" then
+			continue
+		end
+
+		if not InputClient.validate(value) then
+			continue
+		end
 
 		if functionName == "Sprint" then
 			InputClient.sprintFunctionCache = value
+
+			Logger.warn("Sprint function (%s) cache successful.", tostring(value))
 		end
 
 		if functionName == "Roll" then
 			InputClient.rollFunctionCache = value
+
+			Logger.warn("Roll function (%s) cache successful.", tostring(value))
 		end
 
 		if InputClient.sprintFunctionCache and InputClient.rollFunctionCache then
 			break
 		end
 	end
-
-	-- Intercept InputClient initializations and get updated functions.
-	local effectReplicatorModule = require(replicatedStorage:WaitForChild("EffectReplicator"))
-
-	InputClient.oldWaitForContainer = effectReplicatorModule.WaitForContainer
-
-	effectReplicatorModule.WaitForContainer = function(...)
-		local callerFunction = debug.getinfo(2).func
-
-		for _, func in next, debug.getprotos(callerFunction) do
-			local functionName = debug.getinfo(func).name
-
-			if functionName == "Sprint" then
-				InputClient.sprintFunctionCache = func
-			end
-
-			if functionName == "Roll" then
-				InputClient.rollFunctionCache = func
-			end
-		end
-
-		return InputClient.oldWaitForContainer(...)
-	end
-end
-
----Detach InputClient module.
-function InputClient.detach()
-	local effectReplicatorModule = require(replicatedStorage:WaitForChild("EffectReplicator"))
-	effectReplicatorModule.WaitForContainer = InputClient.oldWaitForContainer
 end
 
 -- Return InputClient module.

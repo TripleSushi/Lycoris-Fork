@@ -6,7 +6,6 @@ local InputClient = require("Game/InputClient")
 
 -- Services.
 local replicatedStorage = game:GetService("ReplicatedStorage")
-local runService = game:GetService("RunService")
 
 ---@class Defender
 local Defender = {}
@@ -58,13 +57,13 @@ function Defender:parry()
 	sprintFunction(false)
 
 	while not effectReplicatorModule:HasEffect("Blocking") do
+		task.wait()
+
 		if effectReplicatorModule:FindEffect("Action") or effectReplicatorModule:FindEffect("Knocked") then
 			continue
 		end
 
 		blockRemote:FireServer()
-
-		task.wait()
 	end
 
 	unblockRemote:FireServer()
@@ -94,8 +93,8 @@ function Defender:dodge(hrp, humanoid)
 		return
 	end
 
-	local lastRollMoveDirection = debug.getupvalue(rollFunction, 14)
-	if not lastRollMoveDirection or typeof(lastRollMoveDirection) ~= "Vector3" then
+	local lastRollMoveDirection = debug.getupvalue(rollFunction, 14) or Vector3.zero
+	if lastRollMoveDirection and typeof(lastRollMoveDirection) ~= "Vector3" then
 		return
 	end
 
@@ -130,7 +129,11 @@ function Defender:dodge(hrp, humanoid)
 		usePivotVelocityRoll = true
 	end
 
+	setthreadidentity(2)
+
 	rollFunction(usePivotVelocityRoll and true or nil)
+
+	setthreadidentity(7)
 end
 
 ---Create new Defender object.

@@ -54,9 +54,9 @@ function AnimatorDefender:process(track)
 
 	Logger.notify("Processing AnimationTrack with timing '%s' (%s) with AnimatorDefender.", timing.name, timing:id())
 
-	task.wait(1)
-
 	Logger.notify("Parry simulation.")
+
+	task.wait(1)
 
 	Defender:parry()
 

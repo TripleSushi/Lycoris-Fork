@@ -144,7 +144,7 @@ function Lycoris.init()
 
 	SaveManager.init()
 
-	InputClient.init()
+	InputClient.cache()
 
 	ControlModule.init()
 
@@ -188,8 +188,6 @@ function Lycoris.detach()
 	Menu.detach()
 
 	Features.detach()
-
-	InputClient.detach()
 
 	ControlModule.detach()
 

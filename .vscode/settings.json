@@ -41,7 +41,9 @@
         "getexecutorname",
         "gethui",
         "delfile",
-        "iscclosure"
+        "iscclosure",
+        "setidentity",
+        "setthreadidentity"
     ],
     "editor.formatOnSave": true,
     "robloxLsp.suggestedImports.importIgnore": [
