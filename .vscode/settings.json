@@ -39,7 +39,8 @@
         "restorefunction",
         "getconnections",
         "getexecutorname",
-        "gethui"
+        "gethui",
+        "Status"
     ],
     "editor.formatOnSave": true,
     "robloxLsp.suggestedImports.importIgnore": [
