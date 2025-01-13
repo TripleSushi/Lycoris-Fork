@@ -159,13 +159,11 @@ function InputClient.bstart()
 
 	local sprintFunction = InputClient.sprintFunctionCache
 	local inputData = InputClient.getInputData()
-
 	if not sprintFunction or not inputData then
 		return
 	end
 
 	local bufferEffect = effectReplicatorModule:FindEffect("M1Buffering")
-
 	if bufferEffect then
 		bufferEffect:Remove()
 	end
@@ -265,6 +263,46 @@ function InputClient.dodge(hrp, humanoid)
 	end
 
 	return InputClient.roll(hrp, humanoid, usePivotVelocityRoll and true or nil)
+end
+
+---Re-created feint function.
+---@param hrp Model
+function InputClient.feint(hrp)
+	local rightClickRemote = KeyHandling.getRemote("RightClick")
+	if not rightClickRemote then
+		return
+	end
+
+	local effectReplicator = replicatedStorage:FindFirstChild("EffectReplicator")
+	if not effectReplicator then
+		return
+	end
+
+	local effectReplicatorModule = require(effectReplicator)
+	if not effectReplicatorModule then
+		return
+	end
+
+	local inputDataTable = InputClient.getInputData()
+	if not inputDataTable then
+		return
+	end
+
+	inputDataTable.Right = true
+
+	if effectReplicatorModule:HasEffect("ClientDodge") then
+		effectReplicatorModule:CreateEffect("ClientFeint"):Debris(0.4)
+	end
+
+	if hrp:FindFirstChild("ClientRemove") then
+		hrp.ClientRemove:Destroy()
+	end
+
+	if effectReplicatorModule:HasEffect("Feint") then
+		return
+	end
+
+	rightClickRemote:FireServer(inputDataTable)
 end
 
 ---Re-created roll function for safety.

@@ -11,7 +11,7 @@ local AnimatorDefender = require("Features/Combat/Objects/AnimatorDefender")
 local Defense = {}
 
 -- Services.
-local players = game:GetService("Players")
+local replicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Maids.
 local defenseMaid = Maid.new()
@@ -19,13 +19,16 @@ local defenseMaid = Maid.new()
 -- Defender objects.
 local defenderObjects = {}
 
+-- Mob animations.
+local mobAnimations = {}
+
 -- On live descendant added.
 local function onLiveDescendantAdded(child)
 	if not child:IsA("Animator") then
 		return
 	end
 
-	defenderObjects[child] = AnimatorDefender.new(child)
+	defenderObjects[child] = AnimatorDefender.new(child, mobAnimations)
 end
 
 -- On live descendant removed.
@@ -39,11 +42,11 @@ local function onLiveDescendantRemoved(child)
 	object[child] = nil
 end
 
----Check if objects have active tasks.
+---Check if objects have blocking tasks.
 ---@return boolean
-function Defense.active()
+function Defense.blocking()
 	for _, object in next, defenderObjects do
-		if not object:active() then
+		if not object:blocking() then
 			continue
 		end
 
@@ -53,6 +56,20 @@ end
 
 ---Initialize defense.
 function Defense.init()
+	-- Cache mob animations.
+	local assetFolder = replicatedStorage:WaitForChild("Assets")
+	local animationFolder = assetFolder:WaitForChild("Anims")
+	local mobsAnimationFolder = animationFolder:WaitForChild("Mobs")
+
+	for _, animation in next, mobsAnimationFolder:GetDescendants() do
+		if not animation:IsA("Animation") then
+			continue
+		end
+
+		mobAnimations[animation.AnimationId] = animation
+	end
+
+	-- Live folder.
 	local live = workspace:WaitForChild("Live")
 
 	-- Signals.

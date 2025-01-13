@@ -117,7 +117,7 @@ function PlayerESP:update()
 	end
 
 	local dangerTime = humanoid:GetAttribute("DangerExpiration")
-	local dangerTimeLeft = math.ceil(dangerTime - workspace:GetServerTimeNow())
+	local dangerTimeLeft = dangerTime and math.ceil(dangerTime - workspace:GetServerTimeNow())
 
 	if Configuration.idToggleValue(identifier, "ShowDangerTime") and dangerTime and dangerTime >= 0 then
 		tags[#tags + 1] = dangerTimeLeft >= 60 and ESP_DANGER_TIME:format(os.date("%Mm %Ss", dangerTimeLeft))

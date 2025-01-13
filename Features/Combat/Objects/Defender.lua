@@ -4,14 +4,11 @@ local Logger = require("Utility/Logger")
 ---@module Game.InputClient
 local InputClient = require("Game/InputClient")
 
----@module Utility.Maid
-local Maid = require("Utility/Maid")
-
----@module Utility.TaskSpawner
-local TaskSpawner = require("Utility/TaskSpawner")
+---@module Features.Combat.Objects.Task
+local Task = require("Features/Combat/Objects/Task")
 
 ---@class Defender
----@field tasks Maid
+---@field tasks Task[]
 local Defender = {}
 Defender.__index = Defender
 
@@ -24,6 +21,13 @@ local stats = game:GetService("Stats")
 ---@return boolean
 function Defender:valid(action)
 	return true
+end
+
+---Logger notify.
+---@param timing Timing
+---@param str string
+function Defender:log(timing, str, ...)
+	Logger.notify("[%s] %s", timing.name, string.format(str, ...))
 end
 
 ---Get ping.
@@ -88,15 +92,11 @@ function Defender:handle(action)
 	end
 end
 
----Check if we have active tasks.
+---Check if we have input blocking tasks.
 ---@return boolean
-function Defender:active()
-	for _, task in next, self.tasks._tasks do
-		if typeof(task) ~= "thread" then
-			continue
-		end
-
-		if coroutine.status(task) == "dead" then
+function Defender:blocking()
+	for _, task in next, self.tasks do
+		if not task:blocking() then
 			continue
 		end
 
@@ -104,36 +104,42 @@ function Defender:active()
 	end
 end
 
+---Mark task.
+---@param task Task
+function Defender:mark(task)
+	self.tasks[#self.tasks + 1] = task
+end
+
+---Clean up all tasks.
+function Defender:clean()
+	for idx, task in next, self.tasks do
+		-- Cancel task.
+		task:cancel()
+
+		-- Clear in table.
+		self.tasks[idx] = nil
+	end
+end
+
 ---Add actions from timing to defender object.
 ---@param timing Timing
 function Defender:actions(timing)
 	for _, action in next, timing.actions:get() do
-		local actionPing = self:ping()
+		-- Get ping.
+		local ping = self:ping()
 
-		local actionTask = TaskSpawner.delay(
-			string.format("Action_%s", action._type),
-			action:when() - actionPing,
-			self.handle,
-			self,
-			action
-		)
+		-- Add action.
+		self:mark(Task.new(string.format("Action_%s", action._type), action:when() - ping, self.handle, self, action))
 
-		self:log(
-			timing,
-			"Added action '%s' (%.2fs) with ping '%.2f' subtracted.",
-			action.name,
-			action:when(),
-			actionPing
-		)
-
-		self.tasks:mark(actionTask)
+		-- Log.
+		self:log(timing, "Added action '%s' (%.2fs) with ping '%.2f' subtracted.", action.name, action:when(), ping)
 	end
 end
 
 ---Create new Defender object.
 function Defender.new()
 	local self = setmetatable({}, Defender)
-	self.tasks = Maid.new()
+	self.tasks = {}
 	return self
 end
 

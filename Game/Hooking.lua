@@ -171,7 +171,7 @@ local function onNameCall(...)
 	end
 
 	---@note: Mantra block input.
-	if self.Name == "ActivateMantra" and Defense.active() then
+	if self.Name == "ActivateMantra" and Defense.blocking() then
 		return
 	end
 
@@ -425,7 +425,7 @@ local function onGetRemote(...)
 	end
 
 	---@note: Return a fake remote event to block the input.
-	if (identifier == "LeftClick" or identifier == "CriticalClick") and Defense.active() then
+	if (identifier == "LeftClick" or identifier == "CriticalClick") and Defense.blocking() then
 		return Instance.new("UnreliableRemoteEvent")
 	end
 

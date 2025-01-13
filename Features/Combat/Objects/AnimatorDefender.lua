@@ -22,16 +22,17 @@ local Configuration = require("Utility/Configuration")
 ---@module Utility.InstanceWrapper
 local InstanceWrapper = require("Utility/InstanceWrapper")
 
----@module Utility.TaskSpawner
-local TaskSpawner = require("Utility/TaskSpawner")
-
 ---@module Game.InputClient
 local InputClient = require("Game/InputClient")
+
+---@module Features.Combat.Objects.Task
+local Task = require("Features/Combat/Objects/Task")
 
 ---@class AnimatorDefender: Defender
 ---@field animator Animator
 ---@field entity Model
 ---@field heffects Instance[]
+---@field manimations table<number, Animation>
 ---@field track AnimationTrack?
 ---@field maid Maid
 local AnimatorDefender = setmetatable({}, { __index = Defender })
@@ -40,13 +41,6 @@ AnimatorDefender.__index = AnimatorDefender
 -- Services.
 local players = game:GetService("Players")
 local replicatedStorage = game:GetService("ReplicatedStorage")
-
----Logger notify.
----@param timing AnimationTiming
----@param str string
-function AnimatorDefender:log(timing, str, ...)
-	Logger.notify("[%s] %s", timing.name, string.format(str, ...))
-end
 
 ---Check if we're in a valid state to proceed with the action.
 ---@param action Action
@@ -109,9 +103,7 @@ function AnimatorDefender:valid(action)
 		return Logger.notify("No effect replicator module found.")
 	end
 
-	if effectReplicatorModule:FindEffect("Parry") or effectReplicatorModule:FindEffect("Dodge") then
-		return Logger.notify("Effect list has 'Parry' or 'Dodge' effect.")
-	end
+	---@todo: Hyperarmor check.
 
 	if
 		#self.heffects >= 1
@@ -164,21 +156,21 @@ end
 ---@param track AnimationTrack
 ---@param timing AnimationTiming
 function AnimatorDefender:rpue(track, timing)
-	local index = 0
-
-	while self.track.IsPlaying do
-		task.wait(timing:rpd() - self:ping())
-
-		if not self:initial(timing) then
-			continue
-		end
-
-		index = index + 1
-
-		self:log(timing, "Action 'RPUE Parry' is being executed at index %d.", index)
-
-		InputClient.parry()
+	if not self.track.IsPlaying then
+		return
 	end
+
+	self.tasks:mark(
+		Task.new(string.format("RPUE_%s", timing.name), timing:rsd() - self:ping(), self.rpue, self, track, timing)
+	)
+
+	if not self:initial(timing) then
+		return
+	end
+
+	self:log(timing, "Action 'RPUE Parry' is being executed.")
+
+	InputClient.parry()
 end
 
 ---Process animation track.
@@ -186,6 +178,24 @@ end
 function AnimatorDefender:process(track)
 	if track.Priority == Enum.AnimationPriority.Core then
 		return
+	end
+
+	if track.WeightTarget <= 0.05 then
+		return Logger.warn(
+			"Animation %s is being skipped from entity %s with speed %.2f and weight-target %.2f. It is hidden.",
+			track.Animation.AnimationId,
+			self.entity.Name,
+			track.WeightTarget,
+			track.Speed
+		)
+	end
+
+	if players:GetPlayerFromCharacter(self.entity) and self.manimations[track.Animation.AnimationId] ~= nil then
+		return Logger.warn(
+			"Animation %s is being skipped from player %s because they're likely AP breaking.",
+			track.Animation.AnimationId,
+			self.entity.Name
+		)
 	end
 
 	local localCharacter = players.LocalPlayer.Character
@@ -203,8 +213,34 @@ function AnimatorDefender:process(track)
 		return
 	end
 
+	local effectReplicator = replicatedStorage:FindFirstChild("EffectReplicator")
+	if not effectReplicator then
+		return
+	end
+
+	local effectReplicatorModule = require(effectReplicator)
+	if not effectReplicatorModule then
+		return
+	end
+
+	local humanoidRootPart = self.entity:FindFirstChild("HumanoidRootPart")
+	if not humanoidRootPart then
+		return
+	end
+
+	local midAttackEffect = effectReplicatorModule:FindEffect("MidAttack")
+	local midAttackCanFeint = midAttackEffect and (os.clock() - midAttackEffect.Time) <= 0.45
+
+	-- Stop! We need to feint if we're currently attacking. Input block will handle the rest.
+	-- Assume, we cannot react in time. Example: we attacked just right before this process call.
+	if not effectReplicatorModule:FindEffect("FeintCool") and midAttackCanFeint then
+		InputClient.feint(humanoidRootPart)
+	end
+
 	---@note: Clean up previous tasks that are still waiting or suspended because they're in a different track.
-	self.tasks:clean()
+	self:clean()
+
+	-- Set current data.
 	self.track = track
 	self.heffects = {}
 
@@ -213,13 +249,8 @@ function AnimatorDefender:process(track)
 		return self:actions(timing)
 	end
 
-	local rtask = TaskSpawner.delay(
-		string.format("RPUE_%s", timing.name),
-		timing:rsd() - self:ping(),
-		self.rpue,
-		self,
-		track,
-		timing
+	self:mark(
+		Task.new(string.format("RPUE_%s", timing.name), timing:rsd() - self:ping(), self.rpue, self, track, timing)
 	)
 
 	self:log(
@@ -229,21 +260,23 @@ function AnimatorDefender:process(track)
 		timing:rsd(),
 		timing:rpd()
 	)
-
-	self.tasks:mark(rtask)
 end
 
 ---Detach AnimatorDefender object.
 function AnimatorDefender:detach()
-	self.tasks:clean()
+	-- Clean tasks.
+	self:clean()
+
+	-- Clean maid and object.
 	self.maid:clean()
 	self = nil
 end
 
 ---Create new AnimatorDefender object.
 ---@param animator Animator
+---@param manimations table<number, Animation>
 ---@return AnimatorDefender
-function AnimatorDefender.new(animator)
+function AnimatorDefender.new(animator, manimations)
 	local entity = animator:FindFirstAncestorWhichIsA("Model")
 	if not entity then
 		return error(string.format("AnimatorDefender.new(%s) - no entity.", animator:GetFullName()))
@@ -253,10 +286,11 @@ function AnimatorDefender.new(animator)
 	local animationPlayed = Signal.new(animator.AnimationPlayed)
 	local entityDescendantAdded = Signal.new(entity.DescendantAdded)
 
-	self.track = nil
 	self.animator = animator
+	self.manimations = manimations
 	self.entity = entity
 
+	self.track = nil
 	self.heffects = {}
 	self.maid = Maid.new()
 
