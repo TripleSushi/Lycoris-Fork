@@ -268,27 +268,14 @@ function BuilderSection:baction(base)
 	})
 
 	base:AddButton(
-		"Add Action To List",
+		"Create Empty Action",
 		self:tnc(function(timing)
-			-- Check name.
-			if not self.actionName.Value or #self.actionName.Value <= 0 then
-				return Logger.longNotify("Please enter a valid action name.")
-			end
-
-			-- Check for existing action.
-			if timing.actions:find(self.actionName.Value) then
-				return Logger.longNotify("The action '%s' already exists in the list.", self.actionName.Value)
-			end
-
 			-- Fetch actions.
 			local actions = timing.actions
 
 			-- Create new action.
 			local action = Action.new()
-			action.name = self.actionName.Value
-			action._when = self.actionDelay.Value
-			action._type = self.actionType.Value
-			action.hitbox = Vector3.new(self.hitboxWidth.Value, self.hitboxHeight.Value, self.hitboxLength.Value)
+			action.name = string.format("Empty Timing %i", #actions._data + 1)
 
 			-- Record ping for telemetry.
 			local network = stats:FindFirstChild("Network")
@@ -394,7 +381,6 @@ function BuilderSection:timing()
 
 	local configDepBox = tab:AddDependencyBox()
 
-	---@note: Look into writing the current timing element data like we do for Actions (?)
 	configDepBox:AddButton("Create Empty Timing", function()
 		-- Fetch config.
 		local config = self.pair.config
