@@ -93,6 +93,7 @@ function BuilderTab.initSaveManagerSection(groupbox)
 
 	groupbox:AddButton("Refresh List", function()
 		SaveManager.refresh(configList)
+		BuilderTab.refresh()
 	end)
 
 	groupbox:AddButton("Set To Auto Load", function()
