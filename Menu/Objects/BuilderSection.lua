@@ -263,7 +263,7 @@ function BuilderSection:baction(base)
 	})
 
 	base:AddButton(
-		"Create New Action",
+		"Create Empty Action",
 		self:tnc(function(timing)
 			-- Fetch actions.
 			local actions = timing.actions
@@ -381,7 +381,7 @@ function BuilderSection:timing()
 
 	local configDepBox = tab:AddDependencyBox()
 
-	configDepBox:AddButton("Create New Timing", function()
+	configDepBox:AddButton("Create Empty Timing", function()
 		-- Fetch config.
 		local config = self.pair.config
 
