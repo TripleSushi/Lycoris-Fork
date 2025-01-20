@@ -142,7 +142,7 @@ function GameTab.initLocalCharacterSection(groupbox)
 		})
 		:AddKeyPicker(
 			"TweenToObjectivesKeybind",
-			{ Default = "None", SyncToggleState = true, Text = "Tween To Objectives" }
+			{ Default = "N/A", SyncToggleState = true, Text = "Tween To Objectives" }
 		)
 
 	groupbox:AddToggle("AutoSprint", {
