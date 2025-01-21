@@ -39,6 +39,7 @@ local noBlindMap = removalMaid:mark(OriginalStoreManager.new())
 local killBricksMap = removalMaid:mark(OriginalStoreManager.new())
 local lightBarrierMap = removalMaid:mark(OriginalStoreManager.new())
 local yunShulBarrierMap = removalMaid:mark(OriginalStoreManager.new())
+local yunShulResonanceDoorMap = removalMaid:mark(OriginalStoreManager.new())
 
 -- Signals.
 local renderStepped = Signal.new(runService.RenderStepped)
@@ -148,6 +149,15 @@ local function updateNoYunShulBarrier()
 
 		store:set(store.data, "CFrame", CFrame.new(math.huge, math.huge, math.huge))
 	end
+
+	for _, store in next, yunShulResonanceDoorMap:data() do
+		local data = store.data
+		if not data then
+			continue
+		end
+
+		store:set(store.data, "Parent", nil)
+	end
 end
 
 ---Update removal.
@@ -179,6 +189,7 @@ local function updateRemoval()
 		updateNoYunShulBarrier()
 	else
 		yunShulBarrierMap:restore()
+		yunShulResonanceDoorMap:restore()
 	end
 
 	if Configuration.expectToggleValue("NoFog") then
@@ -270,7 +281,11 @@ end
 ---On workspace descendant added.
 ---@param descendant Instance
 local function onWorkspaceDescendantAdded(descendant)
-	if not descendant:IsA("BasePart") and not descendant:IsA("Model") then
+	if descendant:IsA("Model") and descendant.Name == "ResonanceDoor" then
+		yunShulResonanceDoorMap:mark(descendant, "Parent")
+	end
+
+	if not descendant:IsA("BasePart") then
 		return
 	end
 
@@ -286,7 +301,7 @@ local function onWorkspaceDescendantAdded(descendant)
 		killBricksMap:mark(descendant, "CFrame")
 	end
 
-	if descendant.Name == "ResonanceDoor" or descendant.Name == "DeepPassage_Yun" then
+	if descendant.Name == "DeepPassage_Yun" then
 		yunShulBarrierMap:mark(descendant, "CFrame")
 	end
 end
