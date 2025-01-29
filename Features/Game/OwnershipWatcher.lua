@@ -21,6 +21,7 @@ local renderStepped = Signal.new(runService.RenderStepped)
 
 -- Maids.
 local ownershipMaid = Maid.new()
+local partMaid = Maid.new()
 
 -- Ownership data.
 local clientPart = Instance.new('Part', workspace)
@@ -36,7 +37,7 @@ local function hasNetworkOwnership(part)
     end)
 
     if not success then
-        return not part.Anchored and part.ReceiveAge == 0 and part.Velocity.Magnitude > 0
+        return not part.Anchored and part.ReceiveAge == 0 and part.AssemblyLinearVelocity.Magnitude > 0
     end
 
     return partPeerId == clientPeerId
@@ -64,6 +65,8 @@ local function onLiveRemoved(character)
     end
 
     OwnershipWatcher.modelsToScan[character] = nil
+
+    partMaid:clean()
 end
 
 ---Update ownership.
@@ -83,17 +86,13 @@ local function updateOwnership()
         local isNetworkOwner = hasNetworkOwnership(humanoidRootPart)
 
         -- Visualization.
-        local netVisual = InstanceWrapper.create(ownershipMaid, "NetworkVisual", "Part", humanoidRootPart)
+        local netVisual = InstanceWrapper.create(partMaid, "NetworkVisual", "Part", model)
         netVisual.Anchored = false
         netVisual.CanCollide = false
         netVisual.Size = Vector3.new(5, 5, 2)
         netVisual.Transparency = Configuration.expectToggleValue("ShowOwnership") and 0.8 or 1.0
         netVisual.Color = isNetworkOwner and  Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-
-        -- Weld.
-        local netWeld = InstanceWrapper.create(ownershipMaid, "NetworkVisualWeld", "Weld", netVisual)
-        netWeld.Part0 = humanoidRootPart
-        netWeld.Part1 = netVisual
+        netVisual.CFrame = humanoidRootPart.CFrame
 
         -- Mark part.
         OwnershipWatcher.parts[humanoidRootPart] = { owned = isNetworkOwner, model = model }
