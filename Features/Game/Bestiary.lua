@@ -79,7 +79,7 @@ local MOB_SCRAPER_LIST = {
 }
 
 -- Instances.
-local bestiaryClient = Instance.new("LocalScript")
+local bestiaryClient = Instance.new("Part")
 local bestiaryFrame = Instance.new("Frame")
 local overlay = Instance.new("ImageLabel")
 local detailSheet = Instance.new("Frame")
