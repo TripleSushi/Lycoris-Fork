@@ -97,12 +97,16 @@ local function updateOwnership()
         
         local isNetworkOwner = hasNetworkOwnership(HumanoidRootPart)
         if not isNetworkOwner then
-            NetVisual.Color = Color3.fromRGB(0, 0, 255)
+            if NetVisual then
+                NetVisual.Color = Color3.fromRGB(0, 0, 255)
+            end
             v:RemoveTag('NetworkOwner')
             continue
         end
 
-        NetVisual.Color = Color3.fromRGB(0, 255, 0)
+        if NetVisual then
+            NetVisual.Color = Color3.fromRGB(0, 255, 0)
+        end
         v:AddTag('NetworkOwner')
     end
 end
