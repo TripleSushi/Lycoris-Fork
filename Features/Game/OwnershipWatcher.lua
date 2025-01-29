@@ -86,7 +86,7 @@ local function updateOwnership()
         netVisual.Color = isNetworkOwner and  Color3.fromRGB(0, 255, 0) or Color3.fromRGB(0, 0, 255)
 
         -- Weld.
-        local netWeld = InstanceWrapper.create(ownershipMaid, "Weld", "Part", netVisual)
+        local netWeld = InstanceWrapper.create(ownershipMaid, "NetworkVisualWeld", "Weld", netVisual)
         netWeld.Part0 = humanoidRootPart
         netWeld.Part1 = netVisual
 
