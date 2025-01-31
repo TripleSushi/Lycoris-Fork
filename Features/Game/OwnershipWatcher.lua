@@ -1,4 +1,5 @@
 -- Services
+local playersService = game:GetService("Players")
 local runService = game:GetService("RunService")
 
 ---@module Utility.Maid
@@ -10,11 +11,18 @@ local Configuration = require("Utility/Configuration")
 ---@module Utility.Signal
 local Signal = require("Utility/Signal")
 
+---@module Utility.InstanceWrapper
+local InstanceWrapper = require("Utility/InstanceWrapper")
+
 -- Signals.
 local renderStepped = Signal.new(runService.RenderStepped)
 
 -- Maids.
 local ownershipMaid = Maid.new()
+local voidMaid = Maid.new()
+
+-- Void Mobs
+local YForce = workspace.StreamingEnabled and Vector3.new(0, -8000, 0) or Vector3.new(0, -100, 0)
 
 --- Replication Part & PeerId
 local clientPart = Instance.new('Part', workspace)
@@ -74,9 +82,19 @@ local function onLiveRemoved(character)
     table.remove(ownershipHolder, table.find(ownershipHolder, character))
 end
 
+--- Updates ownership of every character
 local function updateOwnership()
     local ShowOwnership = Configuration.expectToggleValue("ShowOwnership")
+    if not Configuration.expectToggleValue("VoidMobs") and not ShowOwnership then
+        voidMaid:clean()
+        return
+    end
+    
     for _,v in next, ownershipHolder do
+        if v == playersService.LocalPlayer.Character then
+            continue
+        end
+
         local HumanoidRootPart = v:FindFirstChild("HumanoidRootPart")
         if not HumanoidRootPart then
             continue
@@ -100,13 +118,13 @@ local function updateOwnership()
             if NetVisual then
                 NetVisual.Color = Color3.fromRGB(0, 0, 255)
             end
-            v:RemoveTag('NetworkOwner')
             continue
         end
 
         if NetVisual then
             NetVisual.Color = Color3.fromRGB(0, 255, 0)
         end
+
         v:AddTag('NetworkOwner')
     end
 end

@@ -43,7 +43,7 @@ function GameTab.initLocalCharacterSection(groupbox)
 		Text = "Fly Speed",
 		Default = 200,
 		Min = 0,
-		Max = 300,
+		Max = 450, -- 450 for aa gun bypass
 		Suffix = "/s",
 		Rounding = 0,
 	})
@@ -192,6 +192,17 @@ function GameTab.initLocalCharacterSection(groupbox)
 		Text = "Emote Spoofer",
 		Tooltip = "Unlock all emotes and use them without owning them.",
 		Default = false,
+	})
+	
+	groupbox:AddButton({
+		Text = "Respawn Character",
+		DoubleClick = true,
+		Func = function()
+			local character = game:GetService("Players").LocalPlayer.Character
+			if character then
+				character:PivotTo(character.HumanoidRootPart.CFrame * CFrame.new(0,1000000,0))
+			end
+		end,
 	})
 
 	asDepBox:SetupDependencies({
