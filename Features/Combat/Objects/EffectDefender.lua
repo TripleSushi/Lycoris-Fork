@@ -100,7 +100,7 @@ end
 ---@param owner Model
 ---@return EffectDefender
 function EffectDefender.new(name, owner)
-	local self = setmetatable(Defender.new(), {})
+	local self = setmetatable(Defender.new(), EffectDefender)
 	self.name = name
 	self.owner = owner
 	return self

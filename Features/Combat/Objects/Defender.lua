@@ -90,20 +90,36 @@ function Defender:hitbox(position, size, filter)
 	---@todo: Bad fix. The issue is that the player's current look vector will not be the same as when they attack due to a parry timing being seperate from the attack.
 	local realCFrame = CFrame.lookAt(position, root.Position)
 
+	-- Check in bounds.
+	local inBounds = #workspace:GetPartBoundsInBox(realCFrame, size, overlapParams) > 0
+
+	-- Visualize color.
+	local visColor = inBounds and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(0, 255, 0)
+
 	---@todo: Make the visualizations better. This is just for debugging. Right now, they don't clear up properly.
 	if Configuration.expectToggleValue("EnableVisualizations") then
 		local visualizationPart = InstanceWrapper.create(self.maid, "VisualizationPart", "Part")
 		visualizationPart.Size = size
 		visualizationPart.CFrame = realCFrame
 		visualizationPart.Transparency = 0.85
-		visualizationPart.Color = Color3.fromRGB(0, 255, 0)
+		visualizationPart.Color = visColor
 		visualizationPart.Parent = workspace
 		visualizationPart.Anchored = true
 		visualizationPart.CanCollide = false
 		visualizationPart.Material = Enum.Material.SmoothPlastic
+
+		local playerVisPart = InstanceWrapper.create(self.maid, "PlayerVisualizationPart", "Part")
+		playerVisPart.Size = root.Size
+		playerVisPart.CFrame = root.CFrame
+		playerVisPart.Transparency = 0.85
+		playerVisPart.Color = visColor
+		playerVisPart.Parent = workspace
+		playerVisPart.Anchored = true
+		playerVisPart.CanCollide = false
+		playerVisPart.Material = Enum.Material.Plastic
 	end
 
-	return #workspace:GetPartBoundsInBox(realCFrame, size, overlapParams) > 0
+	return inBounds
 end
 
 ---Logger notify.
