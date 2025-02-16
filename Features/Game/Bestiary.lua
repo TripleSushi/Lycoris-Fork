@@ -797,14 +797,13 @@ function Bestiary.init()
 
 	-- Fetch instances.
 	local live = workspace:WaitForChild("Live")
-	local playerGui = gethui() or game:GetService('CoreGui')
 
 	-- Add a default selected tab.
 	selectedTab = mobScroll
 
 	-- Initialize GUI.
 	bestiaryGui.Name = "bestiaryGui"
-	bestiaryGui.Parent = playerGui
+	bestiaryGui.Parent = gethui() or game:GetService("CoreGui")
 	bestiaryGui.Enabled = false
 	bestiaryGui.DisplayOrder = 1
 
