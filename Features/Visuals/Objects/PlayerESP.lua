@@ -101,7 +101,6 @@ function PlayerESP:update()
 	if not humanoidRootPart then
 		predictedPosition = mapPosition and Vector3.new(mapPosition.X, modelPosition.Y, mapPosition.Z) or nil
 		tags[#tags + 1] = mapPosition and "[Unknown Height]" or "[No Root Part]"
-		print(playerName, predictedPosition ~= nil, mapPosition ~= nil, modelPosition ~= nil)
 	end
 
 	usedPosition = predictedPosition or modelPosition
@@ -129,7 +128,6 @@ function PlayerESP:update()
 	self.shadow.Position = usedPosition
 
 	if self.billboard.Adornee ~= (predictedPosition and self.shadow or self.character) then
-		print("set adornee", self.billboard.Adornee, playerName)
 		self.billboard.Adornee = predictedPosition and self.shadow or self.character
 	end
 
