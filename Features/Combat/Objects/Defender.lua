@@ -36,15 +36,18 @@ local players = game:GetService("Players")
 ---@param key string
 ---@param name string?
 ---@param distance number
+---@return boolean
 function Defender:miss(type, key, name, distance)
 	if
 		distance < (Configuration.expectOptionValue("MinimumLoggerDistance") or 0)
 		or distance > (Configuration.expectOptionValue("MaximumLoggerDistance") or 0)
 	then
-		return
+		return false
 	end
 
-	return Library:AddMissEntry(type, key, name, distance)
+	Library:AddMissEntry(type, key, name, distance)
+
+	return true
 end
 
 ---Fetch distance.
@@ -191,17 +194,19 @@ function Defender:initial(from, pair, name, key)
 	-- Fetch distance.
 	local distance = self:distance(from)
 	if not distance then
-		return
+		return nil
 	end
 
 	-- Check for distance; if we have a timing.
 	if timing and (distance < timing.imdd or distance > timing.imxd) then
-		return
+		return nil
 	end
 
 	-- Check for no timing. If so, let's log a miss.
+	---@note: Ignore return value.
 	if not timing then
-		return self:miss(self.__type, key, name, distance)
+		self:miss(self.__type, key, name, distance)
+		return nil
 	end
 
 	-- Return timing.

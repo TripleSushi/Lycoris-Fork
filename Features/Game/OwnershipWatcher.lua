@@ -23,7 +23,7 @@ local renderStepped = Signal.new(runService.RenderStepped)
 local ownershipMaid = Maid.new()
 
 -- Ownership data.
-local clientPart = Instance.new('Part', workspace)
+local clientPart = Instance.new("Part", workspace)
 local clientPeerId = gethiddenproperty(clientPart, "NetworkOwnerV3")
 clientPart:Destroy()
 
@@ -31,83 +31,83 @@ clientPart:Destroy()
 ---@param part BasePart
 ---@return boolean
 local function hasNetworkOwnership(part)
-    local success, partPeerId = pcall(function()
-        return gethiddenproperty(part, "NetworkOwnerV3")
-    end)
+	local success, partPeerId = pcall(function()
+		return gethiddenproperty(part, "NetworkOwnerV3")
+	end)
+	print(success, partPeerId, clientPeerId)
+	if not success then
+		return not part.Anchored and part.ReceiveAge == 0 and part.AssemblyLinearVelocity.Magnitude > 0
+	end
 
-    if not success then
-        return not part.Anchored and part.ReceiveAge == 0 and part.AssemblyLinearVelocity.Magnitude > 0
-    end
-
-    return partPeerId == clientPeerId
+	return partPeerId == clientPeerId
 end
 
 ---Clean up parts. Every model to scan has a maid linked to it.
 local function cleanParts()
-    for _, maid in next, OwnershipWatcher.modelsToScan do
-        maid:clean()
-    end
+	for _, maid in next, OwnershipWatcher.modelsToScan do
+		maid:clean()
+	end
 end
 
 ---Add live characters to ownership watcher.
 ---@param character Model
 local function onLiveAdded(character)
-    if not character:IsA('Model') then
-        return
-    end
+	if not character:IsA("Model") then
+		return
+	end
 
-    if OwnershipWatcher.modelsToScan[character] then
-        return
-    end
+	if OwnershipWatcher.modelsToScan[character] then
+		return
+	end
 
-    OwnershipWatcher.modelsToScan[character] = Maid.new()
+	OwnershipWatcher.modelsToScan[character] = Maid.new()
 end
 
 ---Remove live characters from ownership watcher.
 ---@param character Model
 local function onLiveRemoved(character)
-    if not OwnershipWatcher.modelsToScan[character] then
-        return
-    end
+	if not OwnershipWatcher.modelsToScan[character] then
+		return
+	end
 
-    OwnershipWatcher.modelsToScan[character]:clean()
-    OwnershipWatcher.modelsToScan[character] = nil
+	OwnershipWatcher.modelsToScan[character]:clean()
+	OwnershipWatcher.modelsToScan[character] = nil
 end
 
 ---Update ownership.
 local function updateOwnership()
-    ---@optimization: Stop updating when we don't need it.
-    if not Configuration.expectToggleValue("ShowOwnership") and not Configuration.expectToggleValue("VoidMobs") then
-        return cleanParts()
-    end
+	---@optimization: Stop updating when we don't need it.
+	if not Configuration.expectToggleValue("ShowOwnership") and not Configuration.expectToggleValue("VoidMobs") then
+		return cleanParts()
+	end
 
-    for model, maid in next, OwnershipWatcher.modelsToScan do
-        local humanoidRootPart = model:FindFirstChild("HumanoidRootPart")
-        if not humanoidRootPart then
-            continue
-        end
+	for model, maid in next, OwnershipWatcher.modelsToScan do
+		local humanoidRootPart = model:FindFirstChild("HumanoidRootPart")
+		if not humanoidRootPart then
+			continue
+		end
 
-        -- Check if owner.
-        local isNetworkOwner = hasNetworkOwnership(humanoidRootPart)
+		-- Check if owner.
+		local isNetworkOwner = hasNetworkOwnership(humanoidRootPart)
 
-        -- Visualization.
-        local netVisual = InstanceWrapper.create(maid, "NetworkVisual", "Part", model)
-        netVisual.Size = Vector3.new(5, 5, 2)
-        netVisual.Transparency = Configuration.expectToggleValue("ShowOwnership") and 0.8 or 1.0
-        netVisual.Color = isNetworkOwner and  Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-        netVisual.CFrame = humanoidRootPart.CFrame
-        netVisual.Anchored = true
-        netVisual.CanCollide = false
+		-- Visualization.
+		local netVisual = InstanceWrapper.create(maid, "NetworkVisual", "Part", model)
+		netVisual.Size = Vector3.new(5, 5, 2)
+		netVisual.Transparency = Configuration.expectToggleValue("ShowOwnership") and 0.8 or 1.0
+		netVisual.Color = isNetworkOwner and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+		netVisual.CFrame = humanoidRootPart.CFrame
+		netVisual.Anchored = true
+		netVisual.CanCollide = false
 
-        -- Mark part.
-        OwnershipWatcher.parts[humanoidRootPart] = { owned = isNetworkOwner, model = model }
-    end
+		-- Mark part.
+		OwnershipWatcher.parts[humanoidRootPart] = { owned = isNetworkOwner, model = model }
+	end
 end
 
 ---Get table of watched parts along with a mapping to extra data.
 ---@return table<BasePart, table>
 function OwnershipWatcher.get()
-    return OwnershipWatcher.parts
+	return OwnershipWatcher.parts
 end
 
 ---Iniitalize OwnershipWatcher module.
@@ -116,22 +116,22 @@ function OwnershipWatcher.init()
 	local liveChildAdded = Signal.new(live.ChildAdded)
 	local liveChildRemoved = Signal.new(live.ChildRemoved)
 
-    ownershipMaid:add(liveChildAdded:connect("OwnershipWatcher_OnLiveChildAdded", onLiveAdded))
-    ownershipMaid:add(liveChildRemoved:connect("OwnershipWatcher_OnLiveChildRemoved", onLiveRemoved))
-    ownershipMaid:add(renderStepped:connect("OwnershipWatcher_RenderStepped", updateOwnership))
+	ownershipMaid:add(liveChildAdded:connect("OwnershipWatcher_OnLiveChildAdded", onLiveAdded))
+	ownershipMaid:add(liveChildRemoved:connect("OwnershipWatcher_OnLiveChildRemoved", onLiveRemoved))
+	ownershipMaid:add(renderStepped:connect("OwnershipWatcher_RenderStepped", updateOwnership))
 
-    for _, entity in next, live:GetChildren() do
-        onLiveAdded(entity)
-    end
+	for _, entity in next, live:GetChildren() do
+		onLiveAdded(entity)
+	end
 end
 
 ---Detach OwnershipWatcher module.
 function OwnershipWatcher.detach()
-    -- Clean up ownership maids.
-    ownershipMaid:clean()
+	-- Clean up ownership maids.
+	ownershipMaid:clean()
 
-    -- Clean up parts.
-    cleanParts()
+	-- Clean up parts.
+	cleanParts()
 end
 
 -- Return OwnershipWatcher module.

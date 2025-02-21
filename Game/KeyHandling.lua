@@ -146,7 +146,7 @@ end
 
 ---Initialize the KeyHandler module.
 function KeyHandling.init()
-	repeat
+	while true do
 		for _, value in next, getgc(true) do
 			if typeof(value) ~= "table" then
 				continue
@@ -206,8 +206,12 @@ function KeyHandling.init()
 			remoteTable = value
 		end
 
+		if remoteTable and randomTable then
+			break
+		end
+
 		task.wait(0.5)
-	until randomTable and remoteTable
+	end
 end
 
 ---Get remote from a specific remote name.

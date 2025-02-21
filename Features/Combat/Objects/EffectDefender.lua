@@ -38,7 +38,7 @@ function EffectDefender:valid(timing, action)
 	return true
 end
 
----Process sound playing
+---Process effect.
 function EffectDefender:process()
 	if players.LocalPlayer.Character and self.owner == players.LocalPlayer.Character then
 		return
@@ -65,6 +65,7 @@ function EffectDefender.new(name, owner)
 	local self = setmetatable(Defender.new(), EffectDefender)
 	self.name = name
 	self.owner = owner
+	self:process()
 	return self
 end
 

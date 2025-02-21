@@ -19,6 +19,9 @@ local PartTiming = require("Game/Timings/PartTiming")
 ---@module Game.Timings.SoundTiming
 local SoundTiming = require("Game/Timings/SoundTiming")
 
+---@module Game.Timings.EmitterTiming
+local EmitterTiming = require("Game/Timings/EmitterTiming")
+
 -- SaveManager module.
 local SaveManager = {}
 
@@ -279,18 +282,21 @@ function SaveManager.init()
 	local internalEffectContainer = TimingContainer.new(EffectTiming.new())
 	local internalPartContainer = TimingContainer.new(PartTiming.new())
 	local internalSoundContainer = TimingContainer.new(SoundTiming.new())
+	local internalEmitterContainer = TimingContainer.new(EmitterTiming.new())
 
 	---@todo: Load internal timings from server.
 	internalAnimationContainer:load({})
 	internalEffectContainer:load({})
 	internalPartContainer:load({})
 	internalSoundContainer:load({})
+	internalEmitterContainer:load({})
 
 	-- Count up internal timings.
 	local internalCount = internalAnimationContainer:count()
 		+ internalEffectContainer:count()
 		+ internalPartContainer:count()
 		+ internalSoundContainer:count()
+		+ internalEmitterContainer:count()
 
 	Logger.notify(
 		"Internal timings have loaded with %i timings in %.2f seconds.",
@@ -317,6 +323,9 @@ function SaveManager.init()
 
 	-- Sound stack.
 	SaveManager.ss = TimingContainerPair.new(internalSoundContainer, config:get().sound)
+
+	-- Emitter stack.
+	SaveManager.ems = TimingContainerPair.new(internalEmitterContainer, config:get().emitter)
 end
 
 -- Return SaveManager module.

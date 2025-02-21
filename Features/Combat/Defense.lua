@@ -16,26 +16,17 @@ local SoundDefender = require("Features/Combat/Objects/SoundDefender")
 ---@module Features.Combat.Objects.EffectDefender
 local EffectDefender = require("Features/Combat/Objects/EffectDefender")
 
----@module Game.Timings.SaveManager
-local SaveManager = require("Game/Timings/SaveManager")
-
----@module Features.Combat.Objects.Defender
-local Defender = require("Features/Combat/Objects/Defender")
-
----@module Utility.Table
-local Table = require("Utility/Table")
+---@module Features.Combat.Objects.EmitterDefender
+local EmitterDefender = require("Features/Combat/Objects/EmitterDefender")
 
 ---@module Utility.Configuration
 local Configuration = require("Utility/Configuration")
 
----@module Utility.Logger
-local Logger = require("Utility/Logger")
+---@module Utility.Table
+local Table = require("Utility/Table")
 
 -- Handle all defense related functions.
 local Defense = {}
-
--- Constants.
-local PROJECTILE_TIMEOUT = 10.0
 
 -- Services.
 local replicatedStorage = game:GetService("ReplicatedStorage")
@@ -48,6 +39,7 @@ local defenseMaid = Maid.new()
 -- Defender objects.
 local defenderObjects = {}
 local defenderPartObjects = {}
+local defenderEmitterObjects = {}
 
 -- Mob animations.
 local mobAnimations = {}
@@ -66,8 +58,6 @@ local function findEffectOwner(data)
 		return
 	end
 
-	local owner = nil
-
 	for _, value in next, data do
 		if typeof(value) ~= "Instance" or value.Parent ~= live or value == character then
 			continue
@@ -75,8 +65,6 @@ local function findEffectOwner(data)
 
 		return value
 	end
-
-	return owner
 end
 
 ---Add animator defender.
@@ -107,17 +95,30 @@ local function addPartDefender(part)
 		return
 	end
 
-	local comparison = function(element)
-		return table.find(partDefender.timing.filter, element.Name)
+	-- Link to list.
+	defenderObjects[part] = partDefender
+	defenderPartObjects[part] = partDefender
+end
+
+---Add emitter defender.
+---@param emitter ParticleEmitter
+local function addEmitterDefender(emitter)
+	-- Get emitter defender.
+	local emitterDefender = EmitterDefender.new(emitter)
+	if not emitterDefender then
+		return
 	end
 
-	if #partDefender.timing.filter >= 1 and not Table.elements(part:GetDescendants(), comparison) then
+	-- Check if there's already a defender object under this part.
+	if Table.elements(defenderEmitterObjects, function(object)
+		return object.part == emitterDefender.part
+	end) then
 		return
 	end
 
 	-- Link to list.
-	defenderObjects[part] = partDefender
-	defenderPartObjects[part] = partDefender
+	defenderObjects[emitter] = emitterDefender
+	defenderEmitterObjects[emitter] = emitterDefender
 end
 
 ---On game descendant added.
@@ -134,6 +135,10 @@ local function onGameDescendantAdded(descendant)
 	if descendant:IsA("BasePart") then
 		return addPartDefender(descendant)
 	end
+
+	if descendant:IsA("ParticleEmitter") then
+		return addEmitterDefender(descendant)
+	end
 end
 
 ---On game descendant removed.
@@ -142,6 +147,10 @@ local function onGameDescendantRemoved(descendant)
 	local object = defenderObjects[descendant]
 	if not object then
 		return
+	end
+
+	if defenderEmitterObjects[descendant] then
+		defenderEmitterObjects[descendant] = nil
 	end
 
 	if defenderPartObjects[descendant] then
@@ -174,23 +183,16 @@ local function updatePartDefenders()
 		return
 	end
 
-	for idx, object in next, defenderPartObjects do
+	for _, object in next, defenderPartObjects do
 		if not object.update then
 			continue
 		end
 
-		---@note: Force object timeout. Some part(s) just never get removed? I've seen it with the hitboxes sometimes.
-		if os.clock() > object.start + PROJECTILE_TIMEOUT then
-			-- Detach object.
-			object:detach()
+		object:update()
+	end
 
-			-- Remove from list.
-			defenderObjects[idx] = nil
-
-			-- Log.
-			Logger.warn("Detached part defender '%s' due to timeout.", object.part.Name)
-
-			-- Continue.
+	for _, object in next, defenderEmitterObjects do
+		if not object.update then
 			continue
 		end
 

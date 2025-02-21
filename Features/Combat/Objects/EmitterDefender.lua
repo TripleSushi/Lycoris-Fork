@@ -1,34 +1,34 @@
 ---@module Features.Combat.Objects.Defender
 local Defender = require("Features/Combat/Objects/Defender")
 
----@module Utility.Entitites
-local Entities = require("Utility/Entitites")
-
----@module Utility.Table
-local Table = require("Utility/Table")
-
 ---@module Features.Combat.Targeting
 local Targeting = require("Features/Combat/Targeting")
 
 ---@module Game.Timings.SaveManager
 local SaveManager = require("Game/Timings/SaveManager")
 
----@class PartDefender: Defender
----@field owner Model? The owner of the part. There will be "no owner" if there is no animation to link to because we do not have enough data.
----@field part BasePart
----@field timing PartTiming
+---@module Utility.Entitites
+local Entities = require("Utility/Entitites")
+
+---@module Utility.Table
+local Table = require("Utility/Table")
+
+---@class EmitterDefender: Defender
+---@note: De-duplicate me with PartDefender.
+---@field owner Part? The owner of the emitter.
+---@field timing EmitterTiming
 ---@field touched boolean Determines whether if we touched the timing in the past.
-local PartDefender = setmetatable({}, { __index = Defender })
-PartDefender.__index = PartDefender
-PartDefender.__type = "Part"
+local EmitterDefender = setmetatable({}, { __index = Defender })
+EmitterDefender.__index = EmitterDefender
+EmitterDefender.__type = "Emitter"
 
 -- Services.
 local players = game:GetService("Players")
 
----Guess the nearest viable owner of a part by using a specific part timing.
----@param timing PartTiming
+---Guess the nearest viable owner of a part by using a specific emitter timing.
+---@param timing EmitterTiming
 ---@return Model?
-local function guessOwnerFromPartTiming(timing)
+local function guessOwnerFromEmitterTiming(timing)
 	for _, entity in next, Entities.getEntitiesInRange(timing.imxd) do
 		local humanoid = entity:FindFirstChildWhichIsA("Humanoid")
 		if not humanoid then
@@ -54,10 +54,10 @@ local function guessOwnerFromPartTiming(timing)
 end
 
 ---Check if we're in a valid state to proceed with the action.
----@param timing PartTiming
+---@param timing EmitterTiming
 ---@param action Action
 ---@return boolean
-function PartDefender:valid(timing, action)
+function EmitterDefender:valid(timing, action)
 	if self.owner and not Targeting.find(self.owner) then
 		return self:notify(timing, "Not a viable target.")
 	end
@@ -74,8 +74,8 @@ function PartDefender:valid(timing, action)
 	return true
 end
 
----Update PartDefender object.
-function PartDefender:update()
+---Update EmitterDefender object.
+function EmitterDefender:update()
 	-- Deny updates if we already have actions in the queue.
 	if #self.tasks > 0 then
 		return
@@ -94,7 +94,7 @@ function PartDefender:update()
 	-- Get current hitbox state.
 	local touching = self:hitbox(self.part.Position, 0, self.timing.hitbox, { character })
 
-	-- Deny updates if we're not touching the part.
+	-- Deny updates if we're not touching it.
 	if not touching then
 		return
 	end
@@ -114,19 +114,32 @@ function PartDefender:update()
 	return self:actions(self.timing, 1.0)
 end
 
----Create new PartDefender object.
----@param part BasePart
----@return PartDefender?
-function PartDefender.new(part)
-	local self = setmetatable(Defender.new(), PartDefender)
+---Create new EmitterDefender object.
+---@param emitter ParticleEmitter?
+---@return EmitterDefender?
+function EmitterDefender.new(emitter)
+	local part = emitter:FindFirstAncestorWhichIsA("BasePart")
+	if not part then
+		return nil
+	end
+
+	local self = setmetatable(Defender.new(), EmitterDefender)
 
 	self.part = part
-	self.timing = self:initial(part, SaveManager.ps, nil, part.Name)
-	self.owner = self.timing and guessOwnerFromPartTiming(self.timing)
+	self.timing = self:initial(part, SaveManager.ems, part.Name, tostring(emitter.Texture))
+	self.owner = self.timing and guessOwnerFromEmitterTiming(self.timing)
 	self.touched = false
 
-	return self.timing and self or nil
+	if not self.timing then
+		return nil
+	end
+
+	if part.Name ~= self.timing.part then
+		return nil
+	end
+
+	return self
 end
 
 -- Return PartDefender module.
-return PartDefender
+return EmitterDefender

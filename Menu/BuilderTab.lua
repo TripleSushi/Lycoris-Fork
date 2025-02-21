@@ -10,6 +10,9 @@ local SoundBuilderSection = require("Menu/Objects/SoundBuilderSection")
 ---@module Menu.Objects.EffectBuilderSection
 local EffectBuilderSection = require("Menu/Objects/EffectBuilderSection")
 
+---@module Menu.Objects.EmitterBuilderSection
+local EmitterBuilderSection = require("Menu/Objects/EmitterBuilderSection")
+
 ---@module Menu.Objects.PartBuilderSection
 local PartBuilderSection = require("Menu/Objects/PartBuilderSection")
 
@@ -18,6 +21,9 @@ local AnimationTiming = require("Game/Timings/AnimationTiming")
 
 ---@module Game.Timings.EffectTiming
 local EffectTiming = require("Game/Timings/EffectTiming")
+
+---@module Game.Timings.EmitterTiming
+local EmitterTiming = require("Game/Timings/EmitterTiming")
 
 ---@module Game.Timings.PartTiming
 local PartTiming = require("Game/Timings/PartTiming")
@@ -34,6 +40,7 @@ local BuilderTab = {
 	ebs = nil,
 	pbs = nil,
 	sbs = nil,
+	embs = nil,
 }
 
 ---Refresh builder lists.
@@ -56,6 +63,11 @@ function BuilderTab.refresh()
 	if BuilderTab.sbs then
 		BuilderTab.sbs:reset()
 		BuilderTab.sbs:refresh()
+	end
+
+	if BuilderTab.embs then
+		BuilderTab.embs:reset()
+		BuilderTab.embs:refresh()
 	end
 end
 
@@ -154,7 +166,7 @@ function BuilderTab.initLoggerSection(groupbox)
 		Max = 1000,
 		Rounding = 0,
 		Suffix = "m",
-		Default = 100,
+		Default = 0,
 	})
 
 	local blacklistedKeys = groupbox:AddDropdown("BlacklistedKeys", {
@@ -192,12 +204,14 @@ function BuilderTab.init(window)
 	BuilderTab.pbs = PartBuilderSection.new("Part", tab:AddDynamicTabbox(), SaveManager.ps, PartTiming.new())
 	BuilderTab.ebs = EffectBuilderSection.new("Effect", tab:AddDynamicTabbox(), SaveManager.es, EffectTiming.new())
 	BuilderTab.sbs = SoundBuilderSection.new("Sound", tab:AddDynamicTabbox(), SaveManager.ss, SoundTiming.new())
+	BuilderTab.embs = EmitterBuilderSection.new("Emitter", tab:AddDynamicTabbox(), SaveManager.ems, EmitterTiming.new())
 
 	-- Initialize builder sections.
 	BuilderTab.abs:init()
 	BuilderTab.ebs:init()
 	BuilderTab.pbs:init()
 	BuilderTab.sbs:init()
+	BuilderTab.embs:init()
 end
 
 -- Return CombatTab module.
