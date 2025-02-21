@@ -10,6 +10,9 @@ local Table = require("Utility/Table")
 ---@module Features.Combat.Targeting
 local Targeting = require("Features/Combat/Targeting")
 
+---@module Game.Timings.SaveManager
+local SaveManager = require("Game/Timings/SaveManager")
+
 ---@class PartDefender: Defender
 ---@field owner Model? The owner of the part. There will be "no owner" if there is no animation to link to because we do not have enough data.
 ---@field part BasePart
@@ -109,15 +112,15 @@ end
 ---Create new PartDefender object.
 ---@param part BasePart
 ---@param timing PartTiming
----@return PartDefender
+---@return PartDefender?
 function PartDefender.new(part, timing)
 	local self = setmetatable(Defender.new(), PartDefender)
 	self.part = part
-	self.timing = timing
+	self.timing = self:initial(self.owner or part, SaveManager.ps, nil, part.Name)
 	self.owner = guessOwnerFromPartTiming(timing)
 	self.touched = false
 	self.start = os.clock()
-	return self
+	return self.timing and self or nil
 end
 
 -- Return PartDefender module.

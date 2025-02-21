@@ -101,27 +101,19 @@ end
 ---Add part defender.
 ---@param part BasePart
 local function addPartDefender(part)
-	---@note: Create a junk defender object to do an initial check. Usually, we'd do this in the defender itself. But we don't have that option!
-	--- I don't want to return an optional object through a... constructor.
-	local mimic = Defender.new()
-	mimic.__type = "Part"
-
-	-- Get timing.
-	local timing = mimic:initial(part, SaveManager.ps, nil, part.Name)
-	if not timing then
+	-- Get part defender.
+	local partDefender = PartDefender.new(part)
+	if not partDefender then
 		return
 	end
 
 	local comparison = function(element)
-		return table.find(timing.filter, element.Name)
+		return table.find(partDefender.timing.filter, element.Name)
 	end
 
-	if #timing.filter >= 1 and not Table.elements(part:GetDescendants(), comparison) then
+	if #partDefender.timing.filter >= 1 and not Table.elements(part:GetDescendants(), comparison) then
 		return
 	end
-
-	-- Get part defender.
-	local partDefender = PartDefender.new(part, timing)
 
 	-- Link to list.
 	defenderObjects[part] = partDefender
