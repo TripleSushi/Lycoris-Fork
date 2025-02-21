@@ -100,7 +100,7 @@ function PlayerESP:update()
 
 	if not humanoidRootPart then
 		predictedPosition = mapPosition and Vector3.new(mapPosition.X, modelPosition.Y, mapPosition.Z) or nil
-		tags[#tags + 1] = mapPosition and "[Unknown Height]" or "[No Root Part]"
+		tags[#tags + 1] = mapPosition and "[Unknown Height]" or "[Not Loaded]"
 	end
 
 	usedPosition = predictedPosition or modelPosition

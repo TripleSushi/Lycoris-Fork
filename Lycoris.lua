@@ -130,14 +130,17 @@ function Lycoris.init()
 		'loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/c41b4fcdd3494b59bd6dc042e1bd2967.lua"))()'
 
 	if lycoris_init.key ~= "N/A" and queue_on_teleport then
+		-- Queue.
 		queue_on_teleport(scriptKeyQueueString .. "\n" .. loadStringQueueString)
+
+		-- Warn.
+		Logger.warn("Script has been queued for next teleport.")
 	else
+		-- Fail.
 		Logger.warn(
 			"Script has failed to queue on teleport because no key was provided or the function does not exist."
 		)
 	end
-
-	Logger.warn("Script has been queued for next teleport.")
 
 	local serverHopSlot = memStorageService:HasItem("ServerHop") and memStorageService:GetItem("ServerHop")
 	local serverHopJobId = memStorageService:HasItem("ServerHopJobId") and memStorageService:GetItem("ServerHopJobId")
