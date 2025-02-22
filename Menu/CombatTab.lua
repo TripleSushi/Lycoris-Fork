@@ -253,7 +253,12 @@ function CombatTab.initInputAssistance(groupbox) end
 
 -- Initialize combat assistance section.
 ---@param groupbox table
-function CombatTab.initCombatAssistance(groupbox) end
+function CombatTab.initCombatAssistance(groupbox)
+	groupbox:AddToggle("PerfectMantraCast", {
+		Text = "Perfect Mantra Cast",
+		Default = false,
+	})
+end
 
 ---Initialize tab.
 ---@param window table

@@ -207,6 +207,56 @@ function InputClient.bstart()
 	end
 end
 
+---Left click function.
+function InputClient.left()
+	local effectReplicator = replicatedStorage:FindFirstChild("EffectReplicator")
+	if not effectReplicator then
+		return
+	end
+
+	local effectReplicatorModule = require(effectReplicator)
+	if not effectReplicatorModule then
+		return
+	end
+
+	local character = players.LocalPlayer.Character
+	if not character then
+		return
+	end
+
+	local humanoid = character:FindFirstChildWhichIsA("Humanoid")
+	if not humanoid then
+		return
+	end
+
+	if effectReplicatorModule:HasEffect("InDialogue") then
+		return
+	end
+
+	local inputData = InputClient.getInputData()
+	if not inputData then
+		return
+	end
+
+	local leftClickRemote = KeyHandling.getRemote("LeftClick")
+	if not leftClickRemote then
+		return
+	end
+
+	if
+		effectReplicatorModule:HasEffect("LightAttack")
+		or effectReplicatorModule:HasEffect("CriticalAttack")
+		or effectReplicatorModule:HasEffect("Followup")
+		or effectReplicatorModule:HasEffect("Parried")
+	then
+		return
+	end
+
+	leftClickRemote:FireServer(inAir(humanoid, effectReplicatorModule), players.LocalPlayer:GetMouse().Hit, inputData)
+
+	---@note: Missing M1-Hold and Input Buffering functionality but I don't think the caller cares about it.
+end
+
 ---Parry function.
 function InputClient.parry()
 	local effectReplicator = replicatedStorage:FindFirstChild("EffectReplicator")
@@ -220,7 +270,6 @@ function InputClient.parry()
 	end
 
 	local blockRemote = KeyHandling.getRemote("Block")
-
 	if not blockRemote then
 		return
 	end

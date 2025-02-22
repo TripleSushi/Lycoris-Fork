@@ -22,6 +22,9 @@ local EmitterDefender = require("Features/Combat/Objects/EmitterDefender")
 ---@module Utility.Configuration
 local Configuration = require("Utility/Configuration")
 
+---@module Game.InputClient
+local InputClient = require("Game/InputClient")
+
 ---@module Utility.Table
 local Table = require("Utility/Table")
 
@@ -177,6 +180,16 @@ local function onClientEffectEvent(name, data)
 	defenderObjects[data] = EffectDefender.new(name, owner)
 end
 
+---On effect replicated.
+---@param effect table
+local function onEffectReplicated(effect)
+	if not Configuration.expectToggleValue("PerfectMantraCast") or effect.Class ~= "UsingSpell" then
+		return
+	end
+
+	InputClient.left()
+end
+
 ---Update part defenders.
 local function updatePartDefenders()
 	if not Configuration.expectToggleValue("EnableAutoDefense") then
@@ -244,6 +257,17 @@ function Defense.init()
 
 	for _, descendant in next, game:GetDescendants() do
 		onGameDescendantAdded(descendant)
+	end
+
+	---@note: Not type of RBXScriptSignal - but it works.
+	local effectReplicator = replicatedStorage:WaitForChild("EffectReplicator")
+	local effectReplicatorModule = require(effectReplicator)
+	local effectAddedSignal = Signal.new(effectReplicatorModule.EffectAdded)
+
+	defenseMaid:add(effectAddedSignal:connect("Defense_EffectReplicated", onEffectReplicated))
+
+	for _, effect in next, effectReplicatorModule.Effects do
+		onEffectReplicated(effect)
 	end
 end
 
