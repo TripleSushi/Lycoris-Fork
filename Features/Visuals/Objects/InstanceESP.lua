@@ -15,7 +15,7 @@ local InstanceESP = {}
 InstanceESP.__index = InstanceESP
 
 -- Services.
-local coreGui = game:GetService("CoreGui")
+local guiFolder = gethui and gethui() or game:GetService("CoreGui")
 
 -- Formats.
 local ESP_DISTANCE_FORMAT = "%s [%i]"
@@ -101,7 +101,7 @@ function InstanceESP:setup()
 	billboardGui.Size = UDim2.new(1e5, 0, 1e5, 0)
 	billboardGui.Enabled = false
 	billboardGui.Adornee = self.instance
-	billboardGui.Parent = coreGui
+	billboardGui.Parent = guiFolder
 
 	local textLabel = Instance.new("TextLabel")
 	textLabel.BackgroundTransparency = 1.0

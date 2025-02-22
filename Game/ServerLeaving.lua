@@ -8,7 +8,6 @@ local SendInput = require("Utility/SendInput")
 local memStorageService = game:GetService("MemStorageService")
 local guiService = game:GetService("GuiService")
 local starterGui = game:GetService("StarterGui")
-local coreGui = game:GetService("CoreGui")
 local playersService = game:GetService("Players")
 local replicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -36,7 +35,7 @@ local function blockFirstAvaliableUser()
 
 			starterGui:SetCore("PromptBlockPlayer", player)
 
-			local robloxGui = coreGui:FindFirstChild("RobloxGui")
+			local robloxGui = game:GetService("CoreGui"):FindFirstChild("RobloxGui")
 			if not robloxGui then
 				continue
 			end

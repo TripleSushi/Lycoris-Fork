@@ -183,7 +183,7 @@ local function updatePlayerProximity()
 		end
 
 		if Configuration.expectToggleValue("PlayerProximityBeep") then
-			local beepSound = Instance.new("Sound", game:GetService("CoreGui"))
+			local beepSound = Instance.new("Sound", gethui and gethui() or game:GetService("CoreGui"))
 			beepSound.SoundId = "rbxassetid://100849623977896"
 			beepSound.PlaybackSpeed = 1
 			beepSound.Volume = Configuration.expectOptionValue("PlayerProximityBeepVolume") or 0.1

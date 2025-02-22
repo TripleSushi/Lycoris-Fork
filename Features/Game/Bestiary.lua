@@ -658,7 +658,7 @@ local function refreshInterface()
 
 			-- Play sound.
 			local sfx = hover:Clone()
-			sfx.Parent = game:GetService("CoreGui")
+			sfx.Parent = gethui and gethui() or game:GetService("CoreGui")
 			sfx.PlaybackSpeed = math.random(100, 105) / 100
 			sfx.PlayOnRemove = true
 			sfx:Destroy()
@@ -806,7 +806,7 @@ function Bestiary.init()
 
 	-- Initialize GUI.
 	bestiaryGui.Name = "BestiaryGui"
-	bestiaryGui.Parent = gethui() or game:GetService("CoreGui")
+	bestiaryGui.Parent = gethui and gethui() or game:GetService("CoreGui")
 	bestiaryGui.Enabled = false
 	bestiaryGui.DisplayOrder = 1
 

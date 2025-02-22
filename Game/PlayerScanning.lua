@@ -61,7 +61,7 @@ local function runPlayerScans()
 			end
 
 			if Configuration.expectToggleValue("NotifyMod") and result then
-				local moderatorSound = Instance.new("Sound", game:GetService("CoreGui"))
+				local moderatorSound = Instance.new("Sound", gethui and gethui() or game:GetService("CoreGui"))
 				moderatorSound.SoundId = "rbxassetid://6045346303"
 				moderatorSound.PlaybackSpeed = 1
 				moderatorSound.Volume = 10
