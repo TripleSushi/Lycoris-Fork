@@ -15,7 +15,7 @@ local function hasNetworkOwnership(part)
 		return not part.Anchored and part.ReceiveAge == 0 and part.AssemblyLinearVelocity.Magnitude > 0
 	end
 
-	return partPeerId ~= clientPeerId
+	return partPeerId == clientPeerId
 end
 
 return LPH_NO_VIRTUALIZE(function()
