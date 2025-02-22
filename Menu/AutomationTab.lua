@@ -10,9 +10,7 @@ function AutomationTab.initAttributeSection(groupbox)
 		Tooltip = "Using the 'How To Make Friends' book, the script will automatically train the 'Charisma' attribute.",
 	})
 
-	local charismaDepbox = groupbox:AddDependencyBox()
-
-	charismaDepbox:AddInput("CharismaCap", {
+	groupbox:AddInput("CharismaCap", {
 		Text = "Charisma Cap",
 		Tooltip = "When this cap is reached, the farm will stop training the 'Charisma' attribute.",
 		Numeric = true,
@@ -26,22 +24,12 @@ function AutomationTab.initAttributeSection(groupbox)
 		Default = false,
 	})
 
-	local intelDepBox = groupbox:AddDependencyBox()
-
-	intelDepBox:AddInput("IntelligenceCap", {
+	groupbox:AddInput("IntelligenceCap", {
 		Text = "Intelligence Cap",
 		Tooltip = "When this cap is reached, the farm will stop training the 'Intelligence' attribute.",
 		Numeric = true,
 		MaxLength = 3,
 		Default = "75",
-	})
-
-	charismaDepbox:SetupDependencies({
-		{ Toggles.AutoCharisma, true },
-	})
-
-	intelDepBox:SetupDependencies({
-		{ Toggles.AutoIntelligence, true },
 	})
 end
 
