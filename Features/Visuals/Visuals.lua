@@ -189,6 +189,10 @@ local function onWorkspaceChildAdded(child)
 		return emplaceObject(child, PartESP.new("OwlFeathers", child, "Owl Feathers"))
 	end
 
+	if name == "MinistryCacheIndicator" then
+		return emplaceObject(child, PartESP.new("MinistryCacheIndicator", child, "Ministry Cache Indicator"))
+	end
+
 	if name:match("GuildDoor") then
 		local doorName = child:GetAttribute("GuildName") or "Unidentified Guild Door"
 		return emplaceObject(child, PartESP.new("GuildDoor", child, doorName))
