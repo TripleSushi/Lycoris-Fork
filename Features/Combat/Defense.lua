@@ -29,7 +29,7 @@ local InputClient = require("Game/InputClient")
 local Table = require("Utility/Table")
 
 -- Handle all defense related functions.
-local Defense = {}
+local Defense = { lastMantraActivate = nil }
 
 -- Services.
 local replicatedStorage = game:GetService("ReplicatedStorage")
@@ -184,6 +184,10 @@ end
 ---@param effect table
 local function onEffectReplicated(effect)
 	if not Configuration.expectToggleValue("PerfectMantraCast") or effect.Class ~= "UsingSpell" then
+		return
+	end
+
+	if Defense.lastMantraActivate and Defense.lastMantraActivate.Name:match("Dash") then
 		return
 	end
 
