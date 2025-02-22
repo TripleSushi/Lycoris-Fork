@@ -325,8 +325,8 @@ return LPH_NO_VIRTUALIZE(function()
 			local label = Library:CreateLabel({
 				Text = name and string.format(
 					"(%.2fm away) (%s) Key '%s' from '%s' is missing.",
-					lol and lol.Name or "N/A",
 					distance,
+					lol and lol.Name or "N/A",
 					key,
 					name
 				) or string.format("(%.2fm away) Key '%s' is missing.", distance, key),
