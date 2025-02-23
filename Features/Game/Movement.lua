@@ -41,6 +41,10 @@ local function updateAABypass(rootPart)
 		return
 	end
 
+	---@note: Main issue I see is that obviously, when you're knocked, you can't do anything.
+	-- It's also extremely obvious when you unragdoll yourself. We need to add handling for it and automatically unragdoll.
+
+	--[[
 	local effectReplicatorModule = require(effectReplicator)
 	local knockedEffect = effectReplicatorModule:FindEffect("Knocked", true)
 
@@ -49,12 +53,14 @@ local function updateAABypass(rootPart)
 	end
 
 	for _, child in next, rootPart.Parent.Torso:GetChildren() do
-		if child:IsA("Motor6D") then
+		if not child:IsA("Motor6D") then
 			continue
 		end
 
 		aaGunMap:add(child, "Enabled", true)
 	end
+	]]
+	--
 
 	officeCreature.CollisionGroup = "Default"
 	officeCreature.CanCollide = true
