@@ -16,6 +16,13 @@ if not lycoris_init then
 	lycoris_init.current_role = "N/A"
 end
 
+-- Initialize Luraph globals if they do not exist.
+if not LPH_OBFUSCATED then
+	loadstring([[
+		function LPH_NO_VIRTUALIZE(...) return ... end
+	]])()
+end
+
 ---@module Utility.Profiler
 local Profiler = require("Utility/Profiler")
 
@@ -28,6 +35,11 @@ local function initializeScript()
 	-- Check if there's already another instance.
 	if shared.Lycoris then
 		shared.Lycoris.detach()
+	end
+
+	-- Check if it's already queued - we'll share that state.
+	if shared.Lycoris and shared.Lycoris.queued then
+		Lycoris.queued = true
 	end
 
 	-- Re-initialize under the new state.

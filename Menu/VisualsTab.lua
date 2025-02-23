@@ -27,7 +27,17 @@ function VisualsTab.initESPCustomization(groupbox)
 		Rounding = 0,
 	})
 
-	groupbox:AddDropdown("Font", { Text = "ESP Fonts", Default = 1, Values = { "Plex", "Monospace", "UI", "System" } })
+	local fonts = {}
+
+	for _, font in next, Enum.Font:GetEnumItems() do
+		if font == Enum.Font.Unknown then
+			continue
+		end
+
+		table.insert(fonts, font.Name)
+	end
+
+	groupbox:AddDropdown("Font", { Text = "ESP Fonts", Default = 1, Values = fonts })
 end
 
 ---Initialize ESP Optimizations section.
@@ -45,37 +55,10 @@ function VisualsTab.initESPOptimizations(groupbox)
 		Text = "ESP Split Frames",
 		Tooltip = "How many frames we have to split the object pool into.",
 		Suffix = "f",
-		Default = 2,
+		Default = 32,
 		Min = 1,
-		Max = 8,
+		Max = 64,
 		Rounding = 0,
-	})
-
-	groupbox:AddToggle("ESPCheckDelay", {
-		Text = "ESP Check Delay",
-		Tooltip = "This is an optimization where the ESP will delay updating the object if it's not visible or it's too far.",
-		Default = false,
-	})
-
-	local ecdDepBox = groupbox:AddDependencyBox()
-
-	ecdDepBox:AddToggle("DelayIgnorePlayers", {
-		Text = "Ignore Players",
-		Tooltip = "Ignore Player ESP types and don't delay updating them.",
-		Default = false,
-	})
-
-	ecdDepBox:AddSlider("ESPCheckDelayTime", {
-		Text = "Delay Time",
-		Suffix = "s",
-		Default = 1,
-		Min = 0.1,
-		Max = 3,
-		Rounding = 2,
-	})
-
-	ecdDepBox:SetupDependencies({
-		{ Toggles.ESPCheckDelay, true },
 	})
 end
 
@@ -166,6 +149,12 @@ function VisualsTab.initVisualRemovalsSection(groupbox)
 		Tooltip = "Shadow effects are hidden.",
 		Default = false,
 	})
+
+	groupbox:AddToggle("NoAnimatedSea", {
+		Text = "No Animated Sea",
+		Tooltip = "Disable the script(s) that animate the sea.",
+		Default = false,
+	})
 end
 
 ---Initialize Base ESP section.
@@ -174,10 +163,17 @@ end
 ---@param groupbox table
 ---@return string, table, table
 function VisualsTab.initBaseESPSection(identifier, groupbox)
-	local enableToggle = groupbox:AddToggle(Configuration.identify(identifier, "Enable"), {
-		Text = "Enable ESP",
-		Default = false,
-	})
+	local enableToggle = groupbox
+		:AddToggle(Configuration.identify(identifier, "Enable"), {
+			Text = "Enable ESP",
+			Default = false,
+		})
+		:AddKeyPicker(Configuration.identify(identifier, "Keybind"), {
+			Default = "N/A",
+			SyncToggleState = true,
+			NoUI = true,
+			Text = groupbox.Name,
+		})
 
 	enableToggle:AddColorPicker(Configuration.identify(identifier, "Color"), {
 		Default = Color3.new(1, 1, 1),
@@ -268,7 +264,7 @@ end
 function VisualsTab.addFilterESP(identifier, depbox)
 	local filterObjectsToggle = depbox:AddToggle(Configuration.identify(identifier, "FilterObjects"), {
 		Text = "Filter Objects",
-		Default = false,
+		Default = true,
 	})
 
 	local foDepBox = depbox:AddDependencyBox()
@@ -352,8 +348,10 @@ function VisualsTab.init(window)
 	VisualsTab.addFilterESP(VisualsTab.initBaseESPSection("AreaMarker", tab:AddDynamicGroupbox("Area Marker ESP")))
 	VisualsTab.initBaseESPSection("JobBoard", tab:AddDynamicGroupbox("Job Board ESP"))
 	VisualsTab.initBaseESPSection("Artifact", tab:AddDynamicGroupbox("Artifact ESP"))
+	VisualsTab.initBaseESPSection("WindrunnerOrb", tab:AddDynamicGroupbox("Windrunner Orb ESP"))
 	VisualsTab.initBaseESPSection("Whirlpool", tab:AddDynamicGroupbox("Whirlpool ESP"))
 	VisualsTab.initBaseESPSection("ExplosiveBarrel", tab:AddDynamicGroupbox("Explosive Barrel ESP"))
+	VisualsTab.initBaseESPSection("MinistryCacheIndicator", tab:AddDynamicGroupbox("Ministry Cache ESP"))
 	VisualsTab.initBaseESPSection("OwlFeathers", tab:AddDynamicGroupbox("Owl Feathers ESP"))
 	VisualsTab.initBaseESPSection("GuildDoor", tab:AddDynamicGroupbox("Guild Door ESP"))
 	VisualsTab.initBaseESPSection("GuildBanner", tab:AddDynamicGroupbox("Guild Banner ESP"))

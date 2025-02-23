@@ -4,6 +4,9 @@ local GameTab = {}
 ---@module Features.Game.Bestiary
 local Bestiary = require("Features/Game/Bestiary")
 
+-- Services.
+local players = game:GetService("Players")
+
 ---Initialize local character section.
 ---@param groupbox table
 function GameTab.initLocalCharacterSection(groupbox)
@@ -36,9 +39,9 @@ function GameTab.initLocalCharacterSection(groupbox)
 
 	local flyDepBox = groupbox:AddDependencyBox()
 
-	flyDepBox:AddToggle("AABypass", {
-		Text = "Anti Air Bypass",
-		Tooltip = "Disable Anti Air Anti-Cheat while you fly, does not work with Brickwall talent.",
+	flyDepBox:AddToggle("AAGunBypass", {
+		Text = "Anti Air Gun Bypass",
+		Tooltip = "This feature does not work with the 'Brick Wall' talent. It abuses the fact that being knocked disables AA-Gun.",
 		Default = false,
 	})
 
@@ -196,15 +199,22 @@ function GameTab.initLocalCharacterSection(groupbox)
 		Tooltip = "Unlock all emotes and use them without owning them.",
 		Default = false,
 	})
-	
+
 	groupbox:AddButton({
 		Text = "Respawn Character",
 		DoubleClick = true,
 		Func = function()
-			local character = game:GetService("Players").LocalPlayer.Character
-			if character then
-				character:PivotTo(character.HumanoidRootPart.CFrame * CFrame.new(0,1000000,0))
+			local character = players.LocalPlayer.Character
+			if not character then
+				return
 			end
+
+			local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+			if not humanoidRootPart then
+				return
+			end
+
+			character:PivotTo(humanoidRootPart.CFrame * CFrame.new(0, 10000000, 0))
 		end,
 	})
 
@@ -273,12 +283,12 @@ function GameTab.initPlayerMonitoringSection(groupbox)
 		Text = "Show Roblox Chat",
 		Default = true,
 	})
-	
+
 	groupbox:AddToggle("ShowOwnership", {
 		Text = "Show Network Ownership",
 		Default = false,
 	})
-	
+
 	local bestiaryToggle = groupbox:AddToggle("ShowBestiary", {
 		Text = "Show Bestiary UI",
 		Default = false,

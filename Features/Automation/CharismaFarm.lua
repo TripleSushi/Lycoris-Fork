@@ -13,9 +13,6 @@ local Attributes = require("Utility/Attributes")
 ---@module Utility.Logger
 local Logger = require("Utility/Logger")
 
----@module Utility.SendInput
-local SendInput = require("Utility/SendInput")
-
 -- Services.
 local players = game:GetService("Players")
 local runService = game:GetService("RunService")
@@ -25,6 +22,9 @@ local renderStepped = Signal.new(runService.RenderStepped)
 
 -- Maids.
 local autoCharismaMaid = Maid.new()
+
+-- Last update.
+local lastUpdate = os.clock()
 
 ---Update charisma.
 local function updateCharisma()
@@ -68,7 +68,7 @@ local function updateCharisma()
 
 	local choicePrompt = localPlayer.PlayerGui:FindFirstChild("ChoicePrompt")
 	if not choicePrompt then
-		return SendInput.mb1(0, 0)
+		return characterBook and characterBook:Activate()
 	end
 
 	local choiceFrame = choicePrompt:FindFirstChild("ChoiceFrame")
@@ -76,12 +76,8 @@ local function updateCharisma()
 		return
 	end
 
-	local choice = choicePrompt:FindFirstChild("Choice")
-	if not choice then
-		return
-	end
-
-	if not choiceFrame:FindFirstChild("Options") or not choiceFrame:FindFirstChild("DescSheet") then
+	local chatChoice = choicePrompt:FindFirstChild("ChatChoice")
+	if not chatChoice then
 		return
 	end
 
@@ -90,28 +86,34 @@ local function updateCharisma()
 		return
 	end
 
-	local text = description.Text:split("\n")
-	local charismaLine = text[2]:sub(2, -2)
-
-	choice:InvokeServer(charismaLine)
-
-	if Attributes.isNotAtCap(localPlayerCharacter, "Stat_Charisma", charismaFarmCap.Value) then
+	if os.clock() - lastUpdate <= 0.05 then
 		return
 	end
 
-	humanoid:UnequipTools()
+	lastUpdate = os.clock()
 
-	Logger.longNotify("Charisma AutoFarm is automatically stopping.")
+	local text = description.Text:split("\n")
+	local charismaLine = text[2]:sub(2, -2)
+
+	chatChoice:InvokeServer(charismaLine)
 end
 
 ---Charisma farming.
 function CharismaFarm.init()
+	-- Attach.
 	autoCharismaMaid:add(renderStepped:connect("AttributeFarmCharisma_OnPreRender", updateCharisma))
+
+	-- Log.
+	Logger.warn("Charisma Farm initialized.")
 end
 
 ---Detach the charisma farm.
 function CharismaFarm.detach()
+	-- Clean.
 	autoCharismaMaid:clean()
+
+	-- Log.
+	Logger.warn("Charisma Farm detached.")
 end
 
 -- Return CharismaFarm module

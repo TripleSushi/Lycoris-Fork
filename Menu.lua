@@ -72,7 +72,7 @@ function Menu.init()
 	SaveManager:SetLibrary(Library)
 	SaveManager:IgnoreThemeSettings()
 	SaveManager:SetFolder("Lycoris-Rewrite-Configs")
-	SaveManager:SetIgnoreIndexes({ "Fly", "Noclip", "Speedhack", "InfiniteJump" })
+	SaveManager:SetIgnoreIndexes({ "Fly", "NoClip", "Speedhack", "InfiniteJump", "TweenToObjective", "AttachToBack" })
 
 	-- Initialize all tabs.
 	CombatTab.init(window)
@@ -83,29 +83,43 @@ function Menu.init()
 	ExploitTab.init(window)
 	LycorisTab.init(window)
 
+	-- Last update.
+	local lastUpdate = os.clock()
+
 	-- Update watermark.
-	menuMaid:add(renderStepped:connect("Menu_WatermarkUpdate", function()
-		-- Get stats.
-		local networkStats = stats:FindFirstChild("Network")
-		local workspaceStats = stats:FindFirstChild("Workspace")
-		local performanceStats = stats:FindFirstChild("PerformanceStats")
-		local serverStats = networkStats and networkStats:FindFirstChild("ServerStatsItem") or nil
+	menuMaid:add(renderStepped:connect(
+		"Menu_WatermarkUpdate",
+		LPH_NO_VIRTUALIZE(function()
+			if os.clock() - lastUpdate <= 0.5 then
+				return
+			end
 
-		-- Get data.
-		local pingData = serverStats and serverStats:FindFirstChild("Data Ping") or nil
-		local heartbeatData = workspaceStats and workspaceStats:FindFirstChild("Heartbeat") or nil
-		local cpuData = performanceStats and performanceStats:FindFirstChild("CPU") or nil
-		local gpuData = performanceStats and performanceStats:FindFirstChild("GPU") or nil
+			lastUpdate = os.clock()
 
-		-- Set values.
-		local ping = pingData and pingData:GetValue() or 0.0
-		local fps = heartbeatData and heartbeatData:GetValue() or 0.0
-		local cpu = cpuData and cpuData:GetValue() or 0.0
-		local gpu = gpuData and gpuData:GetValue() or 0.0
+			-- Get stats.
+			local networkStats = stats:FindFirstChild("Network")
+			local workspaceStats = stats:FindFirstChild("Workspace")
+			local performanceStats = stats:FindFirstChild("PerformanceStats")
+			local serverStats = networkStats and networkStats:FindFirstChild("ServerStatsItem") or nil
 
-		-- Set watermark.
-		Library:SetWatermark(string.format("%s | %.2fms | %.1f/s | %.1fms | %.1fms", MENU_TITLE, ping, fps, cpu, gpu))
-	end))
+			-- Get data.
+			local pingData = serverStats and serverStats:FindFirstChild("Data Ping") or nil
+			local heartbeatData = workspaceStats and workspaceStats:FindFirstChild("Heartbeat") or nil
+			local cpuData = performanceStats and performanceStats:FindFirstChild("CPU") or nil
+			local gpuData = performanceStats and performanceStats:FindFirstChild("GPU") or nil
+
+			-- Set values.
+			local ping = pingData and pingData:GetValue() or 0.0
+			local fps = heartbeatData and heartbeatData:GetValue() or 0.0
+			local cpu = cpuData and cpuData:GetValue() or 0.0
+			local gpu = gpuData and gpuData:GetValue() or 0.0
+
+			-- Set watermark.
+			Library:SetWatermark(
+				string.format("%s | %.2fms | %.1f/s | %.1fms | %.1fms", MENU_TITLE, ping, fps, cpu, gpu)
+			)
+		end)
+	))
 
 	-- Configure Library.
 	Library.ToggleKeybind = Options.MenuKeybind

@@ -1,5 +1,5 @@
 -- Detach and initialize a Lycoris instance.
-local Lycoris = {}
+local Lycoris = { queued = false }
 
 ---@module Utility.Logger
 local Logger = require("Utility/Logger")
@@ -7,14 +7,14 @@ local Logger = require("Utility/Logger")
 ---@module Game.Hooking
 local Hooking = require("Game/Hooking")
 
----@module Utility.ControlModule
-local ControlModule = require("Utility/ControlModule")
-
 ---@module Menu
 local Menu = require("Menu")
 
 ---@module Features
 local Features = require("Features")
+
+---@module Utility.ControlModule
+local ControlModule = require("Utility/ControlModule")
 
 ---@module Game.InputClient
 local InputClient = require("Game/InputClient")
@@ -27,6 +27,9 @@ local SaveManager = require("Game/Timings/SaveManager")
 
 ---@module Features.Visuals.Visuals
 local Visuals = require("Features/Visuals/Visuals")
+
+---@module Game.KeyHandling
+local KeyHandling = require("Game/KeyHandling")
 
 -- Services.
 local memStorageService = game:GetService("MemStorageService")
@@ -124,32 +127,42 @@ function Lycoris.init()
 
 	local scriptKeyQueueString = string.format("script_key = '%s'", lycoris_init.key)
 	local loadStringQueueString =
-		'loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/c41b4fcdd3494b59bd6dc042e1bd2967.lua"))()'
+		'loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/5ac35cc8c071938af640f639b49c629b.lua"))()'
 
-	if lycoris_init.key ~= "N/A" and queue_on_teleport then
+	if lycoris_init.key ~= "N/A" and queue_on_teleport and not Lycoris.queued then
+		-- Queue.
 		queue_on_teleport(scriptKeyQueueString .. "\n" .. loadStringQueueString)
+
+		-- Mark.
+		Lycoris.queued = true
+
+		-- Warn.
+		Logger.warn("Script has been queued for next teleport.")
 	else
+		-- Fail.
 		Logger.warn(
 			"Script has failed to queue on teleport because no key was provided or the function does not exist."
 		)
 	end
 
-	Logger.warn("Script has been queued for next teleport.")
-
 	local serverHopSlot = memStorageService:HasItem("ServerHop") and memStorageService:GetItem("ServerHop")
 	local serverHopJobId = memStorageService:HasItem("ServerHopJobId") and memStorageService:GetItem("ServerHopJobId")
+	local inLobbyPlace = game.PlaceId == LOBBY_PLACE_ID
 
-	if game.PlaceId == LOBBY_PLACE_ID and serverHopSlot and serverHopJobId then
-		return handleMainMenuServerHop(serverHopSlot, serverHopJobId)
+	if inLobbyPlace then
+		return (serverHopSlot and serverHopJobId) and handleMainMenuServerHop(serverHopSlot, serverHopJobId)
+			or Logger.warn("Script exit initialization early because we are in the lobby.")
 	end
+
+	KeyHandling.init()
 
 	Hooking.init()
 
 	InputClient.cache()
 
-	ControlModule.init()
-
 	SaveManager.init()
+
+	ControlModule.init()
 
 	Features.init()
 
@@ -192,37 +205,35 @@ end
 function Lycoris.detach()
 	Menu.detach()
 
-	Features.detach()
-
 	ControlModule.detach()
 
-	Hooking.detach()
+	Features.detach()
 
 	PlayerScanning.detach()
-
-	Logger.warn("Script has been detached.")
 
 	local modules = replicatedStorage:FindFirstChild("Modules")
 	local bloxstrapRPC = modules and modules:FindFirstChild("BloxstrapRPC")
 	local bloxstrapRPCModule = bloxstrapRPC and require(bloxstrapRPC)
 
-	if not bloxstrapRPCModule then
-		return
+	if bloxstrapRPCModule then
+		bloxstrapRPCModule.SetRichPresence({
+			details = "Linoria V2 (Detached)",
+			state = "Yes, I'm too lazy to make it properly reset.",
+			timeStart = os.time(),
+			largeImage = {
+				assetId = 17278722162,
+				hoverText = "[REDACTED]",
+			},
+			smallImage = {
+				assetId = 17278571027,
+				hoverText = "Deepwoken",
+			},
+		})
 	end
 
-	bloxstrapRPCModule.SetRichPresence({
-		details = "Linoria V2 (Detached)",
-		state = "Yes, I'm too lazy to make it properly reset.",
-		timeStart = os.time(),
-		largeImage = {
-			assetId = 17278722162,
-			hoverText = "[REDACTED]",
-		},
-		smallImage = {
-			assetId = 17278571027,
-			hoverText = "Deepwoken",
-		},
-	})
+	Hooking.detach()
+
+	Logger.warn("Script has been detached.")
 end
 
 -- Return Lycoris module.

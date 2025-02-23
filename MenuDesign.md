@@ -56,8 +56,6 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
 
     Use Counter Mantras When Avaliable
 
-    Account for Hyperarmor in Auto Defense
-
     Hold Block For Auto Defense
 
 - Builder ✅
@@ -75,7 +73,9 @@ Tabs have a marker to desiginate whether or not the menu elements are finished.
             - Overwrite Timings ✅
         - Merge With Current Config ✅
     - Logger ✅
-        - Show Logger ✅
+        - Show Logger ✅ 
+        - Minimum Logger Distance (0m - 0m - 100m) ✅
+        - Maximum Logger Distance (0m - 100m - 10000m) ✅
         - Show Animation Visualizer ❌
         - Animation Visualizer ID ❌
     - Animation ✅

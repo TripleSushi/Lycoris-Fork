@@ -34,6 +34,9 @@ local OriginalStore = require("Utility/OriginalStore")
 ---@module Utility.OriginalStoreManager
 local OriginalStoreManager = require("Utility/OriginalStoreManager")
 
+---@module Utility.Logger
+local Logger = require("Utility/Logger")
+
 -- Visuals module.
 ---@optimization: All Configuration calls are replaced with direct accessors.
 ---The rendering starts after our script is loaded; so we can assume the objects exist.
@@ -60,9 +63,10 @@ local fieldOfView = visualsMaid:mark(OriginalStore.new())
 
 -- Original store managers.
 local showRobloxChatMap = visualsMaid:mark(OriginalStoreManager.new())
+local noAnimatedSeaMap = visualsMaid:mark(OriginalStoreManager.new())
 
 ---Update show roblox chat.
-local function updateShowRobloxChat()
+local updateShowRobloxChat = LPH_NO_VIRTUALIZE(function()
 	local localPlayer = players.LocalPlayer
 	if not localPlayer then
 		return
@@ -92,12 +96,42 @@ local function updateShowRobloxChat()
 
 	showRobloxChatMap:add(chatBarFrame, "Position", UDim2.new(0, 0, 0, 195))
 	showRobloxChatMap:add(chatChannelFrame, "Visible", true)
-end
+end)
+
+---Update no animated sea.
+local updateNoAnimatedSea = LPH_NO_VIRTUALIZE(function()
+	local localPlayer = players.LocalPlayer
+	local playerScripts = localPlayer and localPlayer:FindFirstChild("PlayerScripts")
+	if not playerScripts then
+		return
+	end
+
+	local seaClient = playerScripts:FindFirstChild("SeaClient")
+	if not seaClient then
+		return
+	end
+
+	noAnimatedSeaMap:add(seaClient, "Enabled", false)
+
+	for _, descendant in next, seaClient:GetDescendants() do
+		if not descendant:IsA("LocalScript") then
+			continue
+		end
+
+		noAnimatedSeaMap:add(descendant, "Enabled", false)
+	end
+end)
 
 ---Update visuals.
-local function updateVisuals()
+local updateVisuals = LPH_NO_VIRTUALIZE(function()
 	for _, group in next, groups do
 		group:update()
+	end
+
+	if Configuration.toggleValue("NoAnimatedSea") then
+		updateNoAnimatedSea()
+	else
+		noAnimatedSeaMap:restore()
 	end
 
 	if Configuration.toggleValue("ModifyFieldOfView") then
@@ -111,44 +145,44 @@ local function updateVisuals()
 	else
 		showRobloxChatMap:restore()
 	end
-end
+end)
 
 ---Emplace object.
 ---@param instance Instance
 ---@param object ModelESP|PartESP
-local function emplaceObject(instance, object)
+local emplaceObject = LPH_NO_VIRTUALIZE(function(instance, object)
 	local group = groups[object.identifier] or Group.new(object.identifier)
 
 	group:insert(instance, object)
 
 	groups[object.identifier] = group
-end
+end)
 
 ---On Live ChildAdded.
 ---@param child Instance
-local function onLiveChildrenAdded(child)
+local onLiveChildrenAdded = LPH_NO_VIRTUALIZE(function(child)
 	if players:GetPlayerFromCharacter(child) then
 		return
 	end
 
 	return emplaceObject(child, MobESP.new("Mob", child, child:GetAttribute("MOB_rich_name") or child.Name))
-end
+end)
 
 ---On NPCs ChildAdded.
 ---@param child Instance
-local function onNPCsChildAdded(child)
+local onNPCsChildAdded = LPH_NO_VIRTUALIZE(function(child)
 	return emplaceObject(child, ModelESP.new("NPC", child, child.Name))
-end
+end)
 
 ---On Ingredients ChildAdded.
 ---@param child Instance
-local function onIngredientsChildAdded(child)
+local onIngredientsChildAdded = LPH_NO_VIRTUALIZE(function(child)
 	return emplaceObject(child, FilteredESP.new(PartESP.new("Ingredient", child, child.Name)))
-end
+end)
 
 ---On Thrown ChildAdded.
 ---@param child Instance
-local function onThrownChildAdded(child)
+local onThrownChildAdded = LPH_NO_VIRTUALIZE(function(child)
 	local name = child.Name
 
 	if name == "BellMeteor" then
@@ -162,11 +196,11 @@ local function onThrownChildAdded(child)
 	if name == "BagDrop" then
 		return emplaceObject(child, PartESP.new("BagDrop", child, "Bag"))
 	end
-end
+end)
 
 ---On Workspace ChildAdded.
 ---@param child Instance
-local function onWorkspaceChildAdded(child)
+local onWorkspaceChildAdded = LPH_NO_VIRTUALIZE(function(child)
 	local name = child.Name
 
 	if name == "JobBoard" then
@@ -177,12 +211,20 @@ local function onWorkspaceChildAdded(child)
 		return emplaceObject(child, PartESP.new("Artifact", child, "Artifact"))
 	end
 
+	if name == "WindrunnerOrb" and child:IsA("BasePart") then
+		return emplaceObject(child, PartESP.new("WindrunnerOrb", child, "Windrunner Orb"))
+	end
+
 	if name == "DepthsWhirlpool" then
 		return emplaceObject(child, ModelESP.new("Whirlpool", child, "Whirlpool"))
 	end
 
 	if name == "EventFeatherRef" then
 		return emplaceObject(child, PartESP.new("OwlFeathers", child, "Owl Feathers"))
+	end
+
+	if name == "MinistryCacheIndicator" then
+		return emplaceObject(child, PartESP.new("MinistryCacheIndicator", child, "Ministry Cache Indicator"))
 	end
 
 	if name:match("GuildDoor") then
@@ -229,11 +271,11 @@ local function onWorkspaceChildAdded(child)
 	if child:IsA("MeshPart") and child:FindFirstChild("InteractPrompt") and not name:match("Barrel") then
 		return emplaceObject(child, PartESP.new("BRWeapon", child, name))
 	end
-end
+end)
 
 ---On instance removing.
 ---@param inst Instance
-local function onInstanceRemoving(inst)
+local onInstanceRemoving = LPH_NO_VIRTUALIZE(function(inst)
 	for _, group in next, groups do
 		local object = group:remove(inst)
 		if not object then
@@ -242,12 +284,12 @@ local function onInstanceRemoving(inst)
 
 		object:detach()
 	end
-end
+end)
 
 ---On player added.
 ---@todo: Clean this code up.
 ---@param player Player
-local function onPlayerAdded(player)
+local onPlayerAdded = LPH_NO_VIRTUALIZE(function(player)
 	if player == players.LocalPlayer then
 		return
 	end
@@ -280,14 +322,14 @@ local function onPlayerAdded(player)
 	end
 
 	emplaceObject(player, PlayerESP.new("Player", player, character))
-end
+end)
 
 ---Create children listener.
 ---@param instance Instance
 ---@param identifier string
 ---@param addedCallback function
 ---@param removingCallback function
-local function createChildrenListener(instance, identifier, addedCallback, removingCallback)
+local createChildrenListener = LPH_NO_VIRTUALIZE(function(instance, identifier, addedCallback, removingCallback)
 	local childAdded = Signal.new(instance.ChildAdded)
 	local childRemoved = Signal.new(instance.ChildRemoved)
 
@@ -299,7 +341,7 @@ local function createChildrenListener(instance, identifier, addedCallback, remov
 			addedCallback(child)
 		end
 	end)
-end
+end)
 
 ---Initialize update loop.
 ---@note: Read about optimization above for more information.
@@ -330,6 +372,8 @@ function Visuals.init()
 		local areaMarkerName = descendant.Parent.Name or "Unidentified Area Marker"
 		emplaceObject(descendant, FilteredESP.new(PartESP.new("AreaMarker", descendant, areaMarkerName)))
 	end
+
+	Logger.warn("Visuals initialized.")
 end
 
 -- Detach Visuals.
@@ -339,6 +383,8 @@ function Visuals.detach()
 	end
 
 	visualsMaid:clean()
+
+	Logger.warn("Visuals detached.")
 end
 
 -- Return Visuals module.

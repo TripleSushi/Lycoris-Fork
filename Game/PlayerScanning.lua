@@ -32,7 +32,7 @@ local playerScanningMaid = Maid.new()
 local lastRateLimit = nil
 
 ---Run player scans.
-local function runPlayerScans()
+local runPlayerScans = LPH_NO_VIRTUALIZE(function()
 	local localPlayer = players.LocalPlayer
 	if not localPlayer then
 		return
@@ -74,7 +74,7 @@ local function runPlayerScans()
 			PlayerScanning.scanDataCache[player] = { staffRank = result }
 		end
 
-		local backpack = localPlayer:FindFirstChild("Backpack")
+		local backpack = player:FindFirstChild("Backpack")
 		if not backpack then
 			return
 		end
@@ -126,29 +126,13 @@ local function runPlayerScans()
 				local toolName = tool.Name:split("$")[1]
 
 				local toolQuality = tool:FindFirstChild("Quality") and tool.Quality.Value or 0
-				local toolEnchant = tool:FindFirstChild("Enchant") and tool.Enchant.Value
-
-				local toolEnchantTag = nil
-
-				if not toolEnchant or toolEnchant == "" then
-					toolEnchantTag = "[No Enchant]"
-				else
-					toolEnchantTag = string.format("[%s Enchant]", toolEnchant)
-				end
-
 				local toolQualityTag = string.format("[%i Stars]", toolQuality)
 
 				if toolQuality == 0 then
 					toolQualityTag = "[No Stars]"
 				end
 
-				Logger.longNotify(
-					"%s has the Legendary Weapon '%s' %s %s and it is non-soulbound.",
-					player.Name,
-					toolName,
-					toolQualityTag,
-					toolEnchantTag
-				)
+				Logger.longNotify("%s has vulnerable weapon '%s' %s.", player.Name, toolName, toolQualityTag)
 			end
 		end
 
@@ -158,7 +142,7 @@ local function runPlayerScans()
 
 		Logger.warn("Player scanning finished scanning %s in queue.", player.Name)
 	end
-end
+end)
 
 ---Are there moderators in the server?
 ---@return table
@@ -178,8 +162,9 @@ end
 ---@param player Player
 ---@return boolean
 function PlayerScanning.isAlly(player)
+	local localPlayerGuild = players.LocalPlayer:GetAttribute("Guild")
 	return PlayerScanning.friendCache[player]
-		or player:GetAttribute("Guild") == players.LocalPlayer:GetAttribute("Guild")
+		or ((localPlayerGuild and #localPlayerGuild >= 1) and player:GetAttribute("Guild") == localPlayerGuild)
 end
 
 ---Fetch roblox data.
