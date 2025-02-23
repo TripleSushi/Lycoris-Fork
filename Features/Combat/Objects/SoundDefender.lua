@@ -10,29 +10,30 @@ local Targeting = require("Features/Combat/Targeting")
 ---@module Utility.Signal
 local Signal = require("Utility/Signal")
 
+---@module Utility.Configuration
+local Configuration = require("Utility/Configuration")
+
 ---@class SoundDefender: Defender
 ---@field owner Model? The owner of the part.
 ---@field sound Sound The sound that we're defending.
 ---@field part BasePart A part that we can base the position off of.
 local SoundDefender = setmetatable({}, { __index = Defender })
 SoundDefender.__index = SoundDefender
-SoundDefender.__type = "SoundDefender"
+SoundDefender.__type = "Sound"
 
 -- Services.
 local players = game:GetService("Players")
 
----Override notify to include type.
----@param timing Timing
----@param str string
-function SoundDefender:notify(timing, str, ...)
-	Defender.notify(self, timing, string.format("[Sound] %s", str), ...)
-end
-
 ---Check if we're in a valid state to proceed with the action.
+---@param self SoundDefender
 ---@param timing PartTiming
 ---@param action Action
 ---@return boolean
-function SoundDefender:valid(timing, action)
+SoundDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
+	while timing.duih and not self:hitbox(self.part.CFrame, 0, timing.hitbox, { players.LocalPlayer.Character }) do
+		task.wait()
+	end
+
 	if self.owner and not Targeting.find(self.owner) then
 		return self:notify(timing, "Not a viable target.")
 	end
@@ -42,53 +43,27 @@ function SoundDefender:valid(timing, action)
 		return self:notify(timing, "No character found.")
 	end
 
-	if not self:hitbox(self.part.Position, action.hitbox, { character }) then
+	if not self:hitbox(self.part.CFrame, 0, action.hitbox, { character }) then
 		return self:notify(timing, "Not inside of the hitbox.")
 	end
 
 	return true
-end
+end)
 
----Check if the initial state is valid.
----@param timing SoundTiming
----@return boolean
-function SoundDefender:initial(timing)
-	local entity = self.animator:FindFirstAncestorWhichIsA("Model")
-	if not entity then
-		return false
-	end
-
-	local localCharacter = players.LocalPlayer.Character
-	if not localCharacter then
-		return false
-	end
-
-	local localRootPart = localCharacter:FindFirstChild("HumanoidRootPart")
-	if not localRootPart then
-		return false
-	end
-
-	local distance = (self.part.Position - localRootPart.Position).Magnitude
-
-	if distance < timing.imdd then
-		return false
-	end
-
-	if distance > timing.imxd then
-		return false
-	end
-
-	return true
-end
-
----Process sound playing
-function SoundDefender:process()
-	local timing = SaveManager.ss:index(self.sound.SoundId)
+---Process sound playing.
+---@param self SoundDefender
+SoundDefender.process = LPH_NO_VIRTUALIZE(function(self)
+	---@type SoundTiming?
+	local timing = self:initial(self.owner, SaveManager.ss, self.owner.Name, tostring(self.sound.SoundId))
 	if not timing then
 		return
 	end
 
-	if not self:initial(timing) then
+	if not Configuration.expectToggleValue("EnableAutoDefense") then
+		return
+	end
+
+	if players.LocalPlayer.Character and self.owner == players.LocalPlayer.Character then
 		return
 	end
 
@@ -96,8 +71,8 @@ function SoundDefender:process()
 	self:clean()
 
 	-- Add actions.
-	return self:actions(timing)
-end
+	return self:actions(timing, 1.0)
+end)
 
 ---Create new SoundDefender object.
 ---@param sound Sound
@@ -112,9 +87,12 @@ function SoundDefender.new(sound, timing, part)
 	self.timing = timing
 	self.part = part
 	self.owner = sound:FindFirstAncestorWhichIsA("Model")
-	self.maid:mark(soundPlayed:connect("SoundDefender_OnSoundPlayed", function()
-		self:process()
-	end))
+	self.maid:mark(soundPlayed:connect(
+		"SoundDefender_OnSoundPlayed",
+		LPH_NO_VIRTUALIZE(function()
+			self:process()
+		end)
+	))
 
 	return self
 end

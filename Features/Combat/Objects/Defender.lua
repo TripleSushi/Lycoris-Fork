@@ -13,11 +13,14 @@ local Task = require("Features/Combat/Objects/Task")
 ---@module Utility.Maid
 local Maid = require("Utility/Maid")
 
----@module Utility.InstanceWrapper
-local InstanceWrapper = require("Utility/InstanceWrapper")
+---@module GUI.Library
+local Library = require("GUI/Library")
 
 ---@class Defender
 ---@field tasks Task[]
+---@field maid Maid
+---@field vpart Part?
+---@field ppart Part?
 local Defender = {}
 Defender.__index = Defender
 Defender.__type = "Defender"
@@ -25,54 +28,248 @@ Defender.__type = "Defender"
 -- Services.
 local stats = game:GetService("Stats")
 local replicatedStorage = game:GetService("ReplicatedStorage")
+local userInputService = game:GetService("UserInputService")
+local players = game:GetService("Players")
+local textChatService = game:GetService("TextChatService")
+
+-- Constants.
+local MAX_VISUALIZATION_TIME = 5.0
+
+---Log a miss to the UI library with distance check.
+---@param type string
+---@param key string
+---@param name string?
+---@param distance number
+---@return boolean
+function Defender:miss(type, key, name, distance)
+	if not Configuration.expectToggleValue("ShowLoggerWindow") then
+		return false
+	end
+
+	if
+		distance < (Configuration.expectOptionValue("MinimumLoggerDistance") or 0)
+		or distance > (Configuration.expectOptionValue("MaximumLoggerDistance") or 0)
+	then
+		return false
+	end
+
+	Library:AddMissEntry(type, key, name, distance)
+
+	return true
+end
+
+---Fetch distance.
+---@param from Model? | BasePart?
+---@return number?
+function Defender:distance(from)
+	if not from then
+		return
+	end
+
+	local entRootPart = from
+
+	if from:IsA("Model") then
+		entRootPart = from:FindFirstChild("HumanoidRootPart")
+	end
+
+	if not entRootPart then
+		return
+	end
+
+	local localCharacter = players.LocalPlayer.Character
+	if not localCharacter then
+		return
+	end
+
+	local localRootPart = localCharacter:FindFirstChild("HumanoidRootPart")
+	if not localRootPart then
+		return
+	end
+
+	return (entRootPart.Position - localRootPart.Position).Magnitude
+end
 
 ---Check if we're in a valid state to proceed with action handling. Extend me.
 ---@param timing Timing
 ---@param action Action
 ---@return boolean
-function Defender:valid(timing, action)
+Defender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
+	local keybinds = replicatedStorage:FindFirstChild("KeyBinds")
+	if not keybinds then
+		return self:notify(timing, "No keybinds instance found.")
+	end
+
+	local keybindsModule = require(keybinds)
+	if not keybindsModule or not keybindsModule.Current then
+		return self:notify(timing, "No keybinds module found.")
+	end
+
+	for _, keybind in next, keybindsModule.Current["Block"] or {} do
+		if not userInputService:IsKeyDown(Enum.KeyCode[tostring(keybind)]) then
+			continue
+		end
+
+		if not Configuration.expectToggleValue("CheckHoldingBlockInput") then
+			continue
+		end
+
+		return self:notify(timing, "User is pressing down on a key binded to Block.")
+	end
+
+	local chatInputBarConfiguration = textChatService:FindFirstChildOfClass("ChatInputBarConfiguration")
+
+	if
+		Configuration.expectToggleValue("CheckTextboxFocus")
+		and (userInputService:GetFocusedTextBox() or chatInputBarConfiguration.IsFocused)
+	then
+		return self:notify(timing, "User is typing in a text box.")
+	end
+
+	if Configuration.expectToggleValue("CheckWindowActive") and not iswindowactive() then
+		return self:notify(timing, "Window is not active.")
+	end
+
 	return true
-end
+end)
+
+---Update visualizations.
+Defender.vupdate = LPH_NO_VIRTUALIZE(function(self)
+	-- Calculate whether or not we should be showing visualizations.
+	local showVisualizations = Configuration.expectToggleValue("EnableVisualizations")
+		and os.clock() - self.lvisualization <= MAX_VISUALIZATION_TIME
+
+	-- Set transparency.
+	if self.vpart then
+		self.vpart.Transparency = showVisualizations and 0.85 or 1.0
+	end
+
+	if self.ppart then
+		self.ppart.Transparency = showVisualizations and 0.85 or 1.0
+	end
+end)
 
 ---Run hitbox check. Returns wheter if the hitbox is being touched.
----@note: This check can fail when players suddenly look...
+---@todo: An issue is that the player's current look vector will not be the same as when they attack due to a parry timing being seperate from the attack; causing this check to fail.
 ---@param cframe CFrame
+---@param depth number
 ---@param size Vector3
 ---@param filter Instance[]
 ---@return boolean
-function Defender:hitbox(cframe, size, filter)
+Defender.hitbox = LPH_NO_VIRTUALIZE(function(self, cframe, depth, size, filter)
 	local overlapParams = OverlapParams.new()
 	overlapParams.FilterDescendantsInstances = filter
 	overlapParams.FilterType = Enum.RaycastFilterType.Include
 
-	cframe = typeof(cframe) == "CFrame" and cframe or CFrame.new(cframe) --- this is so that incase YOU forgot to use cframe instead of vec3
-
-	---@todo: Make the visualizations better. This is just for debugging. Right now, they don't clear up properly.
-	if Configuration.expectToggleValue("EnableVisualizations") then
-		local visualizationPart = InstanceWrapper.create(self.maid, "VisualizationPart", "Part")
-		visualizationPart.Size = size
-		visualizationPart.CFrame = cframe
-		visualizationPart.Transparency = 0.85
-		visualizationPart.Color = Color3.fromRGB(0, 255, 0)
-		visualizationPart.Parent = workspace
-		visualizationPart.Anchored = true
-		visualizationPart.CanCollide = false
-		visualizationPart.Material = Enum.Material.SmoothPlastic
+	local character = players.LocalPlayer.Character
+	if not character then
+		return nil
 	end
 
-	return #workspace:GetPartBoundsInBox(cframe, size, overlapParams) > 0
-end
+	local root = character:FindFirstChild("HumanoidRootPart")
+	if not root then
+		return nil
+	end
+
+	-- Real CFrame.
+	local realCFrame = cframe
+
+	-- Add depth.
+	if depth > 0 then
+		realCFrame = realCFrame * CFrame.new(0, 0, -depth)
+	end
+
+	-- Check in bounds.
+	local inBounds = #workspace:GetPartBoundsInBox(realCFrame, size, overlapParams) > 0
+
+	-- Visualize color.
+	local visColor = inBounds and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+
+	-- Create visualization part if it doesn't exist.
+	if not self.vpart then
+		-- Create part.
+		local vpart = Instance.new("Part")
+		vpart.Transparency = 1.0
+		vpart.Parent = workspace
+		vpart.Anchored = true
+		vpart.CanCollide = false
+		vpart.Material = Enum.Material.SmoothPlastic
+
+		-- Set part.
+		self.vpart = vpart
+	end
+
+	-- Create player part if it doesn't exist.
+	if not self.ppart then
+		-- Create part.
+		local ppart = Instance.new("Part")
+		ppart.Transparency = 1.0
+		ppart.Parent = workspace
+		ppart.Anchored = true
+		ppart.CanCollide = false
+		ppart.Material = Enum.Material.Plastic
+
+		-- Set part.
+		self.ppart = ppart
+	end
+
+	-- Visual part.
+	self.vpart.Size = size
+	self.vpart.CFrame = realCFrame
+	self.vpart.Color = visColor
+
+	-- Player part.
+	self.ppart.Size = root.Size
+	self.ppart.CFrame = root.CFrame
+	self.ppart.Color = visColor
+
+	-- Set timestamp.
+	self.lvisualization = os.clock()
+
+	return inBounds
+end)
+
+---Check initial state.
+---@param from Model? | BasePart?
+---@param pair TimingContainerPair
+---@param name string
+---@param key string
+---@return Timing?
+Defender.initial = LPH_NO_VIRTUALIZE(function(self, from, pair, name, key)
+	-- Find timing.
+	local timing = pair:index(key)
+
+	-- Fetch distance.
+	local distance = self:distance(from)
+	if not distance then
+		return nil
+	end
+
+	-- Check for distance; if we have a timing.
+	if timing and (distance < timing.imdd or distance > timing.imxd) then
+		return nil
+	end
+
+	-- Check for no timing. If so, let's log a miss.
+	---@note: Ignore return value.
+	if not timing then
+		self:miss(self.__type, key, name, distance)
+		return nil
+	end
+
+	-- Return timing.
+	return timing
+end)
 
 ---Logger notify.
 ---@param timing Timing
 ---@param str string
-function Defender:notify(timing, str, ...)
+Defender.notify = LPH_NO_VIRTUALIZE(function(self, timing, str, ...)
 	if not Configuration.expectToggleValue("EnableNotifications") then
 		return
 	end
 
-	Logger.notify("[%s] %s", timing.name, string.format(str, ...))
-end
+	Logger.notify("[%s] (%s) %s", timing.name, self.__type, string.format(str, ...))
+end)
 
 ---Get ping.
 ---@return number
@@ -95,10 +292,30 @@ function Defender:ping()
 	return dataPingItem:GetValue() / 1000
 end
 
+---Handle end block.
+Defender.bend = LPH_NO_VIRTUALIZE(function(self)
+	-- Iterate for start block tasks.
+	for idx, task in next, self.tasks do
+		-- Check if task is a start block.
+		if task.identifier ~= "Start Block" then
+			continue
+		end
+
+		-- End start block tasks.
+		task:cancel()
+
+		-- Clear in table.
+		self.tasks[idx] = nil
+	end
+
+	-- End block.
+	InputClient.bend()
+end)
+
 ---Handle action.
 ---@param timing Timing
 ---@param action Action
-function Defender:handle(timing, action)
+Defender.handle = LPH_NO_VIRTUALIZE(function(self, timing, action)
 	if not self:valid(timing, action) then
 		return
 	end
@@ -120,7 +337,7 @@ function Defender:handle(timing, action)
 	end
 
 	if action._type == "End Block" then
-		return InputClient.bend()
+		return self:bend()
 	end
 
 	if action._type == "Dodge" then
@@ -134,11 +351,11 @@ function Defender:handle(timing, action)
 	end
 
 	InputClient.parry()
-end
+end)
 
 ---Check if we have input blocking tasks.
 ---@return boolean
-function Defender:blocking()
+Defender.blocking = LPH_NO_VIRTUALIZE(function(self)
 	for _, task in next, self.tasks do
 		if not task:blocking() then
 			continue
@@ -146,7 +363,7 @@ function Defender:blocking()
 
 		return true
 	end
-end
+end)
 
 ---Mark task.
 ---@param task Task
@@ -155,19 +372,31 @@ function Defender:mark(task)
 end
 
 ---Clean up all tasks.
-function Defender:clean()
+Defender.clean = LPH_NO_VIRTUALIZE(function(self)
+	-- Was there a start block?
+	local blocking = false
+
 	for idx, task in next, self.tasks do
 		-- Cancel task.
 		task:cancel()
 
 		-- Clear in table.
 		self.tasks[idx] = nil
+
+		-- Check.
+		blocking = blocking or (task.identifier == "Start Block" or task.identifier == "End Block")
 	end
-end
+
+	-- End block if we're blocking.
+	if blocking then
+		InputClient.bend()
+	end
+end)
 
 ---Add actions from timing to defender object.
 ---@param timing Timing
-function Defender:actions(timing)
+---@param multiplier number
+Defender.actions = LPH_NO_VIRTUALIZE(function(self, timing, multiplier)
 	for _, action in next, timing.actions:get() do
 		-- Get ping.
 		local ping = self:ping()
@@ -175,8 +404,8 @@ function Defender:actions(timing)
 		-- Add action.
 		self:mark(
 			Task.new(
-				string.format("Action_%s", action._type),
-				action:when() - ping,
+				action._type,
+				(action:when() - ping) * (multiplier or 1),
 				timing.punishable,
 				timing.after,
 				self.handle,
@@ -189,12 +418,24 @@ function Defender:actions(timing)
 		-- Log.
 		self:notify(timing, "Added action '%s' (%.2fs) with ping '%.2f' subtracted.", action.name, action:when(), ping)
 	end
-end
+end)
 
 ---Detach defender object.
 function Defender:detach()
+	-- Clean self.
 	self:clean()
 	self.maid:clean()
+
+	-- Destroy parts.
+	if self.vpart then
+		self.vpart:Destroy()
+	end
+
+	if self.ppart then
+		self.ppart:Destroy()
+	end
+
+	-- Set object nil.
 	self = nil
 end
 
@@ -203,6 +444,9 @@ function Defender.new()
 	local self = setmetatable({}, Defender)
 	self.tasks = {}
 	self.maid = Maid.new()
+	self.ppart = nil
+	self.vpart = nil
+	self.lvisualization = os.clock()
 	return self
 end
 

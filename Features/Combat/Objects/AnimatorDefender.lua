@@ -16,9 +16,6 @@ local Logger = require("Utility/Logger")
 ---@module Utility.Configuration
 local Configuration = require("Utility/Configuration")
 
----@module Utility.InstanceWrapper
-local InstanceWrapper = require("Utility/InstanceWrapper")
-
 ---@module Game.InputClient
 local InputClient = require("Game/InputClient")
 
@@ -31,28 +28,33 @@ local Task = require("Features/Combat/Objects/Task")
 ---@field heffects Instance[]
 ---@field manimations table<number, Animation>
 ---@field track AnimationTrack? Don't be confused. This is the **valid && last** animation track played.
----@field maid Maid
+---@field maid Maid This maid is cleaned up after every new animation track. Safe to use for on-animation-track setup.
 local AnimatorDefender = setmetatable({}, { __index = Defender })
 AnimatorDefender.__index = AnimatorDefender
-AnimatorDefender.__type = "AnimatorDefender"
+AnimatorDefender.__type = "Animation"
 
 -- Services.
 local players = game:GetService("Players")
 local replicatedStorage = game:GetService("ReplicatedStorage")
-local userInputService = game:GetService("UserInputService")
 
----Override notify to include type.
----@param timing Timing
----@param str string
-function AnimatorDefender:notify(timing, str, ...)
-	Defender.notify(self, timing, string.format("[Animation] %s", str), ...)
+---Find the Heavy Hands Ring instance in a character.
+---@param character Model
+---@return Instance
+local function hasHeavyHandsRing(character)
+	for _, instance in pairs(character:GetChildren()) do
+		if instance:GetAttribute("EquipmentRef") ~= "Heavy Hands Ring" then
+			continue
+		end
+
+		return instance
+	end
 end
 
 ---Check if we're in a valid state to proceed with the action.
 ---@param timing AnimationTiming
 ---@param action Action
 ---@return boolean
-function AnimatorDefender:valid(timing, action)
+AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 	if not self.track then
 		return self:notify(timing, "No current track.")
 	end
@@ -66,12 +68,24 @@ function AnimatorDefender:valid(timing, action)
 		return self:notify(timing, "Not a viable target.")
 	end
 
+	while
+		timing.duih
+		and not self:hitbox(
+			target.root.CFrame,
+			timing.fhb and action.hitbox.Z / 2 or 0,
+			timing.hitbox,
+			{ players.LocalPlayer.Character }
+		)
+	do
+		task.wait()
+	end
+
 	local character = players.LocalPlayer.Character
 	if not character then
 		return self:notify(timing, "No character found.")
 	end
 
-	if not self:hitbox(target.root.CFrame * CFrame.new(0, 0, -(action.hitbox.Z / 2)), action.hitbox, { character }) then
+	if not self:hitbox(target.root.CFrame, timing.fhb and action.hitbox.Z / 2 or 0, action.hitbox, { character }) then
 		return self:notify(timing, "Not inside of the hitbox.")
 	end
 
@@ -102,69 +116,14 @@ function AnimatorDefender:valid(timing, action)
 		return self:notify(timing, "Entity got attack cancelled.")
 	end
 
-	local keybinds = replicatedStorage:FindFirstChild("KeyBinds")
-	if not keybinds then
-		return self:notify(timing, "No keybinds instance found.")
-	end
-
-	local keybindsModule = require(keybinds)
-	if not keybindsModule or not keybindsModule.Current then
-		return self:notify(timing, "No keybinds module found.")
-	end
-
-	for _, keybind in next, keybindsModule.Current["Block"] or {} do
-		if not userInputService:IsKeyDown(Enum.KeyCode[tostring(keybind)]) then
-			continue
-		end
-
-		return self:notify(timing, "User is pressing down on a key binded to Block.")
-	end
-
 	return true
-end
-
----Check if the initial state is valid.
----@param timing AnimationTiming
----@return boolean
-function AnimatorDefender:initial(timing)
-	local entity = self.animator:FindFirstAncestorWhichIsA("Model")
-	if not entity then
-		return false
-	end
-
-	local entRootPart = entity:FindFirstChild("HumanoidRootPart")
-	if not entRootPart then
-		return false
-	end
-
-	local localCharacter = players.LocalPlayer.Character
-	if not localCharacter then
-		return false
-	end
-
-	local localRootPart = localCharacter:FindFirstChild("HumanoidRootPart")
-	if not localRootPart then
-		return false
-	end
-
-	local distance = (entRootPart.Position - localRootPart.Position).Magnitude
-
-	if distance < timing.imdd then
-		return false
-	end
-
-	if distance > timing.imxd then
-		return false
-	end
-
-	return true
-end
+end)
 
 ---Repeat until parry end.
 ---@param track AnimationTrack
 ---@param timing AnimationTiming
 ---@param index number
-function AnimatorDefender:rpue(track, timing, index)
+AnimatorDefender.rpue = LPH_NO_VIRTUALIZE(function(self, track, timing, index)
 	if not self.track.IsPlaying then
 		return
 	end
@@ -183,23 +142,19 @@ function AnimatorDefender:rpue(track, timing, index)
 		)
 	)
 
-	if not self:initial(timing) then
+	if not self:initial(self.entity, SaveManager.as, self.entity.Name, tostring(track.Animation.AnimationId)) then
 		return
 	end
 
 	self:notify(timing, "(%i) Action 'RPUE Parry' is being executed.", index)
 
 	InputClient.parry()
-end
+end)
 
 ---Process animation track.
 ---@todo: Logger module.
 ---@param track AnimationTrack
-function AnimatorDefender:process(track)
-	if not Configuration.expectToggleValue("EnableAutoDefense") then
-		return
-	end
-
+AnimatorDefender.process = LPH_NO_VIRTUALIZE(function(self, track)
 	if track.Priority == Enum.AnimationPriority.Core then
 		return
 	end
@@ -222,18 +177,18 @@ function AnimatorDefender:process(track)
 		)
 	end
 
-	local localCharacter = players.LocalPlayer.Character
-	if localCharacter and self.entity == localCharacter then
-		return
-	end
-
-	---@type AnimationTiming
-	local timing = SaveManager.as:index(tostring(track.Animation.AnimationId))
+	---@type AnimationTiming?
+	local timing = self:initial(self.entity, SaveManager.as, self.entity.Name, tostring(track.Animation.AnimationId))
 	if not timing then
 		return
 	end
 
-	if not self:initial(timing) then
+	if not Configuration.expectToggleValue("EnableAutoDefense") then
+		return
+	end
+
+	local localCharacter = players.LocalPlayer.Character
+	if localCharacter and self.entity == localCharacter then
 		return
 	end
 
@@ -280,7 +235,7 @@ function AnimatorDefender:process(track)
 
 	---@note: Start processing the timing. Add the actions if we're not RPUE.
 	if not timing.rpue then
-		return self:actions(timing)
+		return self:actions(timing, timing.tag == "M1" and hasHeavyHandsRing(self.entity) and 0.85 or 1)
 	end
 
 	self:mark(
@@ -304,7 +259,7 @@ function AnimatorDefender:process(track)
 		timing:rsd(),
 		timing:rpd()
 	)
-end
+end)
 
 ---Create new AnimatorDefender object.
 ---@param animator Animator
@@ -327,22 +282,30 @@ function AnimatorDefender.new(animator, manimations)
 	self.track = nil
 	self.heffects = {}
 
-	self.maid:mark(entityDescendantAdded:connect("AnimatorDefender_OnDescendantAdded", function(descendant)
-		if
-			descendant.Name ~= "PunchBlood"
-			and descendant.Name ~= "PunchEffect"
-			and descendant.Name ~= "BloodSpray"
-			and not (descendant:IsA("ParticleEmitter") and descendant.Texture == "rbxassetid://7216855595")
-		then
-			return
-		end
+	self.maid:mark(
+		entityDescendantAdded:connect(
+			"AnimatorDefender_OnDescendantAdded",
+			LPH_NO_VIRTUALIZE(function(descendant)
+				if
+					descendant.Name ~= "PunchBlood"
+					and descendant.Name ~= "PunchEffect"
+					and descendant.Name ~= "BloodSpray"
+					and not (descendant:IsA("ParticleEmitter") and descendant.Texture == "rbxassetid://7216855595")
+				then
+					return
+				end
 
-		self.heffects[#self.heffects + 1] = descendant
-	end))
+				self.heffects[#self.heffects + 1] = descendant
+			end)
+		)
+	)
 
-	self.maid:mark(animationPlayed:connect("AnimatorDefender_OnAnimationPlayed", function(track)
-		self:process(track)
-	end))
+	self.maid:mark(animationPlayed:connect(
+		"AnimatorDefender_OnAnimationPlayed",
+		LPH_NO_VIRTUALIZE(function(track)
+			self:process(track)
+		end)
+	))
 
 	return self
 end

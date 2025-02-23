@@ -19,8 +19,14 @@ local PartTiming = require("Game/Timings/PartTiming")
 ---@module Game.Timings.SoundTiming
 local SoundTiming = require("Game/Timings/SoundTiming")
 
+---@module Game.Timings.EmitterTiming
+local EmitterTiming = require("Game/Timings/EmitterTiming")
+
 -- SaveManager module.
-local SaveManager = {}
+local SaveManager = {
+	-- Last loaded config name.
+	llcn = nil,
+}
 
 ---@module Utility.Filesystem
 local Filesystem = require("Utility/Filesystem")
@@ -31,14 +37,23 @@ local Logger = require("Utility/Logger")
 ---@module Utility.Deserializer
 local Deserializer = require("Utility/Deserializer")
 
+---@module Utility.Configuration
+local Configuration = require("Utility/Configuration")
+
 ---@module Utility.Serializer
 local Serializer = require("Utility/Serializer")
+
+---@module Utility.Signal
+local Signal = require("Utility/Signal")
 
 -- Manager filesystem.
 local fs = Filesystem.new("Lycoris-Rewrite-Timings")
 
 -- Current timing save.
 local config = TimingSave.new()
+
+-- Services.
+local players = game:GetService("Players")
 
 -- Generate mapping.
 local charByteMap = {}
@@ -268,6 +283,8 @@ function SaveManager.load(name)
 		config:count(),
 		os.clock() - timestamp
 	)
+
+	SaveManager.llcn = name
 end
 
 ---Initialize SaveManager.
@@ -279,18 +296,21 @@ function SaveManager.init()
 	local internalEffectContainer = TimingContainer.new(EffectTiming.new())
 	local internalPartContainer = TimingContainer.new(PartTiming.new())
 	local internalSoundContainer = TimingContainer.new(SoundTiming.new())
+	local internalEmitterContainer = TimingContainer.new(EmitterTiming.new())
 
 	---@todo: Load internal timings from server.
 	internalAnimationContainer:load({})
 	internalEffectContainer:load({})
 	internalPartContainer:load({})
 	internalSoundContainer:load({})
+	internalEmitterContainer:load({})
 
 	-- Count up internal timings.
 	local internalCount = internalAnimationContainer:count()
 		+ internalEffectContainer:count()
 		+ internalPartContainer:count()
 		+ internalSoundContainer:count()
+		+ internalEmitterContainer:count()
 
 	Logger.notify(
 		"Internal timings have loaded with %i timings in %.2f seconds.",
@@ -317,6 +337,29 @@ function SaveManager.init()
 
 	-- Sound stack.
 	SaveManager.ss = TimingContainerPair.new(internalSoundContainer, config:get().sound)
+
+	-- Emitter stack.
+	SaveManager.ems = TimingContainerPair.new(internalEmitterContainer, config:get().emitter)
+
+	-- Signals.
+	local playerRemoving = Signal.new(players.PlayerRemoving)
+
+	-- Auto-saving.
+	playerRemoving:connect(function(player)
+		if player ~= players.LocalPlayer then
+			return
+		end
+
+		if not SaveManager.llcn then
+			return
+		end
+
+		if not Configuration.expectToggleValue("AutoSaveOnLeave") then
+			return
+		end
+
+		SaveManager.write(SaveManager.llcn)
+	end)
 end
 
 -- Return SaveManager module.

@@ -13,12 +13,6 @@ local Attributes = require("Utility/Attributes")
 ---@module Utility.Logger
 local Logger = require("Utility/Logger")
 
----@Module Utility.SendInput
-local SendInput = require("Utility/SendInput")
-
----@module Utility.Configuration
-local Configuration = require("Utility/Configuration")
-
 -- Services.
 local players = game:GetService("Players")
 local runService = game:GetService("RunService")
@@ -28,6 +22,9 @@ local renderStepped = Signal.new(runService.RenderStepped)
 
 -- Maids.
 local autoIntelligenceMaid = Maid.new()
+
+-- Last update.
+local lastUpdate = os.clock()
 
 ---Update inteligence.
 local function updateInteligence()
@@ -59,7 +56,7 @@ local function updateInteligence()
 
 	local backpack = localPlayer:FindFirstChild("Backpack")
 	if not backpack then
-		return Logger.warn("Backpack not found.")
+		return
 	end
 
 	local characterBook = localPlayerCharacter:FindFirstChild("Math Textbook")
@@ -71,97 +68,147 @@ local function updateInteligence()
 
 	local choicePrompt = localPlayer.PlayerGui:FindFirstChild("ChoicePrompt")
 	if not choicePrompt then
-		return SendInput.mb1(0, 0)
+		return characterBook and characterBook:Activate()
+	end
+
+	local choiceRemote = choicePrompt:FindFirstChild("Choice")
+	if not choiceRemote then
+		return
 	end
 
 	local choiceFrame = choicePrompt:FindFirstChild("ChoiceFrame")
 	if not choiceFrame then
-		return Logger.warn("Choice frame not found.")
+		return
 	end
 
 	local descSheet = choiceFrame:FindFirstChild("DescSheet")
-	if not descSheet then
-		return Logger.warn("Desc sheet not found.")
+	local description = descSheet and descSheet:FindFirstChild("Desc")
+	if not description then
+		return
 	end
 
 	local options = choiceFrame:FindFirstChild("Options")
 	if not options then
-		return Logger.warn("Options not found.")
-	end
-
-	local desc = descSheet:FindFirstChild("Desc")
-	if not desc then
-		return Logger.warn("Desc not found.")
-	end
-
-	local isMathChoice = options:FindFirstChildOfClass("TextButton")
-	if not isMathChoice or (isMathChoice and not tonumber(isMathChoice.Name)) then
-		return Logger.warn("Math choice not found.")
-	end
-
-	local choice = choicePrompt:FindFirstChild("Choice")
-	if not choice then
-		return Logger.warn("Choice not found.")
-	end
-
-	local operation = desc.Text:lower()
-	local text = desc.Text:split(" ")
-
-	local expected = nil
-	local numberOne, numberTwo = tonumber(text[3]), tonumber(table.pack(text[5]:gsub("?", ""))[1])
-
-	if operation:match("times") then
-		expected = numberOne * numberTwo
-	elseif operation:match("minus") then
-		expected = numberOne - numberTwo
-	elseif operation:match("times") then
-		expected = numberOne + numberTwo
-	elseif operation:match("divided") then
-		expected = numberOne / numberTwo
-	end
-
-	if not expected then
-		return Logger.warn("Expected value not found.")
-	end
-
-	local deltaTable = {}
-	local buttonMap = {}
-
-	for _, child in pairs(options:GetChildren()) do
-		if not child:IsA("TextButton") then
-			continue
-		end
-
-		local number = tonumber(child.Text) or 0
-		local delta = math.abs(number - expected)
-
-		deltaTable[#deltaTable + 1] = delta
-		buttonMap[delta] = number
-	end
-
-	table.sort(deltaTable, function(deltaOne, deltaTwo)
-		return deltaOne < deltaTwo
-	end)
-
-	choice:FireServer(buttonMap[deltaTable[1]])
-
-	if Attributes.isNotAtCap(localPlayerCharacter, "Stat_Intelligence", inteligenceFarmCap.Value) then
 		return
 	end
 
-	humanoid:UnequipTools()
+	-- Fetch possible answers.
+	local answers = {}
 
-	Logger.longNotify("Intelligence AutoFarm is automatically stopping.")
+	for _, instance in next, options:GetChildren() do
+		if not instance:IsA("TextButton") then
+			continue
+		end
+
+		local number = tonumber(instance.Name)
+		if not number then
+			continue
+		end
+
+		table.insert(answers, number)
+	end
+
+	-- Parse description of junk.
+	local descriptionText = tostring(description.Text)
+	local parsedDescription = descriptionText:gsub("What is", ""):gsub(" ", ""):gsub("?", ""):gsub("by", "")
+
+	-- Get the current operation.
+	local operation = nil
+
+	if parsedDescription:match("divided") then
+		operation = "divided"
+	end
+
+	if parsedDescription:match("times") then
+		operation = "times"
+	end
+
+	if parsedDescription:match("plus") then
+		operation = "plus"
+	end
+
+	if parsedDescription:match("minus") then
+		operation = "minus"
+	end
+
+	if not operation then
+		return
+	end
+
+	-- Parse numbers.
+	local parsedNumbers = parsedDescription:split(operation)
+	local firstNumber = tonumber(parsedNumbers[1] or "")
+	local secondNumber = tonumber(parsedNumbers[2] or "")
+	if not firstNumber or not secondNumber then
+		return
+	end
+
+	-- Calculate the answer.
+	local answer = nil
+
+	if operation == "divided" then
+		answer = firstNumber / secondNumber
+	end
+
+	if operation == "times" then
+		answer = firstNumber * secondNumber
+	end
+
+	if operation == "plus" then
+		answer = firstNumber + secondNumber
+	end
+
+	if operation == "minus" then
+		answer = firstNumber - secondNumber
+	end
+
+	-- Find the closest of the possible answers to the real one.
+	local closestAnswer = nil
+	local closestDifference = nil
+
+	for _, possible in next, answers do
+		local delta = math.abs(answer - possible)
+
+		if closestDifference and delta > closestDifference then
+			continue
+		end
+
+		closestAnswer = possible
+		closestDifference = delta
+	end
+
+	if not closestAnswer then
+		return
+	end
+
+	-- Wait for next update.
+	if os.clock() - lastUpdate <= 0.05 then
+		return
+	end
+
+	-- Last update.
+	lastUpdate = os.clock()
+
+	-- Fire with the closest answer as a string.
+	choiceRemote:FireServer(tostring(closestAnswer))
 end
 
 ---Intelligence farming.
 function InteligenceFarm.init()
+	-- Attach the inteligence farm.
 	autoIntelligenceMaid:add(renderStepped:connect("AttributeFarmIntelligence_OnPreRender", updateInteligence))
+
+	-- Log.
+	Logger.warn("Inteligence Farm initialized.")
 end
 
 ---Detach the inteligence farm.
 function InteligenceFarm.detach()
+	-- Clean the maid.
 	autoIntelligenceMaid:clean()
+
+	-- Log.
+	Logger.warn("Inteligence Farm detached.")
 end
 
 -- Return InteligenceFarm module

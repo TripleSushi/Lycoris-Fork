@@ -4,33 +4,26 @@ local BuilderSection = require("Menu/Objects/BuilderSection")
 ---@module Utility.Logger
 local Logger = require("Utility/Logger")
 
----@module Game.Timings.PartTiming
-local PartTiming = require("Game/Timings/PartTiming")
+---@module Game.Timings.EmitterTiming
+local EmitterTiming = require("Game/Timings/EmitterTiming")
 
----@class PartBuilderSection: BuilderSection
----@field partName table
----@field timingDelay table
----@field partContentFilter table
----@field partContentName table
----@field initialMinimumDistance table
----@field initialMaximumDistance table
----@field timing PartTiming
-local PartBuilderSection = setmetatable({}, { __index = BuilderSection })
-PartBuilderSection.__index = PartBuilderSection
+---@class EmitterBuilderSection: BuilderSection
+local EmitterBuilderSection = setmetatable({}, { __index = BuilderSection })
+EmitterBuilderSection.__index = EmitterBuilderSection
 
 ---Check before writing.
 ---@return boolean
-function PartBuilderSection:check()
+function EmitterBuilderSection:check()
 	if not BuilderSection.check(self) then
 		return false
 	end
 
-	if not self.partName.Value or #self.partName.Value <= 0 then
-		return Logger.longNotify("Please enter a valid part name.")
+	if not self.texture.Value or #self.texture.Value <= 0 then
+		return Logger.longNotify("Please enter a valid texture ID.")
 	end
 
-	if self.pair:index(self.partName.Value) then
-		return Logger.longNotify("The timing ID '%s' is already in the list.", self.partName.Value)
+	if self.pair:index(self.texture.Value) then
+		return Logger.longNotify("The timing ID '%s' is already in the list.", self.texture.Value)
 	end
 
 	return true
@@ -38,41 +31,48 @@ end
 
 ---Load the extra elements. Override me.
 ---@param timing Timing
-function PartBuilderSection:exload(timing)
-	self.partName:SetRawValue(timing.pname)
+function EmitterBuilderSection:exload(timing)
+	self.texture:SetRawValue(timing.texture)
+	self.part:SetRawValue(timing.part)
 	self.linkedAnimationIds:SetRawValue({})
 	self.linkedAnimationIds:SetValues(timing.linked)
 	self.linkedAnimationIds:Display()
 end
 
 ---Reset the elements. Extend me.
-function PartBuilderSection:reset()
+function EmitterBuilderSection:reset()
 	BuilderSection.reset(self)
-	self.partName:SetRawValue("")
+	self.texture:SetRawValue("")
+	self.part:SetRawValue("")
 	self.linkedAnimationIds:SetRawValue({})
 	self.linkedAnimationIds:SetValues({})
 	self.linkedAnimationIds:Display()
 end
 
 ---Create new timing. Override me.
----@return PartTiming
-function PartBuilderSection:create()
-	local timing = PartTiming.new()
+---@return EmitterTiming
+function EmitterBuilderSection:create()
+	local timing = EmitterTiming.new()
 	timing.name = self.timingName.Value
-	timing.pname = self.partName.Value
+	timing.part = self.part.Value
+	timing.texture = self.texture.Value
 	return timing
 end
 
 ---Create timing ID element. Override me.
 ---@param tab table
-function PartBuilderSection:tide(tab)
-	self.partName = tab:AddInput(nil, {
-		Text = "Part Name",
+function EmitterBuilderSection:tide(tab)
+	self.texture = tab:AddInput(nil, {
+		Text = "Texture ID",
+	})
+
+	self.part = tab:AddInput(nil, {
+		Text = "Parent Part Name",
 	})
 end
 
 ---Initialize filter tab.
-function PartBuilderSection:filter()
+function EmitterBuilderSection:filter()
 	local tab = self.tabbox:AddTab("Filter")
 
 	---@note: De-duplicate me?
@@ -137,23 +137,23 @@ function PartBuilderSection:filter()
 	)
 end
 
----Initialize PartBuilderSection object.
-function PartBuilderSection:init()
+---Initialize EmitterBuilderSection object.
+function EmitterBuilderSection:init()
 	self:timing()
 	self:builder()
 	self:action()
 	self:filter()
 end
 
----Create new PartBuilderSection object.
+---Create new EmitterBuilderSection object.
 ---@param name string
 ---@param tabbox table
 ---@param pair TimingContainerPair
----@param timing PartTiming
----@return PartBuilderSection
-function PartBuilderSection.new(name, tabbox, pair, timing)
-	return setmetatable(BuilderSection.new(name, tabbox, pair, timing), PartBuilderSection)
+---@param timing EmitterTiming
+---@return EmitterBuilderSection
+function EmitterBuilderSection.new(name, tabbox, pair, timing)
+	return setmetatable(BuilderSection.new(name, tabbox, pair, timing), EmitterBuilderSection)
 end
 
--- Return PartBuilderSection module.
-return PartBuilderSection
+-- Return EmitterBuilderSection module.
+return EmitterBuilderSection

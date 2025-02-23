@@ -20,7 +20,7 @@ local userInputService = game:GetService("UserInputService")
 
 ---Get a list of all viable targets.
 ---@return Target[]
-function Targeting.viable()
+Targeting.viable = LPH_NO_VIRTUALIZE(function()
 	local live = workspace:FindFirstChild("Live")
 	if not live then
 		return {}
@@ -77,7 +77,11 @@ function Targeting.viable()
 			continue
 		end
 
-		if PlayerScanning.isAlly(entity) and Configuration.expectToggleValue("IgnoreAllies") then
+		if
+			playerFromCharacter
+			and PlayerScanning.isAlly(playerFromCharacter)
+			and Configuration.expectToggleValue("IgnoreAllies")
+		then
 			continue
 		end
 
@@ -104,11 +108,11 @@ function Targeting.viable()
 	end
 
 	return targets
-end
+end)
 
 ---Get the best targets through sorting.
 ---@return Target[]
-function Targeting.best()
+Targeting.best = LPH_NO_VIRTUALIZE(function()
 	local targets = Targeting.viable()
 	local sortType = Configuration.expectOptionValue("PlayerSelectionType")
 	local sortFunction = nil
@@ -134,12 +138,12 @@ function Targeting.best()
 	table.sort(targets, sortFunction)
 
 	return Table.slice(targets, 1, Configuration.expectOptionValue("MaxTargets"))
-end
+end)
 
 ---Find our model from a list of best targets.
 ---@param model Model
 ---@return Target?
-function Targeting.find(model)
+Targeting.find = LPH_NO_VIRTUALIZE(function(model)
 	for _, target in next, Targeting.best() do
 		if target.character ~= model then
 			continue
@@ -147,7 +151,7 @@ function Targeting.find(model)
 
 		return target
 	end
-end
+end)
 
 -- Return Targeting module.
 return Targeting

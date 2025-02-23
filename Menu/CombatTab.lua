@@ -96,13 +96,9 @@ function CombatTab.initCombatWhitelistSection(tab)
 		usernameList:Display()
 	end)
 
-	tab:AddButton("Remove Selected Username", function()
+	tab:AddButton("Remove Selected Usernames", function()
 		local values = usernameList.Values
 		local value = usernameList.Value
-
-		if not value or #value <= 0 then
-			return Logger.longNotify("Please select a username to remove.")
-		end
 
 		for selected, _ in next, value do
 			local index = table.find(values, selected)
@@ -122,45 +118,47 @@ end
 -- Initialize auto defense section.
 ---@param groupbox table
 function CombatTab.initAutoDefenseSection(groupbox)
-	groupbox:AddToggle("EnableAutoDefense", {
-		Text = "Enable Auto Defense",
-		Default = false,
-		Callback = function(value)
-			if not value then
-				return
-			end
+	groupbox
+		:AddToggle("EnableAutoDefense", {
+			Text = "Enable Auto Defense",
+			Default = false,
+			Callback = function(value)
+				if not value then
+					return
+				end
 
-			-- Get local player.
-			local localPlayer = players.LocalPlayer
-			if not localPlayer then
-				return
-			end
+				-- Get local player.
+				local localPlayer = players.LocalPlayer
+				if not localPlayer then
+					return
+				end
 
-			-- Check if ping compensation is enabled. We want it off.
-			if not localPlayer:GetAttribute("EnablePingCompensation") then
-				return
-			end
+				-- Check if ping compensation is enabled. We want it off.
+				if not localPlayer:GetAttribute("EnablePingCompensation") then
+					return
+				end
 
-			-- Get requests module.
-			local requests = replicatedStorage:FindFirstChild("Requests")
-			if not requests then
-				return
-			end
+				-- Get requests module.
+				local requests = replicatedStorage:FindFirstChild("Requests")
+				if not requests then
+					return
+				end
 
-			-- Find update UX settings.
-			local updateUxSettings = requests:FindFirstChild("UpdateUXSettings")
-			if not updateUxSettings then
-				return
-			end
+				-- Find update UX settings.
+				local updateUxSettings = requests:FindFirstChild("UpdateUXSettings")
+				if not updateUxSettings then
+					return
+				end
 
-			-- Disable ping compensation.
-			---@note: Doesn't update the UI.
-			updateUxSettings:FireServer("EnablePingCompensation", false)
+				-- Disable ping compensation.
+				---@note: Doesn't update the UI.
+				updateUxSettings:FireServer("EnablePingCompensation", false)
 
-			-- Notify to the user.
-			Logger.longNotify("Auto Defense assumes ping compensation is disabled. It has been disabled for you.")
-		end,
-	})
+				-- Notify to the user.
+				Logger.longNotify("Auto Defense assumes ping compensation is disabled. It has been disabled for you.")
+			end,
+		})
+		:AddKeyPicker("EnableAutoDefenseKeybind", { Default = "N/A", SyncToggleState = true, Text = "Auto Defense" })
 
 	groupbox:AddToggle("EnableNotifications", {
 		Text = "Enable Notifications",
@@ -174,6 +172,24 @@ function CombatTab.initAutoDefenseSection(groupbox)
 
 	groupbox:AddToggle("RollOnParryCooldown", {
 		Text = "Roll On Parry Cooldown",
+		Default = false,
+	})
+
+	groupbox:AddToggle("CheckHoldingBlockInput", {
+		Text = "Check If Holding Block Input",
+		Tooltip = "If we are holding the block input, stop the auto defense from proceeding.",
+		Default = false,
+	})
+
+	groupbox:AddToggle("CheckWindowActive", {
+		Text = "Check If Window Is Active",
+		Tooltip = "If Roblox isn't the active window, stop the auto defense from proceeding.",
+		Default = false,
+	})
+
+	groupbox:AddToggle("CheckTextboxFocused", {
+		Text = "Check If Textbox Is Focused",
+		Tooltip = "If a textbox is focused, stop the auto defense from proceeding.",
 		Default = false,
 	})
 end
@@ -209,6 +225,24 @@ function CombatTab.initAttackAssistanceSection(groupbox)
 		Text = "Block Punishable Mantras",
 		Default = false,
 	})
+
+	groupbox:AddSlider("DefaultPunishableWindow", {
+		Text = "Default Punishable Window",
+		Min = 0,
+		Max = 2,
+		Default = 0.7,
+		Suffix = "s",
+		Rounding = 1,
+	})
+
+	groupbox:AddSlider("DefaultAfterWindow", {
+		Text = "Default After Window",
+		Min = 0,
+		Max = 1,
+		Default = 0.1,
+		Suffix = "s",
+		Rounding = 1,
+	})
 end
 
 -- Initialize input assistance section.
@@ -217,7 +251,12 @@ function CombatTab.initInputAssistance(groupbox) end
 
 -- Initialize combat assistance section.
 ---@param groupbox table
-function CombatTab.initCombatAssistance(groupbox) end
+function CombatTab.initCombatAssistance(groupbox)
+	groupbox:AddToggle("PerfectMantraCast", {
+		Text = "Perfect Mantra Cast",
+		Default = false,
+	})
+end
 
 ---Initialize tab.
 ---@param window table

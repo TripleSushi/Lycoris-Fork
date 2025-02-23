@@ -56,20 +56,20 @@ end
 ---@param tbl table
 ---@param value any
 ---@return boolean
-local function manualTableFind(tbl, value)
-	for _, v in next, tbl do
-		if v ~= value then
+local manualTableFind = LPH_NO_VIRTUALIZE(function(tbl, value)
+	for _, val in next, tbl do
+		if val ~= value then
 			continue
 		end
 
 		return true
 	end
-end
+end)
 
 ---Check if table has non-boolean values.
 ---@param tbl table
 ---@return boolean
-local function hasNonBooleans(tbl)
+local hasNonBooleans = LPH_NO_VIRTUALIZE(function(tbl)
 	for _, value in next, tbl do
 		if typeof(value) == "boolean" then
 			continue
@@ -79,11 +79,11 @@ local function hasNonBooleans(tbl)
 	end
 
 	return true
-end
+end)
 
 ---Fetch last roll move direction.
 ---@return Vector3?
-function InputClient.getLastRollMoveDirection()
+InputClient.getLastRollMoveDirection = LPH_NO_VIRTUALIZE(function()
 	local rollFunction = InputClient.rollFunctionCache
 	if not rollFunction then
 		return nil
@@ -95,16 +95,20 @@ function InputClient.getLastRollMoveDirection()
 	end
 
 	return lastRollMoveDirection
-end
+end)
 
 ---Fetch input data.
 ---@return table?
-function InputClient.getInputData()
+InputClient.getInputData = LPH_NO_VIRTUALIZE(function()
 	local inputData = nil
 
 	for _, connection in next, getconnections(runService.RenderStepped) do
 		local func = connection.Function
 		if not func then
+			continue
+		end
+
+		if iscclosure(func) then
 			continue
 		end
 
@@ -131,10 +135,10 @@ function InputClient.getInputData()
 	end
 
 	return inputData
-end
+end)
 
 ---End block function.
-function InputClient.bend()
+InputClient.bend = LPH_NO_VIRTUALIZE(function()
 	local unblockRemote = KeyHandling.getRemote("Unblock")
 	if not unblockRemote then
 		return Logger.warn("Cannot end block without unblock remote.")
@@ -152,10 +156,10 @@ function InputClient.bend()
 	inputData["f"] = false
 
 	sprintFunction(false)
-end
+end)
 
 ---Start block function.
-function InputClient.bstart()
+InputClient.bstart = LPH_NO_VIRTUALIZE(function()
 	local effectReplicator = replicatedStorage:FindFirstChild("EffectReplicator")
 	if not effectReplicator then
 		return Logger.warn("Cannot start block without effect replicator.")
@@ -201,10 +205,10 @@ function InputClient.bstart()
 
 		blockRemote:FireServer()
 	end
-end
+end)
 
----Parry function.
-function InputClient.parry()
+---Left click function.
+InputClient.left = LPH_NO_VIRTUALIZE(function()
 	local effectReplicator = replicatedStorage:FindFirstChild("EffectReplicator")
 	if not effectReplicator then
 		return
@@ -215,19 +219,63 @@ function InputClient.parry()
 		return
 	end
 
-	local blockRemote = KeyHandling.getRemote("Block")
-
-	if not blockRemote then
+	local character = players.LocalPlayer.Character
+	if not character then
 		return
+	end
+
+	local humanoid = character:FindFirstChildWhichIsA("Humanoid")
+	if not humanoid then
+		return
+	end
+
+	if effectReplicatorModule:HasEffect("InDialogue") then
+		return
+	end
+
+	local inputData = InputClient.getInputData()
+	if not inputData then
+		return
+	end
+
+	local leftClickRemote = KeyHandling.getRemote("LeftClick")
+	if not leftClickRemote then
+		return
+	end
+
+	if
+		effectReplicatorModule:HasEffect("LightAttack")
+		or effectReplicatorModule:HasEffect("CriticalAttack")
+		or effectReplicatorModule:HasEffect("Followup")
+		or effectReplicatorModule:HasEffect("Parried")
+	then
+		return
+	end
+
+	leftClickRemote:FireServer(inAir(humanoid, effectReplicatorModule), players.LocalPlayer:GetMouse().Hit, inputData)
+
+	---@note: Missing M1-Hold and Input Buffering functionality but I don't think the caller cares about it.
+end)
+
+---Parry function.
+InputClient.parry = LPH_NO_VIRTUALIZE(function()
+	local effectReplicator = replicatedStorage:FindFirstChild("EffectReplicator")
+	if not effectReplicator then
+		return Logger.warn("Cannot parry without effect replicator.")
+	end
+
+	local effectReplicatorModule = require(effectReplicator)
+	if not effectReplicatorModule then
+		return Logger.warn("Cannot parry without effect replicator module.")
 	end
 
 	InputClient.bstart()
 
 	InputClient.bend()
-end
+end)
 
 ---Dodge function.
-function InputClient.dodge()
+InputClient.dodge = LPH_NO_VIRTUALIZE(function()
 	local effectReplicator = replicatedStorage:FindFirstChild("EffectReplicator")
 	if not effectReplicator then
 		return Logger.warn("Cannot dodge without effect replicator.")
@@ -292,10 +340,10 @@ function InputClient.dodge()
 	---@note: Run this in a seperate task because the roll movement must still continue even when detached and destroyed. Else, it will behave wrong.
 	--- This is OK. Before any yields occur, we fetch the remotes beforehand. Also, the clean up is done at the very end of the function.
 	task.spawn(InputClient.roll, usePivotVelocityRoll and true or nil)
-end
+end)
 
 ---Re-created feint function.
-function InputClient.feint()
+InputClient.feint = LPH_NO_VIRTUALIZE(function()
 	local rightClickRemote = KeyHandling.getRemote("RightClick")
 	if not rightClickRemote then
 		return Logger.warn("Cannot feint without right click remote.")
@@ -341,11 +389,11 @@ function InputClient.feint()
 	end
 
 	rightClickRemote:FireServer(inputDataTable)
-end
+end)
 
 ---Re-created roll function for safety.
 ---@param pivotStep boolean
-function InputClient.roll(pivotStep)
+InputClient.roll = LPH_NO_VIRTUALIZE(function(pivotStep)
 	local unblockRemote = KeyHandling.getRemote("Unblock")
 	local dodgeRemote = KeyHandling.getRemote("Dodge")
 	local stopDodge = KeyHandling.getRemote("StopDodge")
@@ -1074,12 +1122,12 @@ function InputClient.roll(pivotStep)
 	if effectReplicatorModule:HasEffect("Overcharge") then
 		effectReplicatorModule:RemoveEffectsOfClass("Overcharge")
 	end
-end
+end)
 
 ---Validate function.
 ---@param func function
 ---@return boolean
-function InputClient.validate(func)
+InputClient.validate = LPH_NO_VIRTUALIZE(function(func)
 	local upvalues = debug.getupvalues(func)
 
 	if not upvalues or #upvalues <= 0 then
@@ -1088,21 +1136,21 @@ function InputClient.validate(func)
 	end
 
 	return true
-end
+end)
 
 ---Update cache.
 ---@param consts any[]
-function InputClient.update(consts)
+InputClient.update = LPH_NO_VIRTUALIZE(function(consts)
 	if consts[2] ~= "wait" then
 		return Logger.warn("Ignoring bad update cache call for performance.")
 	end
 
 	InputClient.cache()
-end
+end)
 
 ---Cache InputClient module.
 -- @note: I sold my soul to the GC gods because there's no other way. Updates are only done when needed.
-function InputClient.cache()
+InputClient.cache = LPH_NO_VIRTUALIZE(function()
 	for _, value in next, getgc() do
 		if typeof(value) ~= "function" or iscclosure(value) or isexecutorclosure(value) then
 			continue
@@ -1137,7 +1185,7 @@ function InputClient.cache()
 			break
 		end
 	end
-end
+end)
 
 -- Return InputClient module.
 return InputClient

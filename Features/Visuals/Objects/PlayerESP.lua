@@ -1,5 +1,5 @@
----@module Features.Visuals.Objects.PositionESP
-local PositionESP = require("Features/Visuals/Objects/PositionESP")
+---@module Features.Visuals.Objects.InstanceESP
+local InstanceESP = require("Features/Visuals/Objects/InstanceESP")
 
 ---@module Utility.Configuration
 local Configuration = require("Utility/Configuration")
@@ -7,12 +7,13 @@ local Configuration = require("Utility/Configuration")
 ---@module Game.PlayerScanning
 local PlayerScanning = require("Game/PlayerScanning")
 
----@class PlayerESP: PositionESP
+---@class PlayerESP: InstanceESP
 ---@field baseLabel string
 ---@field player Player
 ---@field character Model
 ---@field identifier string
-local PlayerESP = setmetatable({}, { __index = PositionESP })
+---@field shadow Part
+local PlayerESP = setmetatable({}, { __index = InstanceESP })
 PlayerESP.__index = PlayerESP
 PlayerESP.__type = "PlayerESP"
 
@@ -31,14 +32,14 @@ local ESP_HEALTH_BARS = "[%.1f bars]"
 local ESP_DANGER_TIME = "[%s on timer]"
 
 ---Update PlayerESP.
-function PlayerESP:update()
+PlayerESP.update = LPH_NO_VIRTUALIZE(function(self)
 	local model = self.character
 	local player = self.player
 	local identifier = self.identifier
 
 	local humanoid = model:FindFirstChildOfClass("Humanoid")
 	if not humanoid then
-		return self:hide()
+		return self:visible(false)
 	end
 
 	local level = model:GetAttribute("Level") or -1
@@ -90,20 +91,18 @@ function PlayerESP:update()
 	end
 
 	local modelPosition = model:GetPivot().Position
+	local predictedPosition = nil
 	local usedPosition = nil
 
 	local mapPosition = model:GetAttribute("MapPos")
-	if not mapPosition then
-		tags[#tags + 1] = "[Not Loaded]"
+	local humanoidRootPart = model:FindFirstChild("HumanoidRootPart")
+
+	if not humanoidRootPart then
+		predictedPosition = mapPosition and Vector3.new(mapPosition.X, modelPosition.Y, mapPosition.Z) or nil
+		tags[#tags + 1] = mapPosition and "[Unknown Height]" or "[Not Loaded]"
 	end
 
-	local humanoidRootPart = model:FindFirstChild("HumanoidRootPart")
-	if not humanoidRootPart and mapPosition then
-		usedPosition = Vector3.new(mapPosition.X, modelPosition.Y, mapPosition.Z)
-		tags[#tags + 1] = "[Unknown Height]"
-	else
-		usedPosition = modelPosition
-	end
+	usedPosition = predictedPosition or modelPosition
 
 	local currentCamera = workspace.CurrentCamera
 	local character = players.LocalPlayer.Character
@@ -125,7 +124,13 @@ function PlayerESP:update()
 		)
 	end
 
-	PositionESP.update(self, usedPosition, tags)
+	self.shadow.Position = usedPosition
+
+	if self.billboard.Adornee ~= (predictedPosition and self.shadow or self.character) then
+		self.billboard.Adornee = predictedPosition and self.shadow or self.character
+	end
+
+	InstanceESP.update(self, usedPosition, tags)
 
 	if not Configuration.idToggleValue(identifier, "MarkAllies") then
 		return
@@ -135,19 +140,25 @@ function PlayerESP:update()
 		return
 	end
 
-	local baseText = self:getDrawing("baseText")
-	baseText:set("Color", Configuration.idOptionValue(identifier, "AllyColor"))
-end
+	self.text.TextColor3 = Configuration.idOptionValue(identifier, "AllyColor")
+end)
 
 ---Create new PlayerESP object.
 ---@param identifier string
 ---@param player Player
 ---@param character Model
 function PlayerESP.new(identifier, player, character)
-	local self = setmetatable(PositionESP.new(identifier, "Unknown Player"), PlayerESP)
+	setthreadidentity(7)
+
+	local shadow = Instance.new("Part")
+	shadow.Transparency = 1.0
+	shadow.Parent = game:GetService("CoreGui")
+
+	local self = setmetatable(InstanceESP.new(shadow, identifier, "Unknown Player"), PlayerESP)
 	self.player = player
 	self.character = character
 	self.identifier = identifier
+	self.shadow = self.maid:mark(shadow)
 
 	if character and character:IsA("Model") then
 		character.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
