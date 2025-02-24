@@ -24,9 +24,11 @@ return LPH_NO_VIRTUALIZE(function()
 	local Options = {}
 	local ColorPickers = {}
 	local Tasks = {}
+	local Entry = {}
 	local ContextMenus = {}
 	local Tooltips = {}
 	local ModeSelectFrames = {}
+	local UpdateTimestamp = os.clock()
 
 	pcall(function()
 		getgenv().Toggles = Toggles
@@ -62,6 +64,16 @@ return LPH_NO_VIRTUALIZE(function()
 	table.insert(
 		Library.Signals,
 		RenderStepped:Connect(function(Delta)
+			if os.clock() - UpdateTimestamp >= 0.05 then
+				local Idx, MissEntry = next(Entry)
+
+				if MissEntry then
+					Tasks[#Tasks + 1] = task.spawn(MissEntry)
+					table.remove(Entry, Idx)
+				end
+			end
+
+			UpdateTimestamp = os.clock()
 			RainbowStep = RainbowStep + Delta
 
 			if RainbowStep >= (1 / 60) then
@@ -204,83 +216,8 @@ return LPH_NO_VIRTUALIZE(function()
 		Library.InfoLoggerFrame.Size = UDim2.new(0, math.clamp(XSize, 210, 800), 0, math.clamp(YSize, 24, 180))
 	end
 
-	function Library:AddEntry(type, key, entry)
-		local ifd = Library.InfoLoggerData
-		local mde = ifd.MissingDataEntries
-		local bl = ifd.KeyBlacklistList
-
-		if bl[key] then
-			return
-		end
-
-		local function getEntriesForThisType()
-			local entries = {}
-
-			for Idx, Entry in next, mde do
-				if Entry.Type == type then
-					table.insert(entries, { [1] = Entry, [2] = Idx })
-				end
-			end
-
-			return entries
-		end
-
-		-- Pop the last element if we're under 30 entries for this type.
-		-- Max of 30 entries per type; in total - 120 for all types.
-
-		local entries = getEntriesForThisType()
-		local last = entries[#entries]
-
-		if #entries > 30 and last then
-			last[1].Label:Destroy()
-
-			table.remove(mde, last[2])
-		end
-
-		-- Create a new label.
-		---@type TextLabel
-		local label = Library:CreateLabel({
-			Text = entry,
-			TextXAlignment = Enum.TextXAlignment.Left,
-			Size = UDim2.new(1, 0, 0, 14),
-			LayoutOrder = 1,
-			TextSize = 12,
-			Visible = true,
-			ZIndex = 306,
-			Parent = nil,
-		}, true)
-
-		Library:AddToRegistry(label, {
-			TextColor3 = "FontColor",
-		}, true)
-
-		-- entry
-		local entry = { Label = label, Key = key, Type = type }
-
-		-- Copy & blacklist.
-		label.InputBegan:Connect(function(Input)
-			if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-				setclipboard(key)
-				Library:Notify(string.format("Copied key '%s' to clipboard.", key))
-			end
-
-			if Input.UserInputType == Enum.UserInputType.MouseButton2 then
-				ifd.KeyBlacklistList[key] = true
-				ifd.KeyBlacklistHistory[#ifd.KeyBlacklistHistory + 1] = key
-				Library:RefreshInfoLogger()
-				Library:Notify(string.format("Blacklisted key '%s' from list.", key))
-			end
-		end)
-
-		-- Create a new entry for later destroying.
-		table.insert(mde, 1, entry)
-
-		-- Refresh.
-		Library:RefreshInfoLogger()
-	end
-
 	function Library:AddMissEntry(type, key, name, distance)
-		Tasks[#Tasks + 1] = task.spawn(function()
+		Entry[#Entry + 1] = function()
 			local ifd = Library.InfoLoggerData
 			local mde = ifd.MissingDataEntries
 			local bl = ifd.KeyBlacklistList
@@ -366,7 +303,7 @@ return LPH_NO_VIRTUALIZE(function()
 
 			-- Refresh.
 			Library:RefreshInfoLogger()
-		end)
+		end
 	end
 
 	function Library:ApplyTextStroke(Inst)

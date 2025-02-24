@@ -8,6 +8,7 @@ local Configuration = require("Utility/Configuration")
 ---@field delayTimestamp number?
 local FilteredESP = {}
 FilteredESP.__index = FilteredESP
+FilteredESP.__type = "FilteredESP"
 
 ---Partial look for string in list.
 local partialStringFind = LPH_NO_VIRTUALIZE(function(list, value)

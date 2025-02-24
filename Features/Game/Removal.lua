@@ -169,6 +169,12 @@ return LPH_NO_VIRTUALIZE(function()
 
 	---Update removal.
 	local function updateRemoval()
+		if os.clock() - lastUpdate <= 2.0 then
+			return
+		end
+
+		lastUpdate = os.clock()
+
 		local localPlayer = players.LocalPlayer
 		if not localPlayer then
 			return
@@ -179,12 +185,6 @@ return LPH_NO_VIRTUALIZE(function()
 		else
 			noFogMap:restore()
 		end
-
-		if os.clock() - lastUpdate <= 2.0 then
-			return
-		end
-
-		lastUpdate = os.clock()
 
 		if Configuration.expectToggleValue("NoEchoModifiers") then
 			updateNoEchoModifiers(localPlayer)

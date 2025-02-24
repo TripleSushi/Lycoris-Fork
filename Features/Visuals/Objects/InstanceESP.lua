@@ -13,6 +13,7 @@ local Maid = require("Utility/Maid")
 ---@field instance Instance
 local InstanceESP = {}
 InstanceESP.__index = InstanceESP
+InstanceESP.__type = "InstanceESP"
 
 -- Formats.
 local ESP_DISTANCE_FORMAT = "%s [%i]"

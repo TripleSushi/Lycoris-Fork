@@ -4,6 +4,7 @@ local ModelESP = require("Features/Visuals/Objects/ModelESP")
 ---@class MobESP: ModelESP
 local MobESP = setmetatable({}, { __index = ModelESP })
 MobESP.__index = MobESP
+MobESP.__type = "MobESP"
 
 -- Formats.
 local ESP_HEALTH = "[%i/%i]"

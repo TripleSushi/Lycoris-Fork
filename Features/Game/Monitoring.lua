@@ -44,6 +44,7 @@ return LPH_NO_VIRTUALIZE(function()
 	local cachedUpvaluesTable = nil
 	local cachedUpvaluesFunction = nil
 	local lastCacheTime = os.clock()
+	local lastUpdateTime = os.clock()
 
 	---Get leaderboard data.
 	---@return table?, function?
@@ -138,12 +139,6 @@ return LPH_NO_VIRTUALIZE(function()
 				onSpectateInputBegan(player, input)
 			end)
 		end
-
-		if Monitoring.subject then
-			cameraSubject:set(workspace.CurrentCamera, "CameraSubject", Monitoring.subject)
-		else
-			cameraSubject:restore()
-		end
 	end
 
 	---Update player proximity.
@@ -200,6 +195,18 @@ return LPH_NO_VIRTUALIZE(function()
 
 	---Update monitoring.
 	local function updateMonitoring()
+		if Monitoring.subject then
+			cameraSubject:set(workspace.CurrentCamera, "CameraSubject", Monitoring.subject)
+		else
+			cameraSubject:restore()
+		end
+
+		if os.clock() - lastUpdateTime <= 2.0 then
+			return
+		end
+
+		lastUpdateTime = os.clock()
+
 		if Configuration.expectToggleValue("PlayerSpectating") then
 			updateSpectating()
 		else
