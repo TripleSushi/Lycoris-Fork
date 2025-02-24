@@ -5,6 +5,7 @@ local InstanceESP = require("Features/Visuals/Objects/InstanceESP")
 ---@field part Part
 local PartESP = setmetatable({}, { __index = InstanceESP })
 PartESP.__index = PartESP
+PartESP.__type = "PartESP"
 
 ---Update PartESP.
 ---@param tags string[]

@@ -160,7 +160,7 @@ function PlayerESP.new(identifier, player, character)
 	self.identifier = identifier
 	self.shadow = self.maid:mark(shadow)
 
-	if character and character:IsA("Model") then
+	if character and character:IsA("Model") and not Configuration.expectOptionValue("NoPersisentESP") then
 		character.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
 	end
 

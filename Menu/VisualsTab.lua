@@ -60,6 +60,12 @@ function VisualsTab.initESPOptimizations(groupbox)
 		Max = 64,
 		Rounding = 0,
 	})
+
+	groupbox:AddToggle("NoPersisentESP", {
+		Text = "No Persistent ESP",
+		Tooltip = "Disable ESP models from being persistent and never being streamed out.",
+		Default = false,
+	})
 end
 
 ---Initialize World Visuals section.

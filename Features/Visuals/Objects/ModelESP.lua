@@ -1,10 +1,14 @@
 ---@module Features.Visuals.Objects.InstanceESP
 local InstanceESP = require("Features/Visuals/Objects/InstanceESP")
 
+---@module Utility.Configuration
+local Configuration = require("Utility/Configuration")
+
 ---@class ModelESP: InstanceESP
 ---@field model Model
 local ModelESP = setmetatable({}, { __index = InstanceESP })
 ModelESP.__index = ModelESP
+ModelESP.__type = "ModelESP"
 
 ---Update ModelESP.
 ---@param tags string[]
@@ -29,7 +33,10 @@ function ModelESP.new(identifier, model, label)
 
 	local self = setmetatable(InstanceESP.new(model, identifier, label), ModelESP)
 	self.model = model
-	self.model.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
+
+	if not Configuration.expectOptionValue("NoPersisentESP") then
+		self.model.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
+	end
 
 	return self
 end

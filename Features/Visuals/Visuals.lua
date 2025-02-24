@@ -40,8 +40,10 @@ local Logger = require("Utility/Logger")
 -- Visuals module.
 ---@optimization: All Configuration calls are replaced with direct accessors.
 ---The rendering starts after our script is loaded; so we can assume the objects exist.
----@todo: Tag system so we can easily add new text "tags" to objects.
 local Visuals = {}
+
+-- Last visuals update.
+local lastVisualsUpdate = os.clock()
 
 -- Services.
 local runService = game:GetService("RunService")
@@ -64,6 +66,27 @@ local fieldOfView = visualsMaid:mark(OriginalStore.new())
 -- Original store managers.
 local showRobloxChatMap = visualsMaid:mark(OriginalStoreManager.new())
 local noAnimatedSeaMap = visualsMaid:mark(OriginalStoreManager.new())
+local noPersistentMap = visualsMaid:mark(OriginalStoreManager.new())
+
+---Update no persistence.
+local updateNoPersistence = LPH_NO_VIRTUALIZE(function()
+	local localPlayer = players.LocalPlayer
+	if not localPlayer then
+		return
+	end
+
+	for _, group in next, groups do
+		for _, object in next, group:data() do
+			if object.__type == "PlayerESP" and object.character and object.character:IsA("Model") then
+				noPersistentMap:add(object.character, "ModelStreamingMode", Enum.ModelStreamingMode.Default)
+			end
+
+			if object.__type == "ModelESP" and object.model then
+				noPersistentMap:add(object.model, "ModelStreamingMode", Enum.ModelStreamingMode.Default)
+			end
+		end
+	end
+end)
 
 ---Update show roblox chat.
 local updateShowRobloxChat = LPH_NO_VIRTUALIZE(function()
@@ -126,6 +149,18 @@ end)
 local updateVisuals = LPH_NO_VIRTUALIZE(function()
 	for _, group in next, groups do
 		group:update()
+	end
+
+	if os.clock() - lastVisualsUpdate <= 1.0 then
+		return
+	end
+
+	lastVisualsUpdate = os.clock()
+
+	if Configuration.toggleValue("NoPersisentESP") then
+		updateNoPersistence()
+	else
+		noPersistentMap:restore()
 	end
 
 	if Configuration.toggleValue("NoAnimatedSea") then

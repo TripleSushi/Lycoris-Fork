@@ -14,7 +14,7 @@ local movementMaid = Maid.new()
 local players = game:GetService("Players")
 local replicatedStorage = game:GetService("ReplicatedStorage")
 
--- AA-Gun map.
+-- AA gun map.
 local aaGunMap = OriginalStoreManager.new()
 
 ---Update anti air bypass.
@@ -29,7 +29,7 @@ local function updateAABypass(rootPart)
 		return
 	end
 
-	modOffice.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
+	aaGunMap:add(modOffice, "ModelStreamingMode", Enum.ModelStreamingMode.Persistent)
 
 	local officeCreature = modOffice:FindFirstChild("OfficeCreature")
 	if not officeCreature then
