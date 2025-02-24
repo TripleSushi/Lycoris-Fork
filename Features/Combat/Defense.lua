@@ -145,7 +145,7 @@ local onGameDescendantAdded = LPH_NO_VIRTUALIZE(function(descendant)
 		return addPartDefender(descendant)
 	end
 
-	if descendant:IsA("ParticleEmitter") then
+	if descendant:IsA("Beam") or descendant:IsA("ParticleEmitter") then
 		return addEmitterDefender(descendant)
 	end
 end)

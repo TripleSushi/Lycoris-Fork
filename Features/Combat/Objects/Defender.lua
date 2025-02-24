@@ -188,7 +188,6 @@ Defender.hitbox = LPH_NO_VIRTUALIZE(function(self, cframe, depth, size, filter)
 	if not self.vpart then
 		-- Create part.
 		local vpart = Instance.new("Part")
-		vpart.Transparency = 1.0
 		vpart.Parent = workspace
 		vpart.Anchored = true
 		vpart.CanCollide = false
@@ -202,7 +201,6 @@ Defender.hitbox = LPH_NO_VIRTUALIZE(function(self, cframe, depth, size, filter)
 	if not self.ppart then
 		-- Create part.
 		local ppart = Instance.new("Part")
-		ppart.Transparency = 1.0
 		ppart.Parent = workspace
 		ppart.Anchored = true
 		ppart.CanCollide = false

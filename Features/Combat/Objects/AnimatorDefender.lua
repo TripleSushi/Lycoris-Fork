@@ -98,7 +98,7 @@ AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 		return self:notify(timing, "Animation stopped playing.")
 	end
 
-	if timing.iae and self.track.TimePosition < self.track.Length then
+	if timing.iae and not self.track.IsPlaying and self.track.TimePosition < self.track.Length then
 		return self:notify(timing, "Animation stopped playing early.")
 	end
 

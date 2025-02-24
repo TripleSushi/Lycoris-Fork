@@ -54,7 +54,13 @@ end)
 ---@param self SoundDefender
 SoundDefender.process = LPH_NO_VIRTUALIZE(function(self)
 	---@type SoundTiming?
-	local timing = self:initial(self.owner, SaveManager.ss, self.owner.Name, tostring(self.sound.SoundId))
+	local timing = self:initial(
+		self.owner or self.part,
+		SaveManager.ss,
+		self.owner and self.owner.Name or nil,
+		tostring(self.sound.SoundId)
+	)
+
 	if not timing then
 		return
 	end

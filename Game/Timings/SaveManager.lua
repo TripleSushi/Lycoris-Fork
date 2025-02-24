@@ -26,6 +26,9 @@ local EmitterTiming = require("Game/Timings/EmitterTiming")
 local SaveManager = {
 	-- Last loaded config name.
 	llcn = nil,
+
+	-- Should we autosave?
+	sautos = false,
 }
 
 ---@module Utility.Filesystem
@@ -293,7 +296,7 @@ function SaveManager.autosave()
 		return
 	end
 
-	if not Configuration.expectToggleValue("AutoSaveOnLeave") then
+	if not SaveManager.sautos then
 		return
 	end
 

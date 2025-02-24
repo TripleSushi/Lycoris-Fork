@@ -207,11 +207,17 @@ return LPH_NO_VIRTUALIZE(function()
 			if decoded.infoLoggerBlacklist then
 				self.Library.InfoLoggerData.KeyBlacklistList = decoded.infoLoggerBlacklist
 				self.Library:RefreshInfoLogger()
+				if Options and Options.BlacklistedKeys then
+					Options.BlacklistedKeys:SetValues(self.Library:KeyBlacklists())
+				end
 			end
 
 			if decoded.infoLoggerCycle then
 				self.Library.InfoLoggerData.InfoLoggerCycle = decoded.infoLoggerCycle
 				self.Library:RefreshInfoLogger()
+				if Options and Options.BlacklistedKeys then
+					Options.BlacklistedKeys:SetValues(self.Library:KeyBlacklists())
+				end
 			end
 
 			return true

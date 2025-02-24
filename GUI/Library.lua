@@ -71,9 +71,10 @@ return LPH_NO_VIRTUALIZE(function()
 					Tasks[#Tasks + 1] = task.spawn(MissEntry)
 					table.remove(Entry, Idx)
 				end
+
+				UpdateTimestamp = os.clock()
 			end
 
-			UpdateTimestamp = os.clock()
 			RainbowStep = RainbowStep + Delta
 
 			if RainbowStep >= (1 / 60) then
@@ -171,10 +172,6 @@ return LPH_NO_VIRTUALIZE(function()
 	end
 
 	function Library:RefreshInfoLogger()
-		if Options and Options.BlacklistedKeys then
-			Options.BlacklistedKeys:SetValues(Library:KeyBlacklists())
-		end
-
 		local CurrentTypeCycle = Library.InfoLoggerCycles[Library.InfoLoggerCycle]
 		local Blacklist = Library.InfoLoggerData.KeyBlacklistList
 
@@ -217,14 +214,17 @@ return LPH_NO_VIRTUALIZE(function()
 	end
 
 	function Library:AddMissEntry(type, key, name, distance)
-		Entry[#Entry + 1] = function()
-			local ifd = Library.InfoLoggerData
-			local mde = ifd.MissingDataEntries
-			local bl = ifd.KeyBlacklistList
+		local ifd = Library.InfoLoggerData
+		local mde = ifd.MissingDataEntries
+		local bl = ifd.KeyBlacklistList
 
-			if bl[key] then
-				return
-			end
+		if bl[key] then
+			return
+		end
+
+		--[[
+		table.insert(Entry, 1, function()
+			debug.profilebegin("Library:AddMissEntry")
 
 			local function getEntriesForThisType()
 				local entries = {}
@@ -294,6 +294,9 @@ return LPH_NO_VIRTUALIZE(function()
 					ifd.KeyBlacklistList[key] = true
 					ifd.KeyBlacklistHistory[#ifd.KeyBlacklistHistory + 1] = key
 					Library:RefreshInfoLogger()
+					if Options and Options.BlacklistedKeys then
+						Options.BlacklistedKeys:SetValues(Library:KeyBlacklists())
+					end
 					Library:Notify(string.format("Blacklisted key '%s' from list.", key))
 				end
 			end)
@@ -303,7 +306,11 @@ return LPH_NO_VIRTUALIZE(function()
 
 			-- Refresh.
 			Library:RefreshInfoLogger()
-		end
+
+			debug.profileend()
+		end)
+		]]
+		--
 	end
 
 	function Library:ApplyTextStroke(Inst)
@@ -3300,7 +3307,9 @@ return LPH_NO_VIRTUALIZE(function()
 				table.remove(kbh, 1)
 
 				Library:RefreshInfoLogger()
-
+				if Options and Options.BlacklistedKeys then
+					Options.BlacklistedKeys:SetValues(Library:KeyBlacklists())
+				end
 				Library:Notify(string.format("Re-whitelisted key '%s' into list.", front))
 			end
 
