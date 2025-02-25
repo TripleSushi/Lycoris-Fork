@@ -60,7 +60,7 @@ local findInputClientLevel = LPH_NO_VIRTUALIZE(function()
 		end
 
 		-- Return level, debug information, and stack.
-		return level, info, minus_stack or stack
+		return level, info, minus_success and minus_stack or stack
 	end
 end)
 
@@ -182,8 +182,12 @@ local onTick = LPH_NO_VIRTUALIZE(function(...)
 	end
 
 	---@note: Filter for any other spots that might be using tick() through the stack.
-	local tickStackValue = stack[6]
-	if tickStackValue ~= "W" and tickStackValue ~= "A" and tickStackValue ~= "S" and tickStackValue ~= "D" then
+	if
+		not table.find(stack, "W")
+		and not table.find(stack, "A")
+		and not table.find(stack, "S")
+		and not table.find(stack, "D")
+	then
 		return oldTick(...)
 	end
 
