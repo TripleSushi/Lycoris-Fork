@@ -669,12 +669,18 @@ function BuilderSection:builder()
 		end),
 	})
 
-	self.selectedModule = tab:AddInput(nil, {
+	local umoaDepBox = tab:AddDependencyBox()
+
+	self.selectedModule = umoaDepBox:AddInput(nil, {
 		Text = "Selected Module",
 		Finished = true,
 		Callback = self:tnc(function(timing, value)
 			timing.smod = value
 		end),
+	})
+
+	umoaDepBox:SetupDependencies({
+		{ self.useModuleOverActions, true },
 	})
 
 	self:extra(tab)
