@@ -158,19 +158,6 @@ end
 ---Initialize logger section.
 ---@param groupbox table
 function BuilderTab.initLoggerSection(groupbox)
-	groupbox:AddToggle("ShowAnimationVisualizer", {
-		Text = "Show Animation Visualizer",
-		Default = false,
-		Callback = function(value)
-			Library.AnimationVisualizerFrame.Visible = value
-		end,
-	})
-
-	groupbox:AddInput("VisualizerAnimationId", {
-		Text = "Visualizer Animation ID",
-		Default = "",
-	})
-
 	groupbox:AddToggle("ShowLoggerWindow", {
 		Text = "Show Logger Window",
 		Default = false,
@@ -257,9 +244,9 @@ function BuilderTab.init(window)
 	BuilderTab.sbs = SoundBuilderSection.new("Sound", tab:AddDynamicTabbox(), SaveManager.ss, SoundTiming.new())
 
 	-- Initialize builder sections.
-	BuilderTab.abs:init()
-	BuilderTab.ebs:init()
-	BuilderTab.pbs:init()
+	--BuilderTab.abs:init()
+	--BuilderTab.ebs:init()
+	--BuilderTab.pbs:init()
 	BuilderTab.sbs:init()
 end
 

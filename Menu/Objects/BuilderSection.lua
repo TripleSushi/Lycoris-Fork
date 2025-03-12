@@ -46,6 +46,10 @@ function BuilderSection:extra(tab) end
 ---@param timing Timing
 function BuilderSection:exload(timing) end
 
+---Load the extra action elements. Override me.
+---@param action Action
+function BuilderSection:exaload(action) end
+
 ---Action delay. Override me.
 ---@param base table
 function BuilderSection:daction(base)
@@ -126,14 +130,6 @@ function BuilderSection:raction()
 	self.hitboxHeight:SetRawValue(0)
 	self.hitboxLength:SetRawValue(0)
 	self.hitboxWidth:SetRawValue(0)
-
-	if self.useAnimationDelta then
-		self.useAnimationDelta:SetRawValue(false)
-	end
-
-	if self.animationDelta then
-		self.animationDelta:SetRawValue(0)
-	end
 end
 
 ---Refresh timing list.
@@ -243,14 +239,8 @@ function BuilderSection:baction(base)
 			self.hitboxHeight:SetRawValue(action.hitbox.Y)
 			self.hitboxLength:SetRawValue(action.hitbox.Z)
 
-			-- Set the optional elements.
-			if self.useAnimationDelta then
-				self.useAnimationDelta:SetRawValue(action.uad)
-			end
-
-			if self.animationDelta then
-				self.animationDelta:SetRawValue(action.adelta)
-			end
+			-- Load extra action elements.
+			self:exaload(action)
 		end),
 	})
 

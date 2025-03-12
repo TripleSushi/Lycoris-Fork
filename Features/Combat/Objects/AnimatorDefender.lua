@@ -22,12 +22,16 @@ local InputClient = require("Game/InputClient")
 ---@module Features.Combat.Objects.Task
 local Task = require("Features/Combat/Objects/Task")
 
+---@module Game.Timings.PlaybackData
+local PlaybackData = require("Game/Timings/PlaybackData")
+
 ---@class AnimatorDefender: Defender
 ---@field animator Animator
 ---@field entity Model
 ---@field heffects Instance[]
 ---@field keyframes Action[]
 ---@field timing AnimationTiming?
+---@field pbdata table<string, PlaybackData>
 ---@field manimations table<number, Animation>
 ---@field track AnimationTrack? Don't be confused. This is the **valid && last** animation track played.
 ---@field maid Maid This maid is cleaned up after every new animation track. Safe to use for on-animation-track setup.
@@ -163,7 +167,7 @@ AnimatorDefender.latest = LPH_NO_VIRTUALIZE(function(self)
 	local latestDelta = nil
 
 	for _, keyframe in next, self.keyframes do
-		if self.track.TimePosition <= keyframe.adelta then
+		if (self.track.TimePosition / self.track.Length) <= keyframe.adelta then
 			continue
 		end
 
@@ -185,6 +189,20 @@ AnimatorDefender.update = LPH_NO_VIRTUALIZE(function(self)
 		return
 	end
 
+	-- Check if track is playing. Why update if it's not?
+	if not self.track.IsPlaying then
+		return
+	end
+
+	---@note: We should never encounter this scenario? We expect all data to be there, so it's safe to return...
+	local pbdata = self.pbdata[tostring(self.track.Animation.AnimationId)]
+	if not pbdata then
+		return
+	end
+
+	-- Start tracking the animation's speed.
+	pbdata:astrack(self.track.TimePosition, self.track.Speed)
+
 	-- Find the latest keyframe that we have exceeded.
 	local latest = self:latest()
 	if not latest then
@@ -193,7 +211,7 @@ AnimatorDefender.update = LPH_NO_VIRTUALIZE(function(self)
 
 	-- Clear the keyframes that we have exceeded.
 	for idx, keyframe in next, self.keyframes do
-		if self.track.TimePosition <= keyframe.adelta then
+		if (self.track.TimePosition / self.track.Length) <= keyframe.adelta then
 			continue
 		end
 
@@ -248,8 +266,11 @@ AnimatorDefender.process = LPH_NO_VIRTUALIZE(function(self, track)
 		)
 	end
 
+	-- Animation ID.
+	local aid = tostring(track.Animation.AnimationId)
+
 	---@type AnimationTiming?
-	local timing = self:initial(self.entity, SaveManager.as, self.entity.Name, tostring(track.Animation.AnimationId))
+	local timing = self:initial(self.entity, SaveManager.as, self.entity.Name, aid)
 	if not timing then
 		return
 	end
@@ -302,6 +323,7 @@ AnimatorDefender.process = LPH_NO_VIRTUALIZE(function(self, track)
 	self:clean()
 
 	-- Set current data.
+	self.pbdata[aid] = PlaybackData.new(self.entity)
 	self.timing = timing
 	self.track = track
 	self.heffects = {}
@@ -371,6 +393,7 @@ function AnimatorDefender.new(animator, manimations)
 
 	self.heffects = {}
 	self.keyframes = {}
+	self.pbdata = {}
 
 	self.maid:mark(
 		entityDescendantAdded:connect(
