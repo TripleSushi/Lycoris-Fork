@@ -162,17 +162,17 @@ function VisualsTab.initVisualAssistanceSection(groupbox)
 
 			-- Check response.
 			if not response or not response.Success or not response.Body then
-				return Logger.notify("Invalid response while fetching builder data.")
+				return Logger.notify("Invalid response while fetching highlighter builder data.")
 			end
 
 			-- Deserialize response.
 			local success, result = pcall(JSON.decode, response.Body)
 			if not success or not result then
-				return Logger.notify("JSON error '%s' while deserializing builder data.", result)
+				return Logger.notify("JSON error '%s' while deserializing highlighter builder data.", result)
 			end
 
 			-- Notify result.
-			Logger.notify("Successfully fetched builder data.")
+			Logger.notify("Successfully fetched highlighter builder data.")
 
 			-- Set builder data.
 			Visuals.currentBuilderData = result

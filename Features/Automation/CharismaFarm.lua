@@ -23,9 +23,6 @@ local renderStepped = Signal.new(runService.RenderStepped)
 -- Maids.
 local autoCharismaMaid = Maid.new()
 
--- Last update.
-local lastUpdate = os.clock()
-
 ---Update charisma.
 local function updateCharisma()
 	local charismaFarm = Toggles["AutoCharisma"]
@@ -85,12 +82,6 @@ local function updateCharisma()
 	if not description then
 		return
 	end
-
-	if os.clock() - lastUpdate <= 0.05 then
-		return
-	end
-
-	lastUpdate = os.clock()
 
 	local text = description.Text:split("\n")
 	local charismaLine = text[2]:sub(2, -2)

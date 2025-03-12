@@ -23,9 +23,6 @@ local renderStepped = Signal.new(runService.RenderStepped)
 -- Maids.
 local autoIntelligenceMaid = Maid.new()
 
--- Last update.
-local lastUpdate = os.clock()
-
 ---Update inteligence.
 local function updateInteligence()
 	local inteligenceFarm = Toggles["AutoIntelligence"]
@@ -180,14 +177,6 @@ local function updateInteligence()
 	if not closestAnswer then
 		return
 	end
-
-	-- Wait for next update.
-	if os.clock() - lastUpdate <= 0.05 then
-		return
-	end
-
-	-- Last update.
-	lastUpdate = os.clock()
 
 	-- Fire with the closest answer as a string.
 	choiceRemote:FireServer(tostring(closestAnswer))

@@ -4,11 +4,17 @@ local AutomationTab = {}
 ---Attribute section.
 ---@param groupbox table
 function AutomationTab.initAttributeSection(groupbox)
-	groupbox:AddToggle("AutoCharisma", {
-		Text = "Auto Charisma Farm",
-		Default = false,
-		Tooltip = "Using the 'How To Make Friends' book, the script will automatically train the 'Charisma' attribute.",
-	})
+	groupbox
+		:AddToggle("AutoCharisma", {
+			Text = "Auto Charisma Farm",
+			Default = false,
+			Tooltip = "Using the 'How To Make Friends' book, the script will automatically train the 'Charisma' attribute.",
+		})
+		:AddKeyPicker("AutoCharismaKeybind", {
+			Default = "N/A",
+			SyncToggleState = true,
+			Text = "Auto Charisma Farm",
+		})
 
 	groupbox:AddInput("CharismaCap", {
 		Text = "Charisma Cap",
@@ -18,11 +24,17 @@ function AutomationTab.initAttributeSection(groupbox)
 		Default = "75",
 	})
 
-	groupbox:AddToggle("AutoIntelligence", {
-		Text = "Auto Intelligence",
-		Tooltip = "Using the 'Math Textbook' book, the script will automatically train the 'Intelligence' attribute.",
-		Default = false,
-	})
+	groupbox
+		:AddToggle("AutoIntelligence", {
+			Text = "Auto Intelligence",
+			Tooltip = "Using the 'Math Textbook' book, the script will automatically train the 'Intelligence' attribute.",
+			Default = false,
+		})
+		:AddKeyPicker("AutoIntelligenceKeybind", {
+			Default = "N/A",
+			SyncToggleState = true,
+			Text = "Auto Intelligence",
+		})
 
 	groupbox:AddInput("IntelligenceCap", {
 		Text = "Intelligence Cap",

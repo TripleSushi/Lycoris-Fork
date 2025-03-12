@@ -36,9 +36,16 @@ function AnimationBuilderSection:exload(timing)
 	self.ignoreAnimationEnd:SetRawValue(timing.iae)
 end
 
+---Load the action elements. Override me.
+---@param action Action
+function AnimationBuilderSection:exaload(action)
+	self.useAnimationDelta:SetRawValue(action.uad)
+	self.animationDelta:SetRawValue(action.adelta)
+end
+
 ---Action delay. Override me.
 ---@param base table
-function BuilderSection:daction(base)
+function AnimationBuilderSection:daction(base)
 	self.useAnimationDelta = base:AddToggle(nil, {
 		Text = "Use Animation Delta",
 		Tooltip = "Should the action use the animation delta?",
@@ -71,6 +78,13 @@ function BuilderSection:daction(base)
 	depBoxOff:SetupDependencies({
 		{ self.useAnimationDelta, false },
 	})
+end
+
+---Reset action elements. Override me.
+function AnimationBuilderSection:raction()
+	BuilderSection.raction(self)
+	self.useAnimationDelta:SetRawValue(false)
+	self.animationDelta:SetRawValue(0)
 end
 
 ---Reset the elements. Extend me.

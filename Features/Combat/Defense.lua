@@ -224,6 +224,20 @@ Defense.blocking = LPH_NO_VIRTUALIZE(function()
 	end
 end)
 
+---Get playback data of first defender with Animation ID.
+---@param aid string
+---@return PlaybackData?
+Defense.agpd = LPH_NO_VIRTUALIZE(function(aid)
+	for _, object in next, defenderAnimationObjects do
+		local pbdata = object.pbdata[aid]
+		if not pbdata then
+			continue
+		end
+
+		return pbdata
+	end
+end)
+
 ---Initialize defense.
 function Defense.init()
 	-- Cache mob animations.
@@ -259,7 +273,7 @@ function Defense.init()
 	defenseMaid:add(gameDescendantAdded:connect("Defense_OnDescendantAdded", onGameDescendantAdded))
 	defenseMaid:add(gameDescendantRemoved:connect("Defense_OnDescendantRemoved", onGameDescendantRemoved))
 	defenseMaid:add(renderStepped:connect("Defense_RenderStepped", updateVisualizations))
-	defenseMaid:add(postSimulation:connect("Defense_ProjectilePostSimulation", updateDefenders))
+	defenseMaid:add(postSimulation:connect("Defense_UpdateDefenders", updateDefenders))
 	defenseMaid:add(clientEffectEvent:connect("Defense_ClientEffectEvent", onClientEffectEvent))
 	defenseMaid:add(clientEffectLargeEvent:connect("Defense_ClientEffectEventLarge", onClientEffectEvent))
 
