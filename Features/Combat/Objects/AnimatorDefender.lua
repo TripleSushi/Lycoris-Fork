@@ -283,26 +283,22 @@ function AnimatorDefender:unisync(track)
 	-- Log.
 	Logger.warn("Unisyncing animation '%s' in %.2fms.", track.Animation.AnimationId, frequency * 1000)
 
-	-- Stop track immediately.
-	track:Stop(0.0)
+	-- Stop track immediately and save state.
+	local lastWeightCurrent, lastSpeed, lastTimePosition, lastPriority =
+		track.WeightCurrent, track.Speed, track.TimePosition, track.Priority
 
-	-- Save last priority.
-	local lastPriority = track.Priority
+	track:Stop(0.0)
 
 	-- Force priority to core instantly.
 	track.Priority = Enum.AnimationPriority.Core
 
 	-- Replay animation at faked priority state.
-	track:Play(0.0, track.WeightCurrent, track.Speed)
+	track:Play(0.0, lastWeightCurrent, lastSpeed)
+	track.TimePosition = lastTimePosition
+	track.Priority = lastPriority
 
-	-- As soon as possible, we will reset the priority.
-	self.maid:add(TaskSpawner.spawn("AnimationDefender_ResetPriority", function()
-		-- Wait for next frame.
-		runService.RenderStepped:Wait()
-
-		-- Reset priority.
-		track.Priority = lastPriority
-	end))
+	-- Set last unisync time position.
+	self.lunisynctp = track.TimePosition
 
 	-- Unisync.
 	self.maid:add(TaskSpawner.delay("AnimationDefender_UnisyncAnimation", frequency, function()
@@ -312,7 +308,9 @@ function AnimatorDefender:unisync(track)
 		end
 
 		-- Stop and save state.
-		local lastWeightCurrent, lastSpeed, lastTimePosition = track.WeightCurrent, track.Speed, track.TimePosition
+		local stoppedWeightCurrent, stoppedSpeed, stoppedTimePosition =
+			track.WeightCurrent, track.Speed, track.TimePosition
+
 		track:Stop(0.0)
 
 		-- Play animation at fake state.
@@ -323,9 +321,9 @@ function AnimatorDefender:unisync(track)
 		)
 
 		-- Set *real* animation speed, weight, and time position.
-		track:AdjustSpeed(lastSpeed)
-		track:AdjustWeight(lastWeightCurrent, 0.0)
-		track.TimePosition = lastTimePosition
+		track:AdjustSpeed(stoppedSpeed)
+		track:AdjustWeight(stoppedWeightCurrent, 0.0)
+		track.TimePosition = stoppedTimePosition
 
 		-- Set last unisync time position.
 		self.lunisynctp = track.TimePosition

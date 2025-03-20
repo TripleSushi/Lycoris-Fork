@@ -236,6 +236,11 @@ function BuilderTab.init(window)
 	BuilderTab.initLoggerSection(tab:AddDynamicGroupbox("Logger"))
 	BuilderTab.initGlobalChangesSection(tab:AddDynamicGroupbox("Global Changes"))
 
+	-- Don't initialize builder tab if we're not the 'builder' role.
+	if armorshield and armorshield.current_role ~= "builder" then
+		return
+	end
+
 	-- Create builder sections.
 	BuilderTab.abs =
 		AnimationBuilderSection.new("Animation", tab:AddDynamicTabbox(), SaveManager.as, AnimationTiming.new())

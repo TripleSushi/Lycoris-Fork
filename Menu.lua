@@ -74,14 +74,16 @@ function Menu.init()
 	SaveManager:SetFolder("Lycoris-Rewrite-Configs")
 	SaveManager:SetIgnoreIndexes({ "Fly", "NoClip", "Speedhack", "InfiniteJump", "TweenToObjective", "AttachToBack" })
 
-	-- Initialize all tabs.
-	CombatTab.init(window)
-	BuilderTab.init(window)
-	GameTab.init(window)
-	VisualsTab.init(window)
-	AutomationTab.init(window)
-	ExploitTab.init(window)
-	LycorisTab.init(window)
+	-- Initialize all tabs. Don't initialize them if we have the 'exploit_tester' role.
+	if not armorshield or armorshield.current_role ~= "exploit_tester" then
+		CombatTab.init(window)
+		BuilderTab.init(window)
+		GameTab.init(window)
+		VisualsTab.init(window)
+		AutomationTab.init(window)
+		ExploitTab.init(window)
+		LycorisTab.init(window)
+	end
 
 	-- Last update.
 	local lastUpdate = os.clock()
