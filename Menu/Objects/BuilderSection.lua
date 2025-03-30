@@ -420,7 +420,7 @@ function BuilderSection:baction(base)
 			self:arefresh(timing)
 
 			-- Set action list value.
-			self.actionList:SetValue(action.name)
+			self.actionList:SetValue(newAction.name)
 			self.actionList:Display()
 		end)
 	)
