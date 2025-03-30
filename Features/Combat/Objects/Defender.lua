@@ -178,7 +178,7 @@ Defender.hitbox = LPH_NO_VIRTUALIZE(function(self, cframe, depth, size, filter)
 	end
 
 	-- Real CFrame.
-	local realCFrame = CFrame.lookAt(cframe.Position, root.Position)
+	local realCFrame = cframe.Position
 
 	-- Add depth.
 	if depth > 0 then
