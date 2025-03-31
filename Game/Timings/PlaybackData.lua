@@ -1,15 +1,9 @@
 ---@class PlaybackData
 ---@field base number Timestamp of when the object was created.
 ---@field ash table<number, number> Animation speed history. The key is the timestamp delta and the value is the speed at that point.
----@field recorded boolean to track whether or not we have fully finished recording. Simply is set when the animation has atleast stopped once.
 ---@field entity Model Entity to playback.
 local PlaybackData = {}
 PlaybackData.__index = PlaybackData
-
----Track animation stop.
-function PlaybackData:astop()
-	self.recorded = true
-end
 
 ---Get last exceeded speed difference from a timestamp delta.
 ---@param from number
@@ -52,7 +46,6 @@ end
 function PlaybackData.new(entity)
 	local self = setmetatable({}, PlaybackData)
 	self.base = os.clock()
-	self.recorded = false
 	self.entity = entity
 
 	---@note: Timestamp delta is how many seconds need to pass before being able to reach this speed.

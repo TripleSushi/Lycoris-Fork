@@ -208,16 +208,8 @@ end
 ---@param self AnimatorDefender
 AnimatorDefender.updt = LPH_NO_VIRTUALIZE(function(self)
 	for track, data in next, self.pbdata do
-		-- Skip if it's already been recorded.
-		if data.recorded then
-			continue
-		end
-
 		-- Check if the track is playing.
 		if not track.IsPlaying then
-			-- Stop recording.
-			data:astop()
-
 			-- Remove out of 'pbdata' and put it in to the recorded table.
 			self.pbdata[track] = nil
 			self.rpbdata[tostring(track.Animation.AnimationId)] = data
