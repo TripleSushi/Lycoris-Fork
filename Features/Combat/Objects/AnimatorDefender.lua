@@ -311,7 +311,7 @@ AnimatorDefender.update = LPH_NO_VIRTUALIZE(function(self)
 			latest,
 			"(%.2f) (compensating %.2f) Keyframe action type '%s' is being executed.",
 			tp,
-			self.track.TimePosition - tp,
+			tp - self.track.TimePosition,
 			latest._type
 		)
 	)
