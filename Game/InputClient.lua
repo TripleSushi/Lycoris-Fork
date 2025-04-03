@@ -11,6 +11,9 @@ local Logger = require("Utility/Logger")
 ---@module Game.KeyHandling
 local KeyHandling = require("Game/KeyHandling")
 
+---@module Utility.Configuration
+local Configuration = require("Utility/Configuration")
+
 -- Services.
 local runService = game:GetService("RunService")
 local replicatedStorage = game:GetService("ReplicatedStorage")
@@ -376,7 +379,12 @@ InputClient.dodge = LPH_NO_VIRTUALIZE(function()
 
 	---@note: Run this in a seperate task because the roll movement must still continue even when detached and destroyed. Else, it will behave wrong.
 	--- This is OK. Before any yields occur, we fetch the remotes beforehand. Also, the clean up is done at the very end of the function.
-	task.spawn(InputClient.roll, usePivotVelocityRoll and true or nil)
+	task.spawn(
+		InputClient.roll,
+		usePivotVelocityRoll and true or nil,
+		Configuration.expectToggleValue("RollCancel") and (Configuration.expectOptionValue("RollCancelDelay") or 0.0)
+			or nil
+	)
 end)
 
 ---Re-created feint function.
@@ -430,7 +438,8 @@ end)
 
 ---Re-created roll function for safety.
 ---@param pivotStep boolean
-InputClient.roll = LPH_NO_VIRTUALIZE(function(pivotStep)
+---@param rollCancelTime number?
+InputClient.roll = LPH_NO_VIRTUALIZE(function(pivotStep, rollCancelTime)
 	local unblockRemote = KeyHandling.getRemote("Unblock")
 	local dodgeRemote = KeyHandling.getRemote("Dodge")
 	local stopDodge = KeyHandling.getRemote("StopDodge")
@@ -878,6 +887,7 @@ InputClient.roll = LPH_NO_VIRTUALIZE(function(pivotStep)
 	})
 
 	local freeDodgeBoolean = false
+	local rollCancelStart = os.clock()
 
 	if
 		airDashBoolean
@@ -917,6 +927,7 @@ InputClient.roll = LPH_NO_VIRTUALIZE(function(pivotStep)
 				or effectReplicatorModule:HasEffect("ClientFeint")
 				or effectReplicatorModule:HasEffect("Parry")
 				or effectReplicatorModule:HasEffect("DodgedFrame")
+				or rollCancelTime and os.clock() - rollCancelStart > rollCancelTime
 			then
 				stopDodge:FireServer(inputDataTable, effectReplicatorModule:HasEffect("LightAttack"), airDashBoolean)
 
@@ -1016,6 +1027,7 @@ InputClient.roll = LPH_NO_VIRTUALIZE(function(pivotStep)
 				)) and not effectReplicatorModule:HasEffect("PressureForwarding")
 				or effectReplicatorModule:HasEffect("CastingSpell")
 				or effectReplicatorModule:HasEffect("UsingSpell")
+				or rollCancelTime and os.clock() - rollCancelStart > rollCancelTime
 			then
 				stopDodge:FireServer(inputDataTable, effectReplicatorModule:HasEffect("LightAttack"))
 

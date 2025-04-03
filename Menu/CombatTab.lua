@@ -180,6 +180,20 @@ function CombatTab.initAutoDefenseSection(groupbox)
 		Default = false,
 	})
 
+	autoDefenseDepBox:AddToggle("RollCancel", {
+		Text = "Roll Cancel",
+		Default = false,
+	})
+
+	autoDefenseDepBox:AddSlider("RollCancelDelay", {
+		Text = "Roll Cancel Delay",
+		Default = 0.05,
+		Min = 0,
+		Max = 2,
+		Suffix = "s",
+		Rounding = 2,
+	})
+
 	autoDefenseDepBox:AddToggle("CheckHoldingBlockInput", {
 		Text = "Check If Holding Block Input",
 		Tooltip = "If we are holding the block input, stop the auto defense from proceeding.",
