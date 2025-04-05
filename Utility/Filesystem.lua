@@ -58,18 +58,22 @@ return LPH_NO_VIRTUALIZE(function()
 	end
 
 	---List files.
+	---@param raw boolean?
 	---@return table
-	function Filesystem:list()
+	function Filesystem:list(raw)
 		local list = listfiles(self:path())
 		if not list then
 			return error("File list does not exist.", 2)
 		end
 
+		local new = {}
+
 		for idx, path in next, list do
-			list[idx] = string.gsub(path, self:path() .. "\\", "")
+			---@note: Non-raw weird behavior where the path is never detected in the string. Let's manually index remove it.
+			new[idx] = raw and path or string.sub(path, #(self:path() .. "\\") + 1, #path)
 		end
 
-		return list
+		return new
 	end
 
 	---Create new Filesystem object.

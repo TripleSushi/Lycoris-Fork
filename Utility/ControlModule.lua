@@ -74,13 +74,13 @@ return LPH_NO_VIRTUALIZE(function()
 			return Enum.ContextActionResult.Pass
 		end, false, Enum.KeyCode.D)
 
-		Logger.warn("Control module initialized.")
+		Logger.warn("ControlModule initialized.")
 	end
 
 	---Detach control module.
 	function ControlModule.detach()
 		controlMaid:clean()
-		Logger.warn("Control module detached.")
+		Logger.warn("ControlModule detached.")
 	end
 
 	---Get move vector.

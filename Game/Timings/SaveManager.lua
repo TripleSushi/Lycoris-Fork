@@ -74,7 +74,7 @@ end
 ---Get save files list.
 ---@return table
 function SaveManager.list()
-	local list = fs:list()
+	local list = fs:list(true)
 	local out = {}
 
 	for idx = 1, #list do

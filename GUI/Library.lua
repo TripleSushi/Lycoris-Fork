@@ -2110,6 +2110,13 @@ return LPH_NO_VIRTUALIZE(function()
 			Box.FocusLost:Connect(Update)
 			Box.Focused:Connect(Update)
 
+			Box.InputBegan:Connect(function(Input)
+				if Input.UserInputType == Enum.UserInputType.MouseButton2 then
+					Library:Notify("Text copied to clipboard!", 2.5)
+					setclipboard(Box.Text)
+				end
+			end)
+
 			Library:AddToRegistry(Box, {
 				TextColor3 = "FontColor",
 			})

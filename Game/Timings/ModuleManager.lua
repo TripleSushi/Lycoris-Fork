@@ -7,6 +7,9 @@ local Filesystem = require("Utility/Filesystem")
 ---@module Utility.Logger
 local Logger = require("Utility/Logger")
 
+---@module Game.Timings.Action
+local Action = require("Game/Timings/Action")
+
 -- Module filesystem.
 local fs = Filesystem.new("Lycoris-Rewrite-Modules")
 
@@ -22,43 +25,18 @@ function ModuleManager.loaded()
 	return out
 end
 
----Get module files list.
----@return table
-function ModuleManager.list()
-	local list = fs:list()
-	local out = {}
-
-	for idx = 1, #list do
-		local file = list[idx]
-
-		if file:sub(-4) ~= ".lua" then
-			continue
-		end
-
-		local pos = file:find(".lua", 1, true)
-		local char = file:sub(pos, pos)
-		local start = pos
-
-		while char ~= "/" and char ~= "\\" and char ~= "" do
-			pos = pos - 1
-			char = file:sub(pos, pos)
-		end
-
-		if char == "/" or char == "\\" then
-			table.insert(out, file:sub(pos + 1, start - 1))
-		end
-	end
-
-	return out
-end
-
 ---Refresh ModuleManager.
 function ModuleManager.refresh()
 	-- Reset current list.
 	ModuleManager.modules = {}
 
 	-- Load all modules in our filesystem.
-	for _, file in next, ModuleManager.list() do
+	for _, file in next, fs:list(false) do
+		-- Check if it is .lua.
+		if string.sub(file, #file - 3, #file) ~= ".lua" then
+			continue
+		end
+
 		-- Get string to load.
 		local ls = fs:read(file)
 
@@ -68,6 +46,9 @@ function ModuleManager.refresh()
 			Logger.warn("Module file '%s' failed to load due to error '%s' while loading.", file, lr)
 			continue
 		end
+
+		-- Set function environment to allow for internal modules.
+		getfenv(lf).Action = Action
 
 		-- Run executable function to initialize it.
 		local success, result = pcall(lf)
@@ -82,7 +63,7 @@ function ModuleManager.refresh()
 		end
 
 		-- Get the result as a function.
-		ModuleManager.modules[file] = result
+		ModuleManager.modules[string.sub(file, 1, #file - 4)] = result
 	end
 end
 

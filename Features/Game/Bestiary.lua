@@ -881,7 +881,7 @@ return LPH_NO_VIRTUALIZE(function()
 		refreshInterface()
 
 		-- Log.
-		Logger.warn("Bestiary module initialized.")
+		Logger.warn("Bestiary initialized.")
 	end
 
 	---Detach the Bestiary module.
@@ -890,7 +890,7 @@ return LPH_NO_VIRTUALIZE(function()
 		maid:clean()
 
 		-- Log.
-		Logger.warn("Bestiary module detached.")
+		Logger.warn("Bestiary detached.")
 	end
 
 	-- Return Bestiary module.

@@ -442,41 +442,51 @@ Defender.module = LPH_NO_VIRTUALIZE(function(self, timing)
 	-- Get loaded function.
 	local lf = ModuleManager.modules[timing.smod]
 	if not lf then
-		return
+		return self:notify(timing, "No module '%s' found.", timing.smod)
 	end
 
 	-- Create identifier.
 	local identifier = string.format("Defender_RunModule_%s", timing.smod)
 
+	-- Notify.
+	self:notify(timing, "Running module '%s' on timing.", timing.smod)
+
 	-- Run module.
 	self.maid:mark(TaskSpawner.spawn(identifier, lf, self, timing))
+end)
+
+---Add a action to the defender object.
+---@param timing Timing
+---@param action Action
+Defender.action = LPH_NO_VIRTUALIZE(function(self, timing, action)
+	-- Get ping.
+	local ping = self:ping()
+
+	-- Add action.
+	self:mark(
+		Task.new(
+			action._type,
+			action:when() - ping,
+			timing.punishable,
+			timing.after,
+			self.handle,
+			self,
+			timing,
+			action,
+			"Action type '%s' is being executed.",
+			action._type
+		)
+	)
+
+	-- Log.
+	self:notify(timing, "Added action '%s' (%.2fs) with ping '%.2f' subtracted.", action.name, action:when(), ping)
 end)
 
 ---Add actions from timing to defender object.
 ---@param timing Timing
 Defender.actions = LPH_NO_VIRTUALIZE(function(self, timing)
 	for _, action in next, timing.actions:get() do
-		-- Get ping.
-		local ping = self:ping()
-
-		-- Add action.
-		self:mark(
-			Task.new(
-				action._type,
-				action:when() - ping,
-				timing.punishable,
-				timing.after,
-				self.handle,
-				self,
-				timing,
-				action,
-				"Action type '%s' is being executed.",
-				action._type
-			)
-		)
-
-		-- Log.
-		self:notify(timing, "Added action '%s' (%.2fs) with ping '%.2f' subtracted.", action.name, action:when(), ping)
+		self:action(timing, action)
 	end
 end)
 
