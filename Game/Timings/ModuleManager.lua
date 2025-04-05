@@ -10,6 +10,9 @@ local Logger = require("Utility/Logger")
 ---@module Game.Timings.Action
 local Action = require("Game/Timings/Action")
 
+---@module Game.InputClient
+local InputClient = require("Game/InputClient")
+
 -- Module filesystem.
 local fs = Filesystem.new("Lycoris-Rewrite-Modules")
 
@@ -49,6 +52,7 @@ function ModuleManager.refresh()
 
 		-- Set function environment to allow for internal modules.
 		getfenv(lf).Action = Action
+		getfenv(lf).InputClient = InputClient
 
 		-- Run executable function to initialize it.
 		local success, result = pcall(lf)
