@@ -24,8 +24,9 @@ local MAX_WAIT = 5.0
 ---Check if we're in a valid state to proceed with the action.
 ---@param timing PartTiming
 ---@param action Action
+---@param origin CFrame?
 ---@return boolean
-EffectDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
+EffectDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin)
 	local humanoidRootPart = self.owner:FindFirstChild("HumanoidRootPart")
 	if not humanoidRootPart then
 		return self:notify(timing, "No humanoid root part found.")
@@ -50,7 +51,7 @@ EffectDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 		return self:notify(timing, "No character found.")
 	end
 
-	if not self:hitbox(humanoidRootPart.CFrame, 0, action.hitbox, { character }) then
+	if not self:hitbox(origin or humanoidRootPart.CFrame, 0, action.hitbox, { character }) then
 		return self:notify(timing, "Not inside of the hitbox.")
 	end
 

@@ -57,8 +57,9 @@ end)
 ---Check if we're in a valid state to proceed with the action.
 ---@param timing PartTiming
 ---@param action Action
+---@param origin CFrame?
 ---@return boolean
-PartDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
+PartDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin)
 	if self.owner and not Targeting.find(self.owner) then
 		return self:notify(timing, "Not a viable target.")
 	end
@@ -68,7 +69,7 @@ PartDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 		return self:notify(timing, "No character found.")
 	end
 
-	if not self:hitbox(self.part.CFrame, 0, action.hitbox, { character }) then
+	if not self:hitbox(origin or self.part.CFrame, 0, action.hitbox, { character }) then
 		return self:notify(timing, "Not inside of the hitbox.")
 	end
 

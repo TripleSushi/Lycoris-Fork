@@ -51,8 +51,9 @@ local replicatedStorage = game:GetService("ReplicatedStorage")
 ---Check if we're in a valid state to proceed with the action.
 ---@param timing AnimationTiming
 ---@param action Action
+---@param origin CFrame?
 ---@return boolean
-AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
+AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin)
 	if not self.track then
 		return self:notify(timing, "No current track.")
 	end
@@ -72,7 +73,7 @@ AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 		timing.duih
 		and self.track.IsPlaying
 		and not self:hitbox(
-			target.root.CFrame,
+			origin or target.root.CFrame,
 			timing.fhb and action.hitbox.Z / 2 or 0,
 			timing.hitbox,
 			{ players.LocalPlayer.Character }
@@ -92,7 +93,12 @@ AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 
 	if
 		not skipActionHitbox
-		and not self:hitbox(target.root.CFrame, timing.fhb and action.hitbox.Z / 2 or 0, action.hitbox, { character })
+		and not self:hitbox(
+			origin or target.root.CFrame,
+			timing.fhb and action.hitbox.Z / 2 or 0,
+			action.hitbox,
+			{ character }
+		)
 	then
 		return self:notify(timing, "Not inside of the hitbox.")
 	end

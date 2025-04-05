@@ -100,8 +100,9 @@ end
 ---Check if we're in a valid state to proceed with action handling. Extend me.
 ---@param timing Timing
 ---@param action Action
+---@param origin CFrame?
 ---@return boolean
-Defender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
+Defender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin)
 	local keybinds = replicatedStorage:FindFirstChild("KeyBinds")
 	if not keybinds then
 		return self:notify(timing, "No keybinds instance found.")
@@ -325,9 +326,10 @@ end)
 ---Handle action.
 ---@param timing Timing
 ---@param action Action
+---@param origin Vector3?
 ---@varargs ... any Arguments to be passed into notification.
-Defender.handle = LPH_NO_VIRTUALIZE(function(self, timing, action, ...)
-	if not self:valid(timing, action) then
+Defender.handle = LPH_NO_VIRTUALIZE(function(self, timing, action, origin, ...)
+	if not self:valid(timing, action, origin) then
 		return
 	end
 
@@ -479,6 +481,7 @@ Defender.action = LPH_NO_VIRTUALIZE(function(self, timing, action)
 			self,
 			timing,
 			action,
+			nil,
 			"Action type '%s' is being executed.",
 			action._type
 		)
