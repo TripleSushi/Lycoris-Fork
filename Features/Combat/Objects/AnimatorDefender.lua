@@ -49,6 +49,7 @@ local players = game:GetService("Players")
 local replicatedStorage = game:GetService("ReplicatedStorage")
 
 ---Check if we're in a valid state to proceed with the action.
+---@todo: Add extra effect checks because we don't want our input to be buffered when we can't even parry.
 ---@param timing AnimationTiming
 ---@param action Action
 ---@param origin CFrame?
@@ -147,7 +148,7 @@ end)
 ---@param timing AnimationTiming
 ---@param index number
 AnimatorDefender.rpue = LPH_NO_VIRTUALIZE(function(self, track, timing, index)
-	if not self.track.IsPlaying then
+	if not track.IsPlaying then
 		return
 	end
 
@@ -170,7 +171,12 @@ AnimatorDefender.rpue = LPH_NO_VIRTUALIZE(function(self, track, timing, index)
 	if
 		target
 		and timing.duih
-		and not self:hitbox(target.root.CFrame, 0, timing.hitbox, { players.LocalPlayer.Character })
+		and not self:hitbox(
+			target.root.CFrame,
+			timing.fhb and timing.hitbox.Z / 2 or 0,
+			timing.hitbox,
+			{ players.LocalPlayer.Character }
+		)
 	then
 		return
 	end

@@ -13,6 +13,12 @@ local Action = require("Game/Timings/Action")
 ---@module Game.InputClient
 local InputClient = require("Game/InputClient")
 
+---@module Features.Combat.Objects.Task
+local Task = require("Features/Combat/Objects/Task")
+
+---@module Utility.TaskSpawner
+local TaskSpawner = require("Utility/TaskSpawner")
+
 -- Module filesystem.
 local fs = Filesystem.new("Lycoris-Rewrite-Modules")
 
@@ -53,6 +59,8 @@ function ModuleManager.refresh()
 		-- Set function environment to allow for internal modules.
 		getfenv(lf).Action = Action
 		getfenv(lf).InputClient = InputClient
+		getfenv(lf).Task = Task
+		getfenv(lf).TaskSpawner = TaskSpawner
 
 		-- Run executable function to initialize it.
 		local success, result = pcall(lf)
