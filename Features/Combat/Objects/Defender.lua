@@ -369,7 +369,11 @@ Defender.dahandle = LPH_NO_VIRTUALIZE(function(self, timing, action)
 	end
 
 	if action._type == "Dodge" then
-		return InputClient.dodge()
+		return InputClient.dodge(false)
+	end
+
+	if action._type == "Forced Full Dodge" then
+		return InputClient.dodge(true)
 	end
 
 	---@note: Okay, we'll assume that we're in the parry state. There's no other type.

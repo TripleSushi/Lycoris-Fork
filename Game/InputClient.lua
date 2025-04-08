@@ -315,7 +315,8 @@ InputClient.parry = LPH_NO_VIRTUALIZE(function()
 end)
 
 ---Dodge function.
-InputClient.dodge = LPH_NO_VIRTUALIZE(function()
+---@param skipRollCancel boolean
+InputClient.dodge = LPH_NO_VIRTUALIZE(function(skipRollCancel)
 	local effectReplicator = replicatedStorage:FindFirstChild("EffectReplicator")
 	if not effectReplicator then
 		return Logger.warn("Cannot dodge without effect replicator.")
@@ -377,14 +378,15 @@ InputClient.dodge = LPH_NO_VIRTUALIZE(function()
 		usePivotVelocityRoll = true
 	end
 
+	local rollCancelDelay = Configuration.expectOptionValue("RollCancelDelay") or 0.0
+
+	if skipRollCancel or not Configuration.expectToggleValue("RollCancel") then
+		rollCancelDelay = nil
+	end
+
 	---@note: Run this in a seperate task because the roll movement must still continue even when detached and destroyed. Else, it will behave wrong.
 	--- This is OK. Before any yields occur, we fetch the remotes beforehand. Also, the clean up is done at the very end of the function.
-	task.spawn(
-		InputClient.roll,
-		usePivotVelocityRoll and true or nil,
-		Configuration.expectToggleValue("RollCancel") and (Configuration.expectOptionValue("RollCancelDelay") or 0.0)
-			or nil
-	)
+	task.spawn(InputClient.roll, usePivotVelocityRoll and true or nil, rollCancelDelay)
 end)
 
 ---Re-created feint function.
