@@ -32,7 +32,6 @@ local oldNewIndex = nil
 local oldTick = nil
 local oldCoroutineWrap = nil
 local oldTaskSpawn = nil
-local oldDestroy = nil
 
 ---Recursively find first valid InputClient stack.
 ---@return table?
@@ -252,14 +251,6 @@ local onNameCall = LPH_NO_VIRTUALIZE(function(...)
 		return
 	end
 
-	if
-		getnamecallmethod() == "Destroy"
-		and typeof(self) == "Instance"
-		and (self.Name == "InputClient" or self.Name == "CharacterHandler")
-	then
-		return
-	end
-
 	local isActivatingMantra = self.Name == "ActivateMantra"
 
 	Defense.lastMantraActivate = isActivatingMantra and args[2] or Defense.lastMantraActivate
@@ -306,6 +297,10 @@ local onUnreliableFireServer = LPH_NO_VIRTUALIZE(function(...)
 	local heavenRemote = KeyHandling.getRemote("Heaven")
 	local hellRemote = KeyHandling.getRemote("Hell")
 
+	if not heavenRemote or not hellRemote then
+		Logger.warn("Heaven (%s) or Hell (%s) remote is nil.", tostring(heavenRemote), tostring(hellRemote))
+	end
+
 	if heavenRemote and self == heavenRemote then
 		Logger.warn("Anticheat is attempting to ban us with the Heaven remote.")
 		return warn(...)
@@ -345,6 +340,10 @@ local onFireServer = LPH_NO_VIRTUALIZE(function(...)
 	local heavenRemote = KeyHandling.getRemote("Heaven")
 	local hellRemote = KeyHandling.getRemote("Hell")
 
+	if not heavenRemote or not hellRemote then
+		Logger.warn("Heaven (%s) or Hell (%s) remote is nil.", tostring(heavenRemote), tostring(hellRemote))
+	end
+
 	if heavenRemote and self == heavenRemote then
 		Logger.warn("Anticheat is attempting to ban us with the Heaven remote.")
 		return warn(...)
@@ -369,6 +368,17 @@ local onNewIndex = LPH_NO_VIRTUALIZE(function(...)
 	local self = args[1]
 	local index = args[2]
 	local value = args[3]
+
+	if
+		typeof(self) == "Instance"
+		and (self.Name == "InputClient" or self.Name == "CharacterHandler")
+		and index:lower():match("Parent")
+	then
+		return Logger.warn(
+			"(%s) Caller attempted to set the parent of InputClient or CharacterHandler",
+			debug.getinfo(3).short_src
+		)
+	end
 
 	if self == lighting and (index == "FogStart" or index == "FogEnd") and Configuration.expectToggleValue("NoFog") then
 		return
@@ -427,26 +437,6 @@ local onCoroutineWrap = LPH_NO_VIRTUALIZE(function(...)
 	return oldCoroutineWrap(unpack(args))
 end)
 
----On destroy.
----@return any
-local onDestroy = LPH_NO_VIRTUALIZE(function(...)
-	if checkcaller() then
-		return oldDestroy(...)
-	end
-
-	-- Arguments.
-	local args = { ... }
-	local self = args[1]
-
-	-- Prevent destroy.
-	if typeof(self) == "Instance" and (self.Name == "CharacterHandler" or self.Name == "InputClient") then
-		return
-	end
-
-	-- Return.
-	return oldDestroy(...)
-end)
-
 ---On task spawn.
 ---@return any
 local onTaskSpawn = LPH_NO_VIRTUALIZE(function(...)
@@ -502,7 +492,6 @@ function Hooking.init()
 	clientManager.Enabled = false
 
 	---@todo: Optimize hooks - preferably filter out calls slowing performance.
-	oldDestroy = hookfunction(game.Destroy, onDestroy)
 	oldFireServer = hookfunction(Instance.new("RemoteEvent").FireServer, onFireServer)
 	oldUnreliableFireServer = hookfunction(Instance.new("UnreliableRemoteEvent").FireServer, onUnreliableFireServer)
 	oldCoroutineWrap = hookfunction(coroutine.wrap, onCoroutineWrap)
@@ -518,10 +507,6 @@ end
 ---Hooking detach.
 function Hooking.detach()
 	local localPlayer = playersService.LocalPlayer
-
-	if oldDestroy then
-		hookfunction(game.Destroy, oldDestroy)
-	end
 
 	if oldTick then
 		hookfunction(tick, oldTick)
