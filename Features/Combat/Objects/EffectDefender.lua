@@ -11,6 +11,7 @@ local Targeting = require("Features/Combat/Targeting")
 ---@field owner Model The owner of the effect.
 ---@field name string The name of the effect.
 ---@field last number The last time we processed the effect.
+---@field data table The data of the effect.
 local EffectDefender = setmetatable({}, { __index = Defender })
 EffectDefender.__index = EffectDefender
 EffectDefender.__type = "Effect"
@@ -90,12 +91,14 @@ end)
 ---Create new EffectDefender object.
 ---@param name string
 ---@param owner Model
+---@param data table
 ---@return EffectDefender
-function EffectDefender.new(name, owner)
+function EffectDefender.new(name, owner, data)
 	local self = setmetatable(Defender.new(), EffectDefender)
 	self.name = name
 	self.owner = owner
 	self.last = os.clock()
+	self.data = data or {}
 	self:process()
 	return self
 end

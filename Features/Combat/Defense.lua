@@ -162,7 +162,7 @@ local onClientEffectEvent = LPH_NO_VIRTUALIZE(function(name, data)
 		return
 	end
 
-	defenderObjects[data] = EffectDefender.new(name, owner)
+	defenderObjects[data] = EffectDefender.new(name, owner, data)
 end)
 
 ---On effect replicated.
