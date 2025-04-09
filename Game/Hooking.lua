@@ -23,6 +23,7 @@ local Defense = require("Features/Combat/Defense")
 local playersService = game:GetService("Players")
 local replicatedStorage = game:GetService("ReplicatedStorage")
 local lighting = game:GetService("Lighting")
+local tweenService = game:GetService("TweenService")
 
 -- Old hooked functions.
 local oldFireServer = nil
@@ -255,6 +256,16 @@ local onNameCall = LPH_NO_VIRTUALIZE(function(...)
 		return
 	end
 
+	---@note: Just shut it down if we're using a lighting template.
+	if getnamecallmethod() == "Play" and typeof(self) == "Instance" and game.IsA(self, "Tween") then
+		if
+			self.Instance == lighting
+			and (Configuration.expectToggleValue("NoFog") or Configuration.expectToggleValue("ModifyAmbience"))
+		then
+			return
+		end
+	end
+
 	if self.Name == "AcidCheck" and Configuration.expectToggleValue("NoAcidWater") then
 		return
 	end
@@ -342,7 +353,7 @@ local onNewIndex = LPH_NO_VIRTUALIZE(function(...)
 	if
 		typeof(self) == "Instance"
 		and (self.Name == "InputClient" or self.Name == "CharacterHandler")
-		and index:lower():match("Parent")
+		and index:lower():match("parent")
 	then
 		return Logger.warn(
 			"(%s) Caller attempted to set the parent of InputClient or CharacterHandler",

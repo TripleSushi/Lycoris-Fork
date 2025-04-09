@@ -267,7 +267,10 @@ return LPH_NO_VIRTUALIZE(function()
 			return hideEffect(effect)
 		end
 
-		if effect.Class == "BeingWinded" and Configuration.expectToggleValue("NoWind") then
+		if
+			(effect.Class == "BeingWinded" or effect.Class == "StrongWind")
+			and Configuration.expectToggleValue("NoWind")
+		then
 			return hideEffect(effect)
 		end
 

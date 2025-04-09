@@ -387,6 +387,12 @@ function GameTab.initEffectRemovalsSection(groupbox)
 		Default = false,
 	})
 
+	groupbox:AddToggle("NoWind", {
+		Text = "No Wind",
+		Tooltip = "Remove any 'Wind' effects from the server.",
+		Default = false,
+	})
+
 	groupbox:AddToggle("NoJumpCooldown", {
 		Text = "No Jump Cooldown",
 		Tooltip = "Remove any 'Jump Cooldown' effects from the server.",
