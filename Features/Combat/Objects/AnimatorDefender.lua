@@ -105,7 +105,7 @@ AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin
 			{ character }
 		)
 	do
-		if self:stopped(true) then
+		if self:stopped(timing) then
 			return false
 		end
 
@@ -138,7 +138,7 @@ AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin
 		return self:notify(timing, "Not being targeted.")
 	end
 
-	if self:stopped(true) then
+	if self:stopped(timing) then
 		return false
 	end
 
