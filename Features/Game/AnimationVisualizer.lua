@@ -413,7 +413,7 @@ return LPH_NO_VIRTUALIZE(function()
 					"%.3f/%.3f (%ims)",
 					currentTrack.TimePosition,
 					currentTrack.Length,
-					math.round((getTimeElapsedFromTp(currentTrack.TimePosition) or 0.0) * 1000)
+					math.round((getTimeElapsedFromTp(currentTrack.TimePosition, currentTrack.Length) or 0.0) * 1000)
 				)
 			or "0.000 / ??? (???ms)"
 
