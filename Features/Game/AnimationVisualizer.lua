@@ -374,8 +374,8 @@ return LPH_NO_VIRTUALIZE(function()
 
 			---@note: We can calculate how many iterations this should likely take based on the length (e.g 4 seconds) of the animation.
 			--- Since we have a delta time of 0.01s, that means we can multiply the length by 100 to get our iteration amount.
-			--- Then, we should multiply that number by 4 to act as a buffer. At minimum, we'll allow for 1000 iterations.
-			if iterations >= math.max(((animationLength * 100) * 4), 1000) then
+			--- Then, we should multiply that number by 10 to act as a buffer. At minimum, we'll allow for 1000 iterations.
+			if iterations >= math.max(((animationLength * 100) * 10), 1000) then
 				break
 			end
 
