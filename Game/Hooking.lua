@@ -294,7 +294,7 @@ local onNameCall = LPH_NO_VIRTUALIZE(function(...)
 		local humanoid = game.FindFirstChild(character, "Humanoid")
 		local foreign = true
 
-		if character and humanoid and (self.Parent == character and self.Parent == humanoid) then
+		if character and humanoid and (self.Parent == character or self.Parent == humanoid) then
 			foreign = false
 		end
 
