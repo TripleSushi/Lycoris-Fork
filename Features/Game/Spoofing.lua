@@ -172,7 +172,10 @@ return LPH_NO_VIRTUALIZE(function()
 			return
 		end
 
-		instance.Visible = not Configuration.expectToggleValue("HideDeathInformation")
+		instance.Visible = not (
+			Configuration.expectToggleValue("InfoSpoofing")
+			and Configuration.expectToggleValue("HideDeathInformation")
+		)
 	end
 
 	---Update death information spoof.
@@ -222,6 +225,10 @@ return LPH_NO_VIRTUALIZE(function()
 			updateKongaClutchRingSpoof()
 		else
 			fakeFreestylerBand.Parent = nil
+		end
+
+		if not Configuration.expectToggleValue("InfoSpoofing") then
+			infoSpoofMap:restore()
 		end
 
 		updateDeathInformationSpoof()
