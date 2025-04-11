@@ -19,11 +19,13 @@ local InputClient = require("Game/InputClient")
 ---@module Features.Combat.Defense
 local Defense = require("Features/Combat/Defense")
 
+---@module Game.LeaderboardClient
+local LeaderboardClient = require("Game/LeaderboardClient")
+
 -- Services.
 local playersService = game:GetService("Players")
 local replicatedStorage = game:GetService("ReplicatedStorage")
 local lighting = game:GetService("Lighting")
-local tweenService = game:GetService("TweenService")
 
 -- Old hooked functions.
 local oldFireServer = nil
@@ -275,6 +277,10 @@ end)
 ---On name call.
 ---@return any
 local onNameCall = LPH_NO_VIRTUALIZE(function(...)
+	if not LeaderboardClient.calling and checkcaller() then
+		return oldNameCall(...)
+	end
+
 	local args = { ... }
 	local self = args[1]
 
@@ -319,10 +325,6 @@ local onNameCall = LPH_NO_VIRTUALIZE(function(...)
 		if args[2] == "GuildRich" then
 			return foreign and "discord.gg/lyc" or Configuration.expectOptionValue("SpoofedGuildName")
 		end
-	end
-
-	if checkcaller() then
-		return oldNameCall(...)
 	end
 
 	if banRemotes[self] then
