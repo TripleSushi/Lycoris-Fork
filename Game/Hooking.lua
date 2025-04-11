@@ -22,6 +22,9 @@ local Defense = require("Features/Combat/Defense")
 ---@module Game.LeaderboardClient
 local LeaderboardClient = require("Game/LeaderboardClient")
 
+---@module Features.Game.Spoofing
+local Spoofing = require("Features/Game/Spoofing")
+
 -- Services.
 local playersService = game:GetService("Players")
 local replicatedStorage = game:GetService("ReplicatedStorage")
@@ -253,7 +256,7 @@ local onIndex = LPH_NO_VIRTUALIZE(function(...)
 		return error("InputClient - Lycoris On Top")
 	end
 
-	if not Configuration.expectToggleValue("InfoSpoofing") then
+	if Spoofing.force or not Configuration.expectToggleValue("InfoSpoofing") then
 		return oldIndex(...)
 	end
 
@@ -289,6 +292,7 @@ local onNameCall = LPH_NO_VIRTUALIZE(function(...)
 		and typeof(args[2]) == "string"
 		and getnamecallmethod() == "GetAttribute"
 		and Configuration.expectToggleValue("InfoSpoofing")
+		and not Spoofing.force
 	then
 		local character = playersService.LocalPlayer.Character
 		local humanoid = game.FindFirstChild(character, "Humanoid")
@@ -464,6 +468,7 @@ local onNewIndex = LPH_NO_VIRTUALIZE(function(...)
 		and typeof(self) == "Instance"
 		and game.IsA(self, "TextLabel")
 		and index == "Text"
+		and not Spoofing.force
 	then
 		if self.Name == "Slot" and self.Parent.Name == "CharacterInfo" then
 			return oldNewIndex(self, index, Configuration.expectOptionValue("SpoofedSlotString"))

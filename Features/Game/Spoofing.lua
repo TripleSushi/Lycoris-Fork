@@ -11,9 +11,12 @@ return LPH_NO_VIRTUALIZE(function()
 	---@module Utility.Logger
 	local Logger = require("Utility/Logger")
 
+	---@module Utility.OriginalStoreManager
+	local OriginalStoreManager = require("Utility/OriginalStoreManager")
+
 	-- Spoofing module.
-	---@note: This is ugly as fuck.
-	local Spoofing = {}
+	---@note: Replace (e.g Konga Clutch Ring Spoofer) with Talent Spoofer & Instance Spoofer in the future.
+	local Spoofing = { force = false }
 
 	-- Services.
 	local runService = game:GetService("RunService")
@@ -27,6 +30,9 @@ return LPH_NO_VIRTUALIZE(function()
 
 	-- Maid.
 	local spoofingMaid = Maid.new()
+
+	-- Original store managers.
+	local infoSpoofMap = spoofingMaid:mark(OriginalStoreManager.new())
 
 	-- Konga's clutch ring instance.
 	local fakeKongaClutchRing = Instance.new("Folder")
@@ -221,6 +227,90 @@ return LPH_NO_VIRTUALIZE(function()
 		updateDeathInformationSpoof()
 	end
 
+	---Spoof game version.
+	---@param value string
+	function Spoofing.sgv(value)
+		local player = players.LocalPlayer
+		if not player then
+			return
+		end
+
+		local playerGui = player:FindFirstChild("PlayerGui")
+		if not playerGui then
+			return
+		end
+
+		local worldInfo = playerGui:FindFirstChild("WorldInfo")
+		local infoFrame = worldInfo and worldInfo:FindFirstChild("InfoFrame")
+		local gameInfo = infoFrame and infoFrame:FindFirstChild("GameInfo")
+		if not gameInfo then
+			return
+		end
+
+		local gameVersionLabel = gameInfo:FindFirstChild("GameVersion")
+		if not gameVersionLabel then
+			return
+		end
+
+		infoSpoofMap:add(gameVersionLabel, "Text", value)
+	end
+
+	---Spoof date string.
+	---@param value string
+	function Spoofing.sds(value)
+		local player = players.LocalPlayer
+		if not player then
+			return
+		end
+
+		local playerGui = player:FindFirstChild("PlayerGui")
+		if not playerGui then
+			return
+		end
+
+		local worldInfo = playerGui:FindFirstChild("WorldInfo")
+		local infoFrame = worldInfo and worldInfo:FindFirstChild("InfoFrame")
+		local gameInfo = infoFrame and infoFrame:FindFirstChild("GameInfo")
+		if not gameInfo then
+			return
+		end
+
+		local dateLabel = gameInfo:FindFirstChild("DateLabel")
+		if not dateLabel then
+			return
+		end
+
+		infoSpoofMap:add(dateLabel, "Text", value)
+	end
+
+	---Spoof slot string.
+	---@param value string
+	function Spoofing.sss(value)
+		local player = players.LocalPlayer
+		if not player then
+			return
+		end
+
+		local playerGui = player:FindFirstChild("PlayerGui")
+		if not playerGui then
+			return
+		end
+
+		local worldInfo = playerGui:FindFirstChild("WorldInfo")
+		local infoFrame = worldInfo and worldInfo:FindFirstChild("InfoFrame")
+		local gameInfo = infoFrame and infoFrame:FindFirstChild("GameInfo")
+		if not gameInfo then
+			return
+		end
+
+		local slotLabel = gameInfo:FindFirstChild("SlotLabel")
+		if not slotLabel then
+			return
+		end
+
+		infoSpoofMap:add(slotLabel, "Text", value)
+	end
+
 	---Fire attribute changed signal.
 	---@param instance Instance
 	---@param attribute string
@@ -291,12 +381,21 @@ return LPH_NO_VIRTUALIZE(function()
 
 	---Detach spoofing.
 	function Spoofing.detach()
-		spoofingMaid:clean()
-		resetEmoteSpoofer()
+		-- Tell hooks that we need to clean up instead of spoofing - regardless of what user set.
+		Spoofing.force = true
 
+		-- Clean up maid.
+		spoofingMaid:clean()
+
+		-- Clean up spoofed data.
+		Spoofing.rics()
+
+		-- Clean up instances & other spoofing.
 		fakeFreestylerBand.Parent = nil
 		fakeKongaClutchRing.Parent = nil
+		resetEmoteSpoofer()
 
+		-- Log detach.
 		Logger.warn("Spoofing detached.")
 	end
 
