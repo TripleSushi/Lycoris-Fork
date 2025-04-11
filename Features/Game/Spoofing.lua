@@ -168,22 +168,36 @@ return LPH_NO_VIRTUALIZE(function()
 		end
 	end
 
-	---Refresh info changed signals.
-	function Spoofing.rics()
-		if not firesignal then
-			return Logger.longNotify("Your exploit does not support the 'firesignal' function.")
-		end
+	---Fire attribute changed signal.
+	---@param instance Instance
+	---@param attribute string
+	function Spoofing.facs(instance, attribute)
+		local original = instance:GetAttribute(attribute)
+		instance:SetAttribute(attribute, "SPOOFING_RICS")
+		instance:SetAttribute(attribute, original)
+	end
 
+	---Fire changed signal for value.
+	---@param instance ValueBase
+	function Spoofing.fvcs(instance)
+		local original = instance.Value
+		instance.Value = "SPOOFING_RICS"
+		instance.Value = original
+	end
+
+	---Refresh changed signals for information.
+	---@note: Attempts to trigger them w/e using 'firesignal' or 'getconnections' because they crash.
+	function Spoofing.rics()
 		for _, player in next, players:GetPlayers() do
-			firesignal(player:GetAttributeChangedSignal("Guild"))
+			Spoofing.facs(player, "Guild")
 
 			local character = player.Character
 			if not character then
 				continue
 			end
 
-			firesignal(character:GetAttributeChangedSignal("CharacterName"))
-			firesignal(character:GetAttributeChangedSignal("GuildRich"))
+			Spoofing.facs(character, "CharacterName")
+			Spoofing.facs(character, "GuildRich")
 		end
 
 		local serverRegion = replicatedStorage:FindFirstChild("SERVER_REGION")
@@ -194,9 +208,9 @@ return LPH_NO_VIRTUALIZE(function()
 			return
 		end
 
-		firesignal(serverRegion.Changed)
-		firesignal(serverName.Changed)
-		firesignal(serverAge.Changed)
+		Spoofing.fvcs(serverRegion)
+		Spoofing.fvcs(serverName)
+		Spoofing.fvcs(serverAge)
 	end
 
 	---Initialize spoofing.
