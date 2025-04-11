@@ -1,5 +1,5 @@
 -- LeaderboardClient module.
-local LeaderboardClient = {}
+local LeaderboardClient = { calling = false }
 
 -- Services.
 local players = game:GetService("Players")
@@ -62,7 +62,21 @@ function LeaderboardClient.glrf()
 		lastFunctionCacheTime = os.clock()
 
 		-- Return function.
-		return upvaluesFunction
+		return function()
+			-- Never allow a call when we already have an open one.
+			if LeaderboardClient.calling then
+				return
+			end
+
+			-- Mark that we're calling...
+			LeaderboardClient.calling = true
+
+			-- Call the function.
+			upvaluesFunction()
+
+			-- Close calling!
+			LeaderboardClient.calling = false
+		end
 	end
 
 	return nil
