@@ -408,11 +408,10 @@ end
 ---@param name string
 ---@return string?
 function Callbacks.onenterwslot(fsm, name)
-	print(PersistentData.get("shw"))
 	if PersistentData.get("shw") == true then
 		return PersistentData.set("shw", false)
 	end
-	print("lol")
+
 	stateMaid:add(TaskSpawner.spawn("EchoFarmCallbacks_OnEnterWSlot", function()
 		local lastUsedSlot = PersistentData.get("lus")
 		if not lastUsedSlot then
@@ -426,7 +425,6 @@ function Callbacks.onenterwslot(fsm, name)
 
 		-- Transition.
 		fsm:transition(name)
-		print("lololol")
 		fsm:qjoin()
 	end))
 
@@ -445,12 +443,12 @@ function Callbacks.onenterqjoin(fsm)
 
 		local requests = replicatedStorage:WaitForChild("Requests")
 		local startMenu = requests:WaitForChild("StartMenu")
-		print("yaa")
+
 		while task.wait() do
 			-- Pick a slot.
 			local pickSlot = startMenu:WaitForChild("PickSlot")
 			pickSlot:FireServer(lastUsedSlot, { PrivateTest = false })
-			print("foo")
+
 			-- Pick a server.
 			local pickServer = startMenu:WaitForChild("PickServer")
 			pickServer:FireServer("none")
