@@ -358,6 +358,22 @@ function Callbacks.onentercampfire(fsm, name)
 
 		EchoFarm.tweening = false
 
+		local requests = replicatedStorage:WaitForChild("Requests")
+		local craft = requests:WaitForChild("Craft")
+
+		craft:InvokeServer({
+			["Browncap"] = true,
+			["Dentifilo"] = true,
+		})
+
+		local playerGui = localPlayer:WaitForChild("PlayerGui")
+		local choicePrompt = playerGui:FindFirstChild("ChoicePrompt")
+		local choiceRemote = choicePrompt and choicePrompt:WaitForChild("Choice")
+
+		if choiceRemote then
+			choiceRemote:InvokeServer(1)
+		end
+
 		fsm:transition(name)
 		fsm:serverhop()
 	end))
