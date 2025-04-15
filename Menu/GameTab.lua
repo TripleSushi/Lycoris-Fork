@@ -571,7 +571,7 @@ function GameTab.initInfoSpoofingSection(groupbox)
 	})
 
 	local function refreshHandler()
-		if not Configuration.expectOptionValue("InfoSpoofing") then
+		if not Configuration.expectToggleValue("InfoSpoofing") then
 			return
 		end
 
