@@ -9,17 +9,19 @@ local Logger = require("Utility/Logger")
 
 -- PersistentData module.
 local PersistentData = {
-	-- First timestamp of when Lycoris was loaded.
-	fli = nil,
+	_data = {
+		-- First timestamp of when Lycoris was loaded.
+		fli = nil,
 
-	-- The last used slot.
-	lus = nil,
+		-- The last used slot.
+		lus = nil,
 
-	-- Echo farm persistence - did we trigger a server hop from wiping our character? If so, skip the wipe slot handler.
-	shw = false,
+		-- Echo farm persistence - did we trigger a server hop from wiping our character? If so, skip the wipe slot handler.
+		shw = false,
 
-	-- Echo farm persistence - do we need to activate on initialization?
-	aei = false,
+		-- Echo farm persistence - do we need to activate on initialization?
+		aei = false,
+	},
 }
 
 -- Generate mapping.
@@ -48,6 +50,13 @@ end
 -- Services.
 local memStorageService = game:GetService("MemStorageService")
 
+---Get a field in the persistent data.
+---@param field string
+---@return any
+function PersistentData.get(field)
+	return PersistentData._data[field]
+end
+
 ---Change a field in the persistent data.
 ---@param field string
 ---@param value any
@@ -57,10 +66,10 @@ function PersistentData.set(field, value)
 	end
 
 	-- Set persistent field.
-	PersistentData[field] = value
+	PersistentData._data[field] = value
 
 	-- Save the persistent data.
-	memStorageService:SetItem("LYCORIS_PERSISTENT_DATA", Serializer.marshal(PersistentData))
+	memStorageService:SetItem("LYCORIS_PERSISTENT_DATA", Serializer.marshal(PersistentData._data))
 end
 
 ---Initialize PersistentData module.
@@ -76,5 +85,8 @@ function PersistentData.init()
 		return Logger.warn("(%s) Failed to deserialize PersistentData snapshot.", tostring(result))
 	end
 
-	PersistentData = result
+	PersistentData._data = result
 end
+
+-- Return PersistentData module.
+return PersistentData

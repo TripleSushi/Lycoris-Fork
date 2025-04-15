@@ -95,7 +95,7 @@ function Lycoris.init()
 
 	PersistentData.init()
 
-	if PersistentData.aei then
+	if PersistentData.get("aei") then
 		EchoFarm.init()
 	end
 
@@ -115,11 +115,11 @@ function Lycoris.init()
 
 	Logger.notify("Script has been initialized in %ims.", (os.clock() - startTimestamp) * 1000)
 
-	if not PersistentData.fli then
+	if not PersistentData.get("fli") then
 		PersistentData.set("fli", os.time())
 	end
 
-	if not PersistentData.lus then
+	if not PersistentData.get("lus") then
 		PersistentData.set("lus", playersService.LocalPlayer:GetAttribute("DataSlot"))
 	end
 
@@ -137,7 +137,7 @@ function Lycoris.init()
 			"Currently attached to the script - time elapsed is a session of %s time spent.",
 			armorshield and "testing" or "developing"
 		),
-		timeStart = PersistentData.fli or os.time(),
+		timeStart = PersistentData.get("fli") or os.time(),
 		largeImage = {
 			assetId = armorshield and 13029433631 or 11289930484,
 			hoverText = armorshield and "Testing Deepwoken" or "Developing Deepwoken",
@@ -197,7 +197,7 @@ function Lycoris.detach()
 			details = "Lycoris Rewrite (Detached)",
 			state = armorshield and "Detached from script - something broke or a hot-reload."
 				or "Detached from script - something broke, fixing a bug, or a hot-reload.",
-			timeStart = PersistentData.fli or os.time(),
+			timeStart = PersistentData.get("fli") or os.time(),
 			largeImage = {
 				assetId = armorshield and 90216003739455 or 11289930484,
 				hoverText = armorshield and "Not Testing Deepwoken" or "Developing Deepwoken",

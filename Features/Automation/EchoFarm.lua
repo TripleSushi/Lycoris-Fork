@@ -369,12 +369,12 @@ end
 ---@param fsm StateMachine
 ---@return string?
 function Callbacks:onenterwslot(fsm)
-	if PersistentData.shw then
+	if PersistentData.get("shw") then
 		return PersistentData.set("shw", false)
 	end
 
 	stateMaid:add(TaskSpawner.spawn("EchoFarmCallbacks_OnEnterWSlot", function()
-		local lastUsedSlot = PersistentData.lus
+		local lastUsedSlot = PersistentData.get("lus")
 		if not lastUsedSlot then
 			return error("The last used slot is nil.")
 		end
@@ -392,7 +392,7 @@ end
 ---@return string?
 function Callbacks:onenterqjoin(fsm)
 	stateMaid:add(TaskSpawner.spawn("EchoFarmCallbacks_OnEnterQJoin", function()
-		local lastUsedSlot = PersistentData.lus
+		local lastUsedSlot = PersistentData.get("lus")
 		if not lastUsedSlot then
 			return error("The last used slot is nil.")
 		end
