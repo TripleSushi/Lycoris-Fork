@@ -46,6 +46,9 @@ local ModuleManager = require("Game/Timings/ModuleManager")
 -- Lycoris maid.
 local lycorisMaid = Maid.new()
 
+-- Constants.
+local LOBBY_PLACE_ID = 4111023553
+
 -- Services.
 local replicatedStorage = game:GetService("ReplicatedStorage")
 local playersService = game:GetService("Players")
@@ -89,14 +92,20 @@ function Lycoris.init()
 		)
 	end
 
-	KeyHandling.init()
+	if game.PlaceId ~= LOBBY_PLACE_ID then
+		KeyHandling.init()
 
-	Hooking.init()
+		Hooking.init()
+	end
 
 	PersistentData.init()
 
 	if PersistentData.get("aei") then
 		EchoFarm.start()
+	end
+
+	if game.PlaceId == LOBBY_PLACE_ID then
+		return Logger.warn("Script has initialized in the lobby.")
 	end
 
 	InputClient.cache()
