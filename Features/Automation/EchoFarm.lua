@@ -524,21 +524,21 @@ runNearbyPlayerCheck = function()
 
 	local localPlayer = players.LocalPlayer
 	if not localPlayer then
-		return false
+		return true
 	end
 
 	local character = localPlayer.Character
 	if not character then
-		return false
+		return true
 	end
 
 	local rootPart = character:FindFirstChild("HumanoidRootPart")
 	if not rootPart then
-		return false
+		return true
 	end
 
 	if not Entitites.isNear(rootPart.Position) then
-		return false
+		return true
 	end
 
 	-- Mark that we're coming from nearby check.
@@ -551,8 +551,8 @@ runNearbyPlayerCheck = function()
 	-- Clean maids.
 	stateMaid:clean()
 
-	-- Return true.
-	return true
+	-- Return false.
+	return false
 end
 
 ---Get nearest area marker.
