@@ -444,8 +444,8 @@ function Callbacks.onenterqjoin(fsm)
 
 		repeat
 			-- Pick a slot.
-			local start = startMenu:WaitForChild("Start")
-			start:FireServer(lastUsedSlot, { PrivateTest = false })
+			local pickSlot = startMenu:WaitForChild("PickSlot")
+			pickSlot:FireServer(lastUsedSlot, { PrivateTest = false })
 
 			-- Pick a server.
 			local pickServer = startMenu:WaitForChild("PickServer")
