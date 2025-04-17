@@ -57,7 +57,7 @@ end)
 ---Check if we're in a valid state to proceed with the action.
 ---@param timing PartTiming
 ---@param action Action
----@param origin CFrame?
+---@param origin function?
 ---@param foreign boolean?
 ---@return boolean
 PartDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin, foreign)
@@ -79,7 +79,7 @@ PartDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin, fo
 	if
 		not self.timing.duih
 		and not self:hitbox(
-			origin or (self.timing.uhc and self.part.CFrame or CFrame.new(self.part.Position)),
+			origin and origin() or (self.timing.uhc and self.part.CFrame or CFrame.new(self.part.Position)),
 			0,
 			action.hitbox,
 			{ character }
@@ -92,6 +92,7 @@ PartDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin, fo
 end)
 
 ---Update PartDefender object.
+---@note: Lag compensation of some kind? Maybe extrapolation.
 PartDefender.update = LPH_NO_VIRTUALIZE(function(self)
 	-- Check if we're finished.
 	if self.finished then

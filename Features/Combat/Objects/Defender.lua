@@ -425,7 +425,7 @@ end)
 ---Handle action.
 ---@param timing Timing
 ---@param action Action
----@param origin Vector3?
+---@param origin function?
 ---@param foreign boolean
 ---@varargs ... any Arguments to be passed into notification.
 Defender.handle = LPH_NO_VIRTUALIZE(function(self, timing, action, origin, foreign, ...)

@@ -25,7 +25,7 @@ local MAX_WAIT = 5.0
 ---Check if we're in a valid state to proceed with the action.
 ---@param timing PartTiming
 ---@param action Action
----@param origin CFrame?
+---@param origin function?
 ---@param foreign boolean?
 ---@return boolean
 EffectDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin, foreign)
@@ -39,7 +39,13 @@ EffectDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin, 
 	end
 
 	while
-		timing.duih and not self:hitbox(humanoidRootPart.CFrame, 0, timing.hitbox, { players.LocalPlayer.Character })
+		timing.duih
+		and not self:hitbox(
+			origin and origin() or humanoidRootPart.CFrame,
+			0,
+			timing.hitbox,
+			{ players.LocalPlayer.Character }
+		)
 	do
 		if os.clock() - self.last > MAX_WAIT then
 			return false
@@ -57,7 +63,7 @@ EffectDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin, 
 		return self:notify(timing, "No character found.")
 	end
 
-	if not self:hitbox(origin or humanoidRootPart.CFrame, 0, action.hitbox, { character }) then
+	if not self:hitbox(origin and origin() or humanoidRootPart.CFrame, 0, action.hitbox, { character }) then
 		return self:notify(timing, "Not inside of the hitbox.")
 	end
 

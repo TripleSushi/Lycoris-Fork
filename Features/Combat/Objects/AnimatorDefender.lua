@@ -63,7 +63,7 @@ end)
 ---@todo: Add extra effect checks because we don't want our input to be buffered when we can't even parry.
 ---@param timing AnimationTiming
 ---@param action Action
----@param origin CFrame?
+---@param origin function?
 ---@param foreign boolean? If true, we don't want to check the target.
 ---@return boolean
 AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin, foreign)
@@ -99,7 +99,7 @@ AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin
 	while
 		timing.duih
 		and not self:hitbox(
-			origin or root.CFrame,
+			origin and origin() or root.CFrame,
 			timing.fhb and action.hitbox.Z / 2 or 0,
 			timing.hitbox,
 			{ character }
@@ -119,7 +119,7 @@ AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin
 	if
 		not timing.duih
 		and not self:hitbox(
-			origin or root.CFrame,
+			origin and origin() or root.CFrame,
 			timing.fhb and action.hitbox.Z / 2 or 0,
 			action.hitbox,
 			{ character }

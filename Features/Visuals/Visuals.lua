@@ -394,10 +394,49 @@ local onThrownChildAdded = LPH_NO_VIRTUALIZE(function(child)
 	end
 end)
 
+---Create children listener.
+---@param instance Instance
+---@param identifier string
+---@param addedCallback function
+---@param removingCallback function
+local createChildrenListener = LPH_NO_VIRTUALIZE(function(instance, identifier, addedCallback, removingCallback)
+	local childAdded = Signal.new(instance.ChildAdded)
+	local childRemoved = Signal.new(instance.ChildRemoved)
+
+	visualsMaid:add(childAdded:connect(string.format("Visuals_%sOnChildAdded", identifier), addedCallback))
+	visualsMaid:add(childRemoved:connect(string.format("Visuals_%sOnChildRemoved", identifier), removingCallback))
+
+	Profiler.run(string.format("Visuals_%sAddInitialChildren", identifier), function()
+		for _, child in next, instance:GetChildren() do
+			addedCallback(child)
+		end
+	end)
+end)
+
+-- Forward declaration.
+local onWorkspaceChildAdded = nil
+
+---On instance removing.
+---@param inst Instance
+local onInstanceRemoving = LPH_NO_VIRTUALIZE(function(inst)
+	for _, group in next, groups do
+		local object = group:remove(inst)
+		if not object then
+			continue
+		end
+
+		object:detach()
+	end
+end)
+
 ---On Workspace ChildAdded.
 ---@param child Instance
-local onWorkspaceChildAdded = LPH_NO_VIRTUALIZE(function(child)
+onWorkspaceChildAdded = LPH_NO_VIRTUALIZE(function(child)
 	local name = child.Name
+
+	if name == "Layer2Floor2" then
+		return createChildrenListener(child, "Layer2Floor2", onWorkspaceChildAdded, onInstanceRemoving)
+	end
 
 	if name == "JobBoard" then
 		return emplaceObject(child, ModelESP.new("JobBoard", child, "Job Board"))
@@ -461,19 +500,6 @@ local onWorkspaceChildAdded = LPH_NO_VIRTUALIZE(function(child)
 	end
 end)
 
----On instance removing.
----@param inst Instance
-local onInstanceRemoving = LPH_NO_VIRTUALIZE(function(inst)
-	for _, group in next, groups do
-		local object = group:remove(inst)
-		if not object then
-			continue
-		end
-
-		object:detach()
-	end
-end)
-
 ---On player added.
 ---@param player Player
 local onPlayerAdded = LPH_NO_VIRTUALIZE(function(player)
@@ -511,25 +537,6 @@ local onPlayerAdded = LPH_NO_VIRTUALIZE(function(player)
 	emplaceObject(player, PlayerESP.new("Player", player, character))
 end)
 
----Create children listener.
----@param instance Instance
----@param identifier string
----@param addedCallback function
----@param removingCallback function
-local createChildrenListener = LPH_NO_VIRTUALIZE(function(instance, identifier, addedCallback, removingCallback)
-	local childAdded = Signal.new(instance.ChildAdded)
-	local childRemoved = Signal.new(instance.ChildRemoved)
-
-	visualsMaid:add(childAdded:connect(string.format("Visuals_%sOnChildAdded", identifier), addedCallback))
-	visualsMaid:add(childRemoved:connect(string.format("Visuals_%sOnChildRemoved", identifier), removingCallback))
-
-	Profiler.run(string.format("Visuals_%sAddInitialChildren", identifier), function()
-		for _, child in next, instance:GetChildren() do
-			addedCallback(child)
-		end
-	end)
-end)
-
 ---Initialize Visuals.
 function Visuals.init()
 	local live = workspace:WaitForChild("Live")
@@ -543,11 +550,6 @@ function Visuals.init()
 	createChildrenListener(npcs, "NPCs", onNPCsChildAdded, onInstanceRemoving)
 	createChildrenListener(ingredients, "Ingredients", onIngredientsChildAdded, onInstanceRemoving)
 	createChildrenListener(players, "Players", onPlayerAdded, onInstanceRemoving)
-
-	local layerTwoFloorTwo = workspace:FindFirstChild("Layer2Floor2")
-	if layerTwoFloorTwo then
-		createChildrenListener(layerTwoFloorTwo, "Layer2Floor2", onWorkspaceChildAdded, onInstanceRemoving)
-	end
 
 	---@note: We only need to get this once.
 	for _, descendant in next, replicatedStorage:WaitForChild("MarkerWorkspace"):GetDescendants() do
