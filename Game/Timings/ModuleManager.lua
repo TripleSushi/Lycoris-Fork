@@ -27,6 +27,7 @@ local Targeting = require("Features/Combat/Targeting")
 
 -- Module filesystem.
 local fs = Filesystem.new("Lycoris-Rewrite-Modules")
+local gfs = Filesystem.new("Lycoris-Rewrite-Modules/Globals")
 
 ---List loaded modules.
 ---@return string[]
@@ -41,10 +42,44 @@ function ModuleManager.loaded()
 end
 
 ---Refresh ModuleManager.
+---@todo: De-duplicate me.
 function ModuleManager.refresh()
 	-- Reset current list.
 	ModuleManager.modules = {}
 	ModuleManager.globals = {}
+
+	-- Load all globals in our filesystem.
+	for _, file in next, gfs:list(false) do
+		-- Check if it is .lua.
+		if string.sub(file, #file - 3, #file) ~= ".lua" then
+			continue
+		end
+
+		-- Get string to load.
+		local ls = gfs:read(file)
+
+		-- Get function that we can execute.
+		local lf, lr = loadstring(ls)
+		if not lf then
+			Logger.warn("Global module file '%s' failed to load due to error '%s' while loading.", file, lr)
+			continue
+		end
+
+		-- Run executable function to initialize it.
+		local success, result = pcall(lf)
+		if not success then
+			Logger.warn("Global module file '%s' failed to load due to error '%s' while executing.", file, result)
+			continue
+		end
+
+		if typeof(result) ~= "table" then
+			Logger.warn("Global module file '%s' is invalid because it does not return a table.", file)
+			continue
+		end
+
+		-- Add to global modules list.
+		ModuleManager.globals[string.sub(file, 1, #file - 4)] = result
+	end
 
 	-- Load all modules in our filesystem.
 	for _, file in next, fs:list(false) do
@@ -72,6 +107,7 @@ function ModuleManager.refresh()
 		getfenv(lf).Targeting = Targeting
 		getfenv(lf).Logger = Logger
 
+		-- Set globals in function environment.
 		for name, entry in next, ModuleManager.globals do
 			getfenv(lf)[name] = entry
 		end
@@ -83,31 +119,6 @@ function ModuleManager.refresh()
 			continue
 		end
 
-		---@note: We'll know when we have a global module if it returns a table.
-		if typeof(result) == "table" then
-			-- Check if there's a name field.
-			local name = result.name
-
-			-- Check field type.
-			if typeof(name) ~= "string" then
-				Logger.warn("Global module file '%s' is invalid because it does not have a valid name.", file)
-				continue
-			end
-
-			-- Add to global modules list.
-			ModuleManager.globals[name] = result
-
-			-- For previous entries, set function environment.
-			-- The key will be the global field.
-			for _, entry in next, ModuleManager.modules do
-				getfenv(entry)[name] = result
-			end
-
-			-- Continue to next file.
-			continue
-		end
-
-		---@note: Else, we'll know when we have a local module if it returns a function.
 		if typeof(result) ~= "function" then
 			Logger.warn("Module file '%s' is invalid because it does not return a function.", file)
 			continue
