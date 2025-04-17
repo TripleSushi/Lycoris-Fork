@@ -27,7 +27,7 @@ local Targeting = require("Features/Combat/Targeting")
 
 -- Module filesystem.
 local fs = Filesystem.new("Lycoris-Rewrite-Modules")
-local gfs = Filesystem.new("Lycoris-Rewrite-Modules/Globals")
+local gfs = Filesystem.new(fs:append("Globals"))
 
 ---List loaded modules.
 ---@return string[]
