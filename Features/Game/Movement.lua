@@ -61,7 +61,6 @@ end
 
 return LPH_NO_VIRTUALIZE(function()
 	-- Movement related stuff is handled here.
-	---@todo: Make our own tween module.
 	local Movement = {}
 
 	---@module Utility.Signal
@@ -380,7 +379,6 @@ return LPH_NO_VIRTUALIZE(function()
 			updateInfiniteJump(rootPart)
 		end
 
-		---@todo: Make a tweening module next time.
 		if EchoFarm.tweening or Configuration.expectToggleValue("NoClip") then
 			updateNoClip(character, rootPart)
 		else

@@ -25,6 +25,7 @@ local TaskSpawner = require("Utility/TaskSpawner")
 ---@class Defender
 ---@field tasks Task[]
 ---@field tmaid Maid Cleaned up every clean cycle.
+---@field rhook table<string, function> Hooked functions that we can restore on clean-up.
 ---@field markers table<string, boolean> Blocking markers for unknown length timings. If the entry exists and is true, then we're blocking.
 ---@field maid Maid
 ---@field vpart Part?
@@ -42,6 +43,7 @@ local textChatService = game:GetService("TextChatService")
 
 -- Constants.
 local MAX_VISUALIZATION_TIME = 5.0
+local MAX_DUIH_WAIT = 10.0
 
 ---Log a miss to the UI library with distance check.
 ---@param type string
@@ -204,11 +206,11 @@ end)
 ---@todo: Add a check to see if the player was looking at us in the last 0.25 seconds aswell.
 ---@todo: An issue is that the player's current look vector will not be the same as when they attack due to a parry timing being seperate from the attack; causing this check to fail.
 ---@param cframe CFrame
----@param depth number
+---@param fd boolean
 ---@param size Vector3
 ---@param filter Instance[]
 ---@return boolean
-Defender.hitbox = LPH_NO_VIRTUALIZE(function(self, cframe, depth, size, filter)
+Defender.hitbox = LPH_NO_VIRTUALIZE(function(self, cframe, fd, size, filter)
 	local overlapParams = OverlapParams.new()
 	overlapParams.FilterDescendantsInstances = filter
 	overlapParams.FilterType = Enum.RaycastFilterType.Include
@@ -226,9 +228,9 @@ Defender.hitbox = LPH_NO_VIRTUALIZE(function(self, cframe, depth, size, filter)
 	-- Real CFrame.
 	local realCFrame = cframe
 
-	-- Add depth.
-	if depth > 0 then
-		realCFrame = realCFrame * CFrame.new(0, 0, -depth)
+	-- Add facing depth if we need to.
+	if fd then
+		realCFrame = realCFrame * CFrame.new(0, 0, -(size.Z / 2))
 	end
 
 	-- Check in bounds.
@@ -346,6 +348,48 @@ function Defender:ping()
 	return (dataPingItem:GetValue() / 1000)
 end
 
+---Repeat conditional.
+---@param timing Timing
+---@param start number
+---@return boolean
+Defender.rc = LPH_NO_VIRTUALIZE(function(_, timing, start)
+	if os.clock() - start >= MAX_DUIH_WAIT then
+		return false
+	end
+
+	return true
+end)
+
+---Handle hitbox check and delay until in hitbox.
+---@param cframe CFrame
+---@param timing Timing|EffectTiming|AnimationTiming
+---@param action Action?
+---@param filter Instance[]
+---@return boolean
+Defender.hc = LPH_NO_VIRTUALIZE(function(self, cframe, timing, action, filter)
+	local start = os.clock()
+
+	---@note: We check for 'fhb' here even though the base timing may not have it.
+	while timing.duih and not timing.rpue and not self:hitbox(cframe, timing.fhb, timing.hitbox, filter) do
+		if not self:rc(timing, start) then
+			return false
+		end
+
+		task.wait()
+	end
+
+	local uh = action and action.hitbox or timing.hitbox
+	if not uh then
+		return false
+	end
+
+	if not timing.duih and not self:hitbox(cframe, timing.fhb, uh, filter) then
+		return false
+	end
+
+	return true
+end)
+
 ---Handle end block.
 Defender.bend = LPH_NO_VIRTUALIZE(function(self)
 	-- Iterate for start block tasks.
@@ -425,11 +469,9 @@ end)
 ---Handle action.
 ---@param timing Timing
 ---@param action Action
----@param origin function?
----@param foreign boolean
 ---@varargs ... any Arguments to be passed into notification.
-Defender.handle = LPH_NO_VIRTUALIZE(function(self, timing, action, origin, foreign, ...)
-	if not self:valid(timing, action, origin, foreign) then
+Defender.handle = LPH_NO_VIRTUALIZE(function(self, timing, action, ...)
+	if not self:valid(timing, action) then
 		return
 	end
 
@@ -466,6 +508,15 @@ end
 
 ---Clean up all tasks.
 Defender.clean = LPH_NO_VIRTUALIZE(function(self)
+	-- Clean-up hooks.
+	for key, old in next, self.rhook do
+		if not self[key] then
+			continue
+		end
+
+		self[key] = old
+	end
+
 	-- Clear temporary maid.
 	self.tmaid:clean()
 
@@ -540,8 +591,7 @@ end)
 ---Add a action to the defender object.
 ---@param timing Timing
 ---@param action Action
----@param foreign boolean
-Defender.action = LPH_NO_VIRTUALIZE(function(self, timing, action, foreign)
+Defender.action = LPH_NO_VIRTUALIZE(function(self, timing, action)
 	-- Get ping.
 	local ping = self:ping()
 
@@ -556,8 +606,6 @@ Defender.action = LPH_NO_VIRTUALIZE(function(self, timing, action, foreign)
 			self,
 			timing,
 			action,
-			nil,
-			foreign,
 			"Action type '%s' is being executed.",
 			action._type
 		)
@@ -574,6 +622,33 @@ Defender.actions = LPH_NO_VIRTUALIZE(function(self, timing)
 		self:action(timing, action, false)
 	end
 end)
+
+---Safely replace a function in the defender object.
+---@param key string
+---@param new function
+---@return boolean, function
+function Defender:hook(key, new)
+	-- Check if we're already hooked.
+	if self.rhook[key] then
+		return false, nil
+	end
+
+	-- Get our assumed old / target function.
+	local old = self[key]
+
+	-- Check if function.
+	if typeof(old) ~= "function" then
+		return false, nil
+	end
+
+	-- Create hook.
+	self[key] = new
+
+	-- Add to hook table with the old function so we can restore it on clean-up.
+	self.rhook[key] = old
+
+	return true, old
+end
 
 ---Detach defender object.
 function Defender:detach()
@@ -598,6 +673,7 @@ end
 function Defender.new()
 	local self = setmetatable({}, Defender)
 	self.tasks = {}
+	self.rhook = {}
 	self.tmaid = Maid.new()
 	self.maid = Maid.new()
 	self.ppart = nil

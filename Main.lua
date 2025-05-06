@@ -11,8 +11,6 @@ end
 -- Catch the ban evaders :groan:
 
 -- Initialize Luraph globals if they do not exist.
----@todo: Don't directly set to LPH_NO_VIRTUALIZE to not destroy LSP information. Instead, inlined function.
---- As such: return LPH_NO_VIRTUALIZE(function() **body here** end)()
 if not LPH_OBFUSCATED then
 	loadstring([[
 		function LPH_NO_VIRTUALIZE(...) return ... end
@@ -26,7 +24,6 @@ local Profiler = require("Utility/Profiler")
 local Lycoris = require("Lycoris")
 
 ---Find existing instances and initialize the script.
----@todo: Virtualize parts of the source.
 local function initializeScript()
 	-- Check if there's already another instance.
 	if shared.Lycoris then

@@ -1,6 +1,6 @@
 return LPH_NO_VIRTUALIZE(function()
 	-- Bestiary module.
-	---@todo: In the future, rewrite me.
+	---@note: This code is UI code. It is ugly on purpose and lazily made.
 	local Bestiary = {}
 
 	-- Services.

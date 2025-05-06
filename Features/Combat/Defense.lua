@@ -106,7 +106,7 @@ end)
 ---@param part BasePart
 local addPartDefender = LPH_NO_VIRTUALIZE(function(part)
 	-- Get part defender.
-	local partDefender = PartDefender.new(part)
+	local partDefender = PartDefender.new(part, defenderAnimationObjects)
 	if not partDefender then
 		return
 	end
@@ -296,6 +296,19 @@ Defense.blocking = LPH_NO_VIRTUALIZE(function()
 		end
 
 		return true
+	end
+end)
+
+---Return the defender animation object for an entity.
+---@param entity Instance
+---@return AnimatorDefender?
+Defense.dao = LPH_NO_VIRTUALIZE(function(entity)
+	for _, object in next, defenderAnimationObjects do
+		if object.entity ~= entity then
+			continue
+		end
+
+		return object
 	end
 end)
 

@@ -4,6 +4,9 @@ local Serializer = require("Utility/Serializer")
 ---@module Utility.Deserializer
 local Deserializer = require("Utility/Deserializer")
 
+---@module Utility.String
+local String = require("Utility/String")
+
 ---@module Utility.Logger
 local Logger = require("Utility/Logger")
 
@@ -23,29 +26,6 @@ local PersistentData = {
 		aei = false,
 	},
 }
-
--- Generate mapping.
----@todo: De-duplicate me.
-local charByteMap = {}
-
-for idx = 0, 255 do
-	charByteMap[string.char(idx)] = idx
-end
-
----String to byte array.
----@param str string
----@return string
-local function stringToByteArray(str)
-	local chars = {}
-	local idx = 1
-
-	repeat
-		chars[idx] = charByteMap[str:sub(idx, idx)]
-		idx = idx + 1
-	until idx == #str + 1
-
-	return chars
-end
 
 -- Services.
 local memStorageService = game:GetService("MemStorageService")
@@ -75,7 +55,7 @@ function PersistentData.init()
 	end
 
 	local success, result =
-		pcall(Deserializer.unmarshal_one, stringToByteArray(memStorageService:GetItem("LYCORIS_PERSISTENT_DATA")))
+		pcall(Deserializer.unmarshal_one, String.tba(memStorageService:GetItem("LYCORIS_PERSISTENT_DATA")))
 
 	if not success then
 		return Logger.warn("(%s) Failed to deserialize PersistentData snapshot.", tostring(result))

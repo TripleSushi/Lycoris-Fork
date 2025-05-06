@@ -169,7 +169,7 @@ local replicateGesture = LPH_NO_VIRTUALIZE(function(gestureName)
 	gesturingEffect:Remove()
 	mobileActionEffect:Remove()
 
-	-- Stop animation.
+	-- Stop animations.
 	stopGestureAnimations(animator)
 end)
 
@@ -642,7 +642,6 @@ function Hooking.init()
 		return error("Anticheat has less or more than two ban remotes.")
 	end
 
-	---@todo: Optimize hooks - preferably filter out calls slowing performance.
 	oldFireServer = hookfunction(Instance.new("RemoteEvent").FireServer, onFireServer)
 	oldUnreliableFireServer = hookfunction(Instance.new("UnreliableRemoteEvent").FireServer, onUnreliableFireServer)
 	oldCoroutineWrap = hookfunction(coroutine.wrap, onCoroutineWrap)

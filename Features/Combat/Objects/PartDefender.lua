@@ -19,6 +19,7 @@ local SaveManager = require("Game/Timings/SaveManager")
 ---@field timing PartTiming
 ---@field touched boolean Determines whether if we touched the timing in the past.
 ---@field finished boolean Determines whether if we finished the timing. This is used when we're doing timing delay instead of delay until in hitbox.
+---@field dao table Defense animation objects.
 local PartDefender = setmetatable({}, { __index = Defender })
 PartDefender.__index = PartDefender
 PartDefender.__type = "Part"
@@ -26,10 +27,11 @@ PartDefender.__type = "Part"
 -- Services.
 local players = game:GetService("Players")
 
----Guess the nearest viable owner of a part by using a specific part timing.
+---Guess the nearest viable owner of a part by using a specific part timing and cross referencing it with animation histories.
+---@param self PartDefender
 ---@param timing PartTiming
 ---@return Model?
-local guessOwnerFromPartTiming = LPH_NO_VIRTUALIZE(function(timing)
+PartDefender.guo = LPH_NO_VIRTUALIZE(function(self, timing)
 	for _, entity in next, Entities.getEntitiesInRange(timing.imxd) do
 		local humanoid = entity:FindFirstChildWhichIsA("Humanoid")
 		if not humanoid then
@@ -41,8 +43,12 @@ local guessOwnerFromPartTiming = LPH_NO_VIRTUALIZE(function(timing)
 			continue
 		end
 
-		---@note: Might have to fix. What if the player's track ended?
-		local crossed = Table.elements(animator:GetPlayingAnimationTracks(), function(element)
+		local ado = self.dao[entity]
+		if not ado then
+			continue
+		end
+
+		local crossed = Table.elements(ado.thistory, function(element)
 			return table.find(timing.linked, tostring(element.Animation.AnimationId))
 		end)
 
@@ -54,18 +60,24 @@ local guessOwnerFromPartTiming = LPH_NO_VIRTUALIZE(function(timing)
 	end
 end)
 
+---Get CFrame.
+---@note: Lag compensation of some kind? Maybe extrapolation.
+---@param self PartDefender
+---@return CFrame
+PartDefender.cframe = LPH_NO_VIRTUALIZE(function(self)
+	return self.timing.uhc and self.part.CFrame or CFrame.new(self.part.Position)
+end)
+
 ---Check if we're in a valid state to proceed with the action.
 ---@param timing PartTiming
 ---@param action Action
----@param origin function?
----@param foreign boolean?
 ---@return boolean
-PartDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin, foreign)
+PartDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 	if not Defender.valid(self, timing, action) then
 		return false
 	end
 
-	if not foreign and self.owner and not Targeting.find(self.owner) then
+	if self.owner and not Targeting.find(self.owner) then
 		return self:notify(timing, "Not a viable target.")
 	end
 
@@ -74,25 +86,14 @@ PartDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin, fo
 		return self:notify(timing, "No character found.")
 	end
 
-	---@note: If we're using PartDefender, why perserve rotation? It's likely wrong or gonna mess us up.
-	--- Also, ignore this if we're using delay until in hitbox since there'd be no use-case for it being seperated.
-	if
-		not self.timing.duih
-		and not self:hitbox(
-			origin and origin() or (self.timing.uhc and self.part.CFrame or CFrame.new(self.part.Position)),
-			0,
-			action.hitbox,
-			{ character }
-		)
-	then
-		return self:notify(timing, "Not inside of the hitbox.")
+	if not self:hc(self:cframe(), timing, action, { character }) then
+		return false
 	end
 
 	return true
 end)
 
 ---Update PartDefender object.
----@note: Lag compensation of some kind? Maybe extrapolation.
 PartDefender.update = LPH_NO_VIRTUALIZE(function(self)
 	-- Check if we're finished.
 	if self.finished then
@@ -101,6 +102,9 @@ PartDefender.update = LPH_NO_VIRTUALIZE(function(self)
 
 	-- Handle no hitbox delay.
 	if not self.timing.duih then
+		-- Clean all previous tasks.
+		self:clean()
+
 		-- Use module if we need to, else add actions.
 		if self.timing.umoa then
 			self:module(self.timing)
@@ -132,12 +136,7 @@ PartDefender.update = LPH_NO_VIRTUALIZE(function(self)
 
 	-- Get current hitbox state.
 	---@note: If we're using PartDefender, why perserve rotation? It's likely wrong or gonna mess us up.
-	local touching = self:hitbox(
-		self.timing.uhc and self.part.CFrame or CFrame.new(self.part.Position),
-		0,
-		self.timing.hitbox,
-		{ character }
-	)
+	local touching = self:hitbox(self:cframe(), false, self.timing.hitbox, { character })
 
 	-- Deny updates if we're not touching the part.
 	if not touching then
@@ -166,15 +165,17 @@ end)
 
 ---Create new PartDefender object.
 ---@param part BasePart
+---@param dao table Defense animation objects.
 ---@return PartDefender?
-function PartDefender.new(part)
+function PartDefender.new(part, dao)
 	local self = setmetatable(Defender.new(), PartDefender)
 
 	self.part = part
 	self.timing = self:initial(part, SaveManager.ps, nil, part.Name)
-	self.owner = self.timing and guessOwnerFromPartTiming(self.timing)
+	self.owner = self.timing and self:guo(self.timing) or nil
 	self.touched = false
 	self.finished = false
+	self.dao = dao
 
 	return self.timing and self or nil
 end

@@ -27,16 +27,16 @@ local InstanceWrapper = require("Utility/InstanceWrapper")
 
 -- Constants.
 local LOBBY_PLACE_ID = 4111023553
+local GET_INGREDIENTS_TIMEOUT = 10.0
 
 -- Services.
 local replicatedStorage = game:GetService("ReplicatedStorage")
 local players = game:GetService("Players")
 local runService = game:GetService("RunService")
-local tweenService = game:GetService("TweenService")
 local userInputService = game:GetService("UserInputService")
 
 -- EchoFarm module.
-local EchoFarm = { tweening = false }
+local EchoFarm = {}
 
 -- Callbacks table.
 ---@note: For every callback that may yield, we must return early with async and spawn a task for it.
@@ -49,8 +49,44 @@ local echoFarmMaid = Maid.new()
 ---@note: Cleaned after every state exit.
 local stateMaid = Maid.new()
 
--- Forward declarations.
-local runNearbyPlayerCheck = nil
+-- Nearby player check.
+local function runNearbyPlayerCheck(fsm)
+	if fsm:is("serverhop") then
+		return false
+	end
+
+	local localPlayer = players.LocalPlayer
+	if not localPlayer then
+		return true
+	end
+
+	local character = localPlayer.Character
+	if not character then
+		return true
+	end
+
+	local rootPart = character:FindFirstChild("HumanoidRootPart")
+	if not rootPart then
+		return true
+	end
+
+	if not Entitites.isNear(rootPart.Position) then
+		return true
+	end
+
+	-- Mark that we're coming from nearby check.
+	PersistentData.set("shw", true)
+
+	-- Server hop, cancel transitions.
+	fsm:cancelTransition(fsm.currentTransitioningEvent)
+	fsm:hop()
+
+	-- Clean maids.
+	stateMaid:clean()
+
+	-- Return false.
+	return false
+end
 
 ---Find an ingredient in our inventory.
 ---@param name string
@@ -172,16 +208,10 @@ local function getNearestIngredient(name)
 		return
 	end
 
-	if not runNearbyPlayerCheck() then
-		return
-	end
-
 	local distance = (nearestIngredient.Position - humanoidRootPart.Position).Magnitude
 	local tween = InstanceWrapper.tween(stateMaid, "EchoFarmTween", humanoidRootPart, TweenInfo.new(distance / 80), {
 		CFrame = CFrame.new(nearestIngredient.Position),
 	})
-
-	EchoFarm.tweening = true
 
 	while nearestIngredient and nearestIngredient.Parent == ingredients do
 		-- Wait.
@@ -191,6 +221,7 @@ local function getNearestIngredient(name)
 		fireproximityprompt(interactPrompt)
 
 		-- If we've not completed the tween, wait for it to complete.
+		---@todo: De-duplicate me later.
 		if
 			tween.PlaybackState ~= Enum.PlaybackState.Begin
 			and tween.PlaybackState ~= Enum.PlaybackState.Paused
@@ -202,8 +233,11 @@ local function getNearestIngredient(name)
 		-- Play it because we just completed it - keep trying to go towards the ingredient.
 		tween:Play()
 	end
+end
 
-	EchoFarm.tweening = false
+---Handle nearby players while going to new states.
+function Callbacks.onstatechange(fsm)
+	runNearbyPlayerCheck(fsm)
 end
 
 ---Server hop state.
@@ -237,10 +271,6 @@ function Callbacks.onentertwself(fsm)
 
 		local npcs = workspace:WaitForChild("NPCs")
 		local selfNpc = npcs:WaitForChild("Self")
-
-		if not runNearbyPlayerCheck() then
-			return
-		end
 
 		-- Attempt to repeatedly teleport until we're within 10 studs of the NPC.
 		local selfCFrame = selfNpc:GetPivot()
@@ -287,7 +317,12 @@ end
 ---@return string?
 function Callbacks.onenteringredients(fsm, name)
 	stateMaid:add(TaskSpawner.spawn("EchoFarmCallbacks_OnEnterIngredients", function()
+		-- Create timeout.
+		local timeoutTimestamp = os.clock() + GET_INGREDIENTS_TIMEOUT
+
+		-- Get the ingredients.
 		while task.wait() do
+			-- Fetch them.
 			local hasBrowncapIngredient = findIngredient("Browncap")
 			local hasDentifiloIngredient = findIngredient("Dentifilo")
 
@@ -302,6 +337,18 @@ function Callbacks.onenteringredients(fsm, name)
 			if hasDentifiloIngredient and hasBrowncapIngredient then
 				break
 			end
+
+			-- Check if we've timed out.
+			if os.clock() <= timeoutTimestamp then
+				continue
+			end
+
+			-- Handle timeout.
+			fsm:transition(name)
+			fsm:hop()
+
+			-- Return.
+			return
 		end
 
 		-- Transition.
@@ -342,18 +389,12 @@ function Callbacks.onentercampfire(fsm, name)
 			return
 		end
 
-		if not runNearbyPlayerCheck() then
-			return
-		end
-
 		local campfireCFrame = nearestCampfire:GetPivot()
 		local distance = (campfireCFrame.Position - humanoidRootPart.Position).Magnitude
 		local tween =
 			InstanceWrapper.tween(stateMaid, "EchoFarmTween", humanoidRootPart, TweenInfo.new(distance / 80), {
 				CFrame = CFrame.new(campfireCFrame.Position),
 			})
-
-		EchoFarm.tweening = true
 
 		while not effectReplicatorModule:FindEffect("Resting") do
 			-- Wait.
@@ -374,8 +415,6 @@ function Callbacks.onentercampfire(fsm, name)
 			-- Play it because we just completed it - keep trying to go towards the ingredient.
 			tween:Play()
 		end
-
-		EchoFarm.tweening = false
 
 		local requests = replicatedStorage:WaitForChild("Requests")
 		local craft = requests:WaitForChild("Craft")
@@ -525,45 +564,6 @@ local machine = StateMachine.create({
 	callbacks = Callbacks,
 })
 
----Nearby player check.
-runNearbyPlayerCheck = function()
-	if machine:is("serverhop") then
-		return false
-	end
-
-	local localPlayer = players.LocalPlayer
-	if not localPlayer then
-		return true
-	end
-
-	local character = localPlayer.Character
-	if not character then
-		return true
-	end
-
-	local rootPart = character:FindFirstChild("HumanoidRootPart")
-	if not rootPart then
-		return true
-	end
-
-	if not Entitites.isNear(rootPart.Position) then
-		return true
-	end
-
-	-- Mark that we're coming from nearby check.
-	PersistentData.set("shw", true)
-
-	-- Server hop, cancel transitions.
-	machine:cancelTransition(machine.currentTransitioningEvent)
-	machine:hop()
-
-	-- Clean maids.
-	stateMaid:clean()
-
-	-- Return false.
-	return false
-end
-
 ---Get nearest area marker.
 local function getNearestAreaMarker(position)
 	local markerWorkspace = replicatedStorage:FindFirstChild("MarkerWorkspace")
@@ -629,7 +629,6 @@ local function handleStartMenu()
 end
 
 ---Start EchoFarm module.
----@todo: Clean-up and de-duplicate me.
 ---@todo: Handle when we get kicked due to an error.
 function EchoFarm.start()
 	if not machine:is("none") then
@@ -668,11 +667,6 @@ function EchoFarm.start()
 
 		EchoFarm.stop(false)
 	end))
-
-	---@note: If the player check failed, let it server-hop and disregard initializing the state machine.
-	if not runNearbyPlayerCheck() then
-		return nil
-	end
 
 	-- We're in the Depths.
 	if game.PlaceId == 5735553160 then

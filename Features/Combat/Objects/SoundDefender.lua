@@ -28,27 +28,13 @@ local players = game:GetService("Players")
 ---@param self SoundDefender
 ---@param timing PartTiming
 ---@param action Action
----@param origin function?
----@param foreign boolean?
 ---@return boolean
-SoundDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin, foreign)
+SoundDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 	if not Defender.valid(self, timing, action) then
 		return false
 	end
 
-	while
-		timing.duih
-		and not self:hitbox(
-			origin and origin() or self.part.CFrame,
-			0,
-			timing.hitbox,
-			{ players.LocalPlayer.Character }
-		)
-	do
-		task.wait()
-	end
-
-	if not foreign and self.owner and not Targeting.find(self.owner) then
+	if self.owner and not Targeting.find(self.owner) then
 		return self:notify(timing, "Not a viable target.")
 	end
 
@@ -57,8 +43,19 @@ SoundDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin, f
 		return self:notify(timing, "No character found.")
 	end
 
-	if not self:hitbox(origin and origin() or self.part.CFrame, 0, action.hitbox, { character }) then
-		return self:notify(timing, "Not inside of the hitbox.")
+	if not self:hc(self.part.CFrame, timing, action, { players.LocalPlayer.Character }) then
+		return false
+	end
+
+	return true
+end)
+
+---Repeat conditional.
+---@param self SoundDefender
+---@return boolean
+SoundDefender.rc = LPH_NO_VIRTUALIZE(function(self, _, _, _)
+	if not self.sound.IsPlaying then
+		return false
 	end
 
 	return true
@@ -87,13 +84,13 @@ SoundDefender.process = LPH_NO_VIRTUALIZE(function(self)
 		return
 	end
 
+	---@note: Clean up previous tasks that are still waiting or suspended because they're in a different track.
+	self:clean()
+
 	-- Use module if we need to.
 	if timing.umoa then
 		return self:module(timing)
 	end
-
-	---@note: Clean up previous tasks that are still waiting or suspended because they're in a different track.
-	self:clean()
 
 	-- Add actions.
 	return self:actions(timing)

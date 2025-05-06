@@ -624,7 +624,7 @@ function BuilderSection:timing()
 		-- Check if internal.
 		---@todo: Implement functionality to remove internal timings.
 		if internal:find(name) then
-			return Logger.longNotify("You cannot remove internal timings yet.")
+			return Logger.longNotify("You cannot remove internal timings, only override them.")
 		end
 
 		-- Check if found.

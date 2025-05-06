@@ -1,6 +1,6 @@
 return LPH_NO_VIRTUALIZE(function()
 	-- Animation visualizer module.
-	---@todo: In the future, rewrite me. This code is made very quickly and lazily. It's considered UI code.
+	---@note: This code is UI code. It is ugly on purpose and lazily made.
 	local AnimationVisualizer = {}
 
 	---@module Features.Combat.Defense
@@ -429,7 +429,6 @@ return LPH_NO_VIRTUALIZE(function()
 			return
 		end
 
-		---@todo: Update animation speed according to playback data.
 		if isPaused then
 			return currentTrack:AdjustSpeed(0.0)
 		end

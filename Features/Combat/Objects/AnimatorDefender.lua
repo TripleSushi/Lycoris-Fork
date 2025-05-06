@@ -36,6 +36,7 @@ local PlaybackData = require("Game/Timings/PlaybackData")
 ---@field manimations table<number, Animation>
 ---@field track AnimationTrack? Don't be confused. This is the **valid && last** animation track played.
 ---@field maid Maid This maid is cleaned up after every new animation track. Safe to use for on-animation-track setup.
+---@field thistory AnimationTrack[] The history of animation tracks played. This is limited to 3 tracks before looping around.
 local AnimatorDefender = setmetatable({}, { __index = Defender })
 AnimatorDefender.__index = AnimatorDefender
 AnimatorDefender.__type = "Animation"
@@ -45,28 +46,56 @@ local players = game:GetService("Players")
 local replicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Constants.
-local MAX_HITBOX_DELAY_TIME = 5.0
+local MAX_REPEAT_TIME = 5.0
+local MAX_TRACK_HISTORY = 3
 
 ---Is animation stopped? Made into a function for de-duplication.
+---@param track AnimationTrack
+---@param timing AnimationTiming
 ---@return boolean
-AnimatorDefender.stopped = LPH_NO_VIRTUALIZE(function(self, timing)
-	if not timing.iae and not self.track.IsPlaying then
+AnimatorDefender.stopped = LPH_NO_VIRTUALIZE(function(self, track, timing)
+	if not timing.iae and not track.IsPlaying then
 		return true, self:notify(timing, "Animation stopped playing.")
 	end
 
-	if timing.iae and not timing.ieae and not self.track.IsPlaying and self.track.TimePosition < self.track.Length then
+	if timing.iae and not timing.ieae and not track.IsPlaying and track.TimePosition < track.Length then
 		return true, self:notify(timing, "Animation stopped playing early.")
 	end
+end)
+
+---Repeat conditional. Extra parameter 'track' added on.
+---@param self AnimatorDefender
+---@param timing AnimationTiming
+---@param start number
+---@param track AnimationTrack?
+---@return boolean
+AnimatorDefender.rc = LPH_NO_VIRTUALIZE(function(self, timing, start, track)
+	---@note: There are cases where we might not have a track. If it's not handled properly, it will throw an error.
+	-- Perhaps, the animation can end and we're handling a different repeat conditional.
+	if not track then
+		return Logger.warn(
+			"(%s) Did you forget to pass the track? Or perhaps you forgot to place a hook before using this function.",
+			timing.name
+		)
+	end
+
+	if self:stopped(track, timing) then
+		return false
+	end
+
+	if timing.iae and timing.ieae and os.clock() - start >= MAX_REPEAT_TIME then
+		return self:notify(timing, "Max repeat time exceeded.")
+	end
+
+	return true
 end)
 
 ---Check if we're in a valid state to proceed with the action.
 ---@todo: Add extra effect checks because we don't want our input to be buffered when we can't even parry.
 ---@param timing AnimationTiming
 ---@param action Action
----@param origin function?
----@param foreign boolean? If true, we don't want to check the target.
 ---@return boolean
-AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin, foreign)
+AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 	if not Defender.valid(self, timing, action) then
 		return false
 	end
@@ -80,7 +109,7 @@ AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin
 	end
 
 	local target = Targeting.find(self.entity)
-	if not foreign and not target then
+	if not target then
 		return self:notify(timing, "Not a viable target.")
 	end
 
@@ -94,40 +123,6 @@ AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin
 		return self:notify(timing, "No character found.")
 	end
 
-	local start = os.clock()
-
-	while
-		timing.duih
-		and not self:hitbox(
-			origin and origin() or root.CFrame,
-			timing.fhb and action.hitbox.Z / 2 or 0,
-			timing.hitbox,
-			{ character }
-		)
-	do
-		if self:stopped(timing) then
-			return false
-		end
-
-		if timing.iae and timing.ieae and os.clock() - start >= MAX_HITBOX_DELAY_TIME then
-			return self:notify(timing, "Delay until in hitbox delay time exceeded.")
-		end
-
-		task.wait()
-	end
-
-	if
-		not timing.duih
-		and not self:hitbox(
-			origin and origin() or root.CFrame,
-			timing.fhb and action.hitbox.Z / 2 or 0,
-			action.hitbox,
-			{ character }
-		)
-	then
-		return self:notify(timing, "Not inside of the hitbox.")
-	end
-
 	local targetInstance = self.entity:FindFirstChild("Target")
 
 	if
@@ -136,10 +131,6 @@ AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin
 		and Configuration.expectToggleValue("CheckTargetingValue")
 	then
 		return self:notify(timing, "Not being targeted.")
-	end
-
-	if self:stopped(timing) then
-		return false
 	end
 
 	local effectReplicator = replicatedStorage:FindFirstChild("EffectReplicator")
@@ -160,60 +151,45 @@ AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin
 		return self:notify(timing, "Entity got attack cancelled.")
 	end
 
+	if self:stopped(self.track, timing) then
+		return false
+	end
+
+	if not self:hc(root.CFrame, timing, action, { character }) then
+		return self:notify(timing, "Not in hitbox.")
+	end
+
 	return true
 end)
 
 ---Repeat until parry end.
----@param track AnimationTrack
+---@param track AnimationTrack?
 ---@param timing AnimationTiming
 ---@param index number
 AnimatorDefender.rpue = LPH_NO_VIRTUALIZE(function(self, track, timing, index)
-	if not track.IsPlaying then
-		return Logger.warn(
-			"Stopping RPUE '%s' because the track (%s) is not playing.",
-			timing.name,
-			track.Animation.AnimationId
-		)
+	local distance = self:distance(self.entity)
+	if not distance then
+		return Logger.warn("Stopping RPUE '%s' because the distance is not valid.", timing.name)
 	end
 
-	self:mark(
-		Task.new(
-			string.format("RPUE_%s_%i", timing.name, index),
-			timing:rpd() - self:ping(),
-			timing.punishable,
-			timing.after,
-			self.rpue,
-			self,
-			track,
-			timing,
-			index + 1
-		)
-	)
+	if timing and (distance < timing.imdd or distance > timing.imxd) then
+		return self:notify(timing, "Distance is out of range.")
+	end
+
+	if not self:rc(timing, track, index) then
+		return Logger.warn("Stopping RPUE '%s' because the repeat condition is not valid.", timing.name)
+	end
+
+	self:crpue(track, timing, index + 1)
 
 	local target = Targeting.find(self.entity)
 
-	if
-		target
-		and timing.duih
-		and not self:hitbox(
-			target.root.CFrame,
-			timing.fhb and timing.hitbox.Z / 2 or 0,
-			timing.hitbox,
-			{ players.LocalPlayer.Character }
-		)
-	then
-		return Logger.warn("Stopping RPUE '%s' because the hitbox is not valid.", timing.name)
+	if not target then
+		return Logger.warn("Skipping RPUE '%s' because the target is not valid.", timing.name)
 	end
 
-	-- Fetch distance.
-	local distance = self:distance(self.entity)
-	if not distance then
-		return Logger.warn("Stopping RPUE '%s' because the distance is missing.", timing.name)
-	end
-
-	-- Check for distance; if we have a timing.
-	if timing and (distance < timing.imdd or distance > timing.imxd) then
-		return Logger.warn("Stopping RPUE '%s' because the distance is not valid.", timing.name)
+	if not self:hc(target.root.CFrame, timing, nil, { players.LocalPlayer.Character }) then
+		return Logger.warn("Skipping RPUE '%s' because we are not in the hitbox.", timing.name)
 	end
 
 	self:notify(timing, "(%i) Action 'RPUE Parry' is being executed.", index)
@@ -298,7 +274,7 @@ function AnimatorDefender:pvalidate(track)
 
 	if isComingFromPlayer and track.WeightTarget <= 0.05 then
 		Logger.warn(
-			"Animation %s is being skipped from entity %s with speed %.2f and weight-target %.2f. It is hidden.",
+			"Animation %s is being skipped from player %s with speed %.2f and weight-target %.2f. It is hidden.",
 			track.Animation.AnimationId,
 			self.entity.Name,
 			track.WeightTarget,
@@ -322,8 +298,36 @@ function AnimatorDefender:pvalidate(track)
 	return true
 end
 
+---Call RPUE function.
+---@param track AnimationTrack?
+---@param timing AnimationTiming
+---@param index number
+AnimatorDefender.crpue = LPH_NO_VIRTUALIZE(function(self, track, timing, index)
+	self:mark(
+		Task.new(
+			string.format("RPUE_%s_%i", timing.name, index),
+			timing:rpd() - self:ping(),
+			timing.punishable,
+			timing.after,
+			self.rpue,
+			self,
+			track,
+			timing,
+			index
+		)
+	)
+
+	self:notify(
+		timing,
+		"Added RPUE '%s' (%.2fs, then every %.2fs) with relevant ping subtracted.",
+		timing.name,
+		timing:rsd(),
+		timing:rpd()
+	)
+end)
+
 ---Process animation track.
----@todo: Logger module.
+---@todo: AP telemetry - aswell as tracking effects that are added with timestamps and current ping to that list.
 ---@param track AnimationTrack
 AnimatorDefender.process = LPH_NO_VIRTUALIZE(function(self, track)
 	local localCharacter = players.LocalPlayer.Character
@@ -334,6 +338,14 @@ AnimatorDefender.process = LPH_NO_VIRTUALIZE(function(self, track)
 	if not self:pvalidate(track) then
 		return
 	end
+
+	-- If we have history over the max track limit, remove the oldest one until we're allowed to add a new one.
+	repeat
+		table.remove(self.thistory, #self.thistory)
+	until #self.thistory < MAX_TRACK_HISTORY
+
+	-- Add track to history.
+	table.insert(self.thistory, 1, track)
 
 	-- Add to playback data list.
 	if Configuration.expectToggleValue("ShowAnimationVisualizer") then
@@ -405,27 +417,7 @@ AnimatorDefender.process = LPH_NO_VIRTUALIZE(function(self, track)
 		return self:actions(timing)
 	end
 
-	self:mark(
-		Task.new(
-			string.format("RPUE_%s", timing.name),
-			timing:rsd() - self:ping(),
-			timing.punishable,
-			timing.after,
-			self.rpue,
-			self,
-			track,
-			timing,
-			0
-		)
-	)
-
-	self:notify(
-		timing,
-		"Added RPUE '%s' (%.2fs, then every %.2fs) with relevant ping subtracted.",
-		timing.name,
-		timing:rsd(),
-		timing:rpd()
-	)
+	self:crpue(track, timing, 0)
 end)
 
 ---Clean up the defender.

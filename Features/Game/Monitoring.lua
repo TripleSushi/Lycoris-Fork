@@ -49,6 +49,14 @@ return LPH_NO_VIRTUALIZE(function()
 	-- Original store managers.
 	local showHiddenMap = spectateMaid:mark(OriginalStoreManager.new())
 
+	---Fetch name.
+	local function fetchName(player)
+		local spoofName = Configuration.expectToggleValue("InfoSpoofing")
+			and Configuration.expectToggleValue("SpoofOtherPlayers")
+
+		return spoofName and "[REDACTED]" or player.Name
+	end
+
 	---On spectate input began.
 	---@param player Player
 	---@param input InputObject
@@ -57,23 +65,18 @@ return LPH_NO_VIRTUALIZE(function()
 			return
 		end
 
-		local spoofName = Configuration.expectToggleValue("InfoSpoofing")
-			and Configuration.expectToggleValue("SpoofOtherPlayers")
+		-- Fetch name for player.
+		local usedName = fetchName(player)
 
+		-- Get data.
 		local localPlayer = players.LocalPlayer
 		if not localPlayer then
-			return Logger.notify(
-				"Failed to spectate '%s' because the local player does not exist.",
-				spoofName and "[REDACTED]" or player.Name
-			)
+			return Logger.notify("Failed to spectate '%s' because the local player does not exist.", usedName)
 		end
 
 		local character = player.Character
 		if not character then
-			return Logger.notify(
-				"Failed to spectate '%s' because their character does not exist.",
-				spoofName and "[REDACTED]" or player.Name
-			)
+			return Logger.notify("Failed to spectate '%s' because their character does not exist.", usedName)
 		end
 
 		local mapPosition = character:GetAttribute("MapPos")
@@ -91,18 +94,12 @@ return LPH_NO_VIRTUALIZE(function()
 				)
 			)
 
-			return Logger.notify(
-				"Requesting stream for unloaded character '%s' - try again later.",
-				spoofName and "[REDACTED]" or player.Name
-			)
+			return Logger.notify("Requesting stream for unloaded character '%s' - try again later.", usedName)
 		end
 
 		-- Fail because they're *truly* not loaded in.
 		if not humanoidRootPart then
-			return Logger.notify(
-				"Failed to spectate '%s' because they are not loaded in.",
-				spoofName and "[REDACTED]" or player.Name
-			)
+			return Logger.notify("Failed to spectate '%s' because they are not loaded in.", usedName)
 		end
 
 		local shouldUpdateSubject = Monitoring.subject ~= humanoidRootPart and players.LocalPlayer ~= player
@@ -110,7 +107,7 @@ return LPH_NO_VIRTUALIZE(function()
 		Monitoring.subject = shouldUpdateSubject and humanoidRootPart or nil
 
 		if shouldUpdateSubject then
-			Logger.notify("Started spectating player %s.", spoofName and "[REDACTED]" or player.name)
+			Logger.notify("Started spectating player %s.", usedName)
 		else
 			Logger.notify("Reset spectating camera subject.")
 		end
@@ -153,22 +150,25 @@ return LPH_NO_VIRTUALIZE(function()
 			return
 		end
 
-		local backpack = players.LocalPlayer:FindFirstChild("Backpack")
+		local localPlayer = players.LocalPlayer
+		if not localPlayer then
+			return
+		end
+
+		local backpack = localPlayer:FindFirstChild("Backpack")
 		if not backpack then
 			return
 		end
 
-		local spoofName = Configuration.expectToggleValue("InfoSpoofing")
-			and Configuration.expectToggleValue("SpoofOtherPlayers")
-
+		-- Handle monitoring.
 		for player, _ in next, Monitoring.seen do
+			-- Check if the player is in range.
 			local isInPlayerRange = table.find(playersInRange, player)
-
 			if isInPlayerRange then
 				continue
 			end
 
-			Logger.notify("%s is now outside of your proximity radius.", spoofName and "[REDACTED]" or player.Name)
+			Logger.notify("%s is now outside of your proximity radius.", fetchName(player))
 
 			Monitoring.seen[player] = nil
 		end
@@ -185,11 +185,7 @@ return LPH_NO_VIRTUALIZE(function()
 				continue
 			end
 
-			Logger.notify(
-				"%s entered your proximity radius of %i studs.",
-				spoofName and "[REDACTED]" or player.Name,
-				proximityRange
-			)
+			Logger.notify("%s entered your proximity radius of %i studs.", fetchName(player), proximityRange)
 
 			Monitoring.seen[player] = true
 

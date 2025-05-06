@@ -10,7 +10,6 @@ local Targeting = require("Features/Combat/Targeting")
 ---@class EffectDefender: Defender
 ---@field owner Model The owner of the effect.
 ---@field name string The name of the effect.
----@field last number The last time we processed the effect.
 ---@field data table The data of the effect.
 local EffectDefender = setmetatable({}, { __index = Defender })
 EffectDefender.__index = EffectDefender
@@ -19,16 +18,11 @@ EffectDefender.__type = "Effect"
 -- Services.
 local players = game:GetService("Players")
 
--- Constants.
-local MAX_WAIT = 5.0
-
 ---Check if we're in a valid state to proceed with the action.
 ---@param timing PartTiming
 ---@param action Action
----@param origin function?
----@param foreign boolean?
 ---@return boolean
-EffectDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin, foreign)
+EffectDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 	if not Defender.valid(self, timing, action) then
 		return false
 	end
@@ -38,23 +32,7 @@ EffectDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin, 
 		return self:notify(timing, "No humanoid root part found.")
 	end
 
-	while
-		timing.duih
-		and not self:hitbox(
-			origin and origin() or humanoidRootPart.CFrame,
-			0,
-			timing.hitbox,
-			{ players.LocalPlayer.Character }
-		)
-	do
-		if os.clock() - self.last > MAX_WAIT then
-			return false
-		end
-
-		task.wait()
-	end
-
-	if not foreign and not Targeting.find(self.owner) then
+	if not Targeting.find(self.owner) then
 		return self:notify(timing, "Not a viable target.")
 	end
 
@@ -63,8 +41,8 @@ EffectDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action, origin, 
 		return self:notify(timing, "No character found.")
 	end
 
-	if not self:hitbox(origin and origin() or humanoidRootPart.CFrame, 0, action.hitbox, { character }) then
-		return self:notify(timing, "Not inside of the hitbox.")
+	if not self:hc(humanoidRootPart.CFrame, timing, action, { players.LocalPlayer.Character }) then
+		return false
 	end
 
 	return true
@@ -82,13 +60,13 @@ EffectDefender.process = LPH_NO_VIRTUALIZE(function(self)
 		return
 	end
 
+	---@note: Clean up previous tasks that are still waiting or suspended because they're in a different track.
+	self:clean()
+
+	-- Handle module.
 	if timing.umoa then
 		return self:module(timing)
 	end
-
-	---@note: Clean up previous tasks that are still waiting or suspended because they're in a different track.
-	self:clean()
-	self.last = os.clock()
 
 	-- Add actions.
 	return self:actions(timing)
@@ -98,12 +76,12 @@ end)
 ---@param name string
 ---@param owner Model
 ---@param data table
+---@param dao table
 ---@return EffectDefender
-function EffectDefender.new(name, owner, data)
+function EffectDefender.new(name, owner, data, dao)
 	local self = setmetatable(Defender.new(), EffectDefender)
 	self.name = name
 	self.owner = owner
-	self.last = os.clock()
 	self.data = data or {}
 	self:process()
 	return self
