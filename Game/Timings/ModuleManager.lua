@@ -58,7 +58,7 @@ function ModuleManager.load(tfs, global)
 		-- Get function that we can execute.
 		local lf, lr = loadstring(ls)
 		if not lf then
-			Logger.warn("Global module file '%s' failed to load due to error '%s' while loading.", file, lr)
+			Logger.warn("Module file '%s' failed to load due to error '%s' while loading.", file, lr)
 			continue
 		end
 
@@ -76,18 +76,18 @@ function ModuleManager.load(tfs, global)
 		getfenv(lf).Logger = Logger
 
 		-- Load globals if we should.
-		for name, entry in next, global and ModuleManager.globals or {} do
+		for name, entry in next, (not global) and ModuleManager.globals or {} do
 			getfenv(lf)[name] = entry
 		end
 
 		-- Run executable function to initialize it.
 		local success, result = pcall(lf)
 		if not success then
-			Logger.warn("Global module file '%s' failed to load due to error '%s' while executing.", file, result)
+			Logger.warn("Module file '%s' failed to load due to error '%s' while executing.", file, result)
 			continue
 		end
 
-		if typeof(result) ~= "table" then
+		if global and typeof(result) ~= "table" then
 			Logger.warn("Global module file '%s' is invalid because it does not return a table.", file)
 			continue
 		end
