@@ -19,9 +19,6 @@ local Configuration = require("Utility/Configuration")
 ---@module Game.InputClient
 local InputClient = require("Game/InputClient")
 
----@module Features.Combat.Objects.Task
-local Task = require("Features/Combat/Objects/Task")
-
 ---@module Game.Timings.PlaybackData
 local PlaybackData = require("Game/Timings/PlaybackData")
 
@@ -344,7 +341,8 @@ AnimatorDefender.process = LPH_NO_VIRTUALIZE(function(self, track)
 		return self:actions(timing)
 	end
 
-	self:crpue(self.entity, track, timing, 0)
+	-- Start RPUE.
+	self:crpue(self.entity, track, timing, 0, os.clock())
 end)
 
 ---Clean up the defender.

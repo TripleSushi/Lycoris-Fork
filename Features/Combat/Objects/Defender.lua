@@ -107,7 +107,8 @@ end
 ---@param track AnimationTrack?
 ---@param timing Timing
 ---@param index number
-Defender.crpue = LPH_NO_VIRTUALIZE(function(self, entity, track, timing, index)
+---@param start number
+Defender.crpue = LPH_NO_VIRTUALIZE(function(self, entity, track, timing, index, start)
 	-- Check if we're in the initial condition.
 	local initial = index == 0
 
@@ -126,7 +127,8 @@ Defender.crpue = LPH_NO_VIRTUALIZE(function(self, entity, track, timing, index)
 			entity,
 			track,
 			timing,
-			index
+			index,
+			start
 		)
 	)
 
@@ -150,7 +152,8 @@ end)
 ---@param track AnimationTrack?
 ---@param timing Timing
 ---@param index number
-Defender.rpue = LPH_NO_VIRTUALIZE(function(self, entity, track, timing, index)
+---@param start number
+Defender.rpue = LPH_NO_VIRTUALIZE(function(self, entity, track, timing, index, start)
 	local distance = self:distance(entity)
 	if not distance then
 		return Logger.warn("Stopping RPUE '%s' because the distance is not valid.", timing.name)
@@ -160,11 +163,11 @@ Defender.rpue = LPH_NO_VIRTUALIZE(function(self, entity, track, timing, index)
 		return self:notify(timing, "Distance is out of range.")
 	end
 
-	if not self:rc(timing, index, track) then
+	if not self:rc(timing, index, start, track) then
 		return Logger.warn("Stopping RPUE '%s' because the repeat condition is not valid.", timing.name)
 	end
 
-	self:crpue(entity, track, timing, index + 1)
+	self:crpue(entity, track, timing, index + 1, start)
 
 	local target = Targeting.find(entity)
 	if not target then
