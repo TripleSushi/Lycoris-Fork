@@ -144,74 +144,143 @@ local function hash(remoteName)
 		.. nts(ht[8], 4)
 end
 
+---Find remote table from upvalues.
+---@param upvalues table
+---@return table?
+local function findRemoteTables(upvalues)
+	for _, upvalue in next, upvalues do
+		if typeof(upvalue) ~= "table" then
+			continue
+		end
+
+		if getrawmetatable(upvalue) then
+			continue
+		end
+
+		if #upvalue ~= 0 then
+			continue
+		end
+
+		if upvalue[10] then
+			continue
+		end
+
+		return upvalue
+	end
+end
+
+---Search for remote table.
+---@param value any
+---@return boolean
+local function searchForRemoteTable(value)
+	-- Cached.
+	if remoteTable then
+		return true
+	end
+
+	-- Look for the internal upvalues for each function in KeyHandler.
+	if typeof(value) ~= "function" then
+		return false
+	end
+
+	if iscclosure(value) or isexecutorclosure(value) then
+		return false
+	end
+
+	local isuccess, info = pcall(debug.getinfo, value)
+	if not isuccess or not info then
+		return false
+	end
+
+	if not info.short_src:match("KeyHandler") then
+		return false
+	end
+
+	local usuccess, vupvalues = pcall(debug.getupvalue, value, 10)
+	if not usuccess or typeof(vupvalues) ~= "table" then
+		return false
+	end
+
+	if getrawmetatable(vupvalues) then
+		return false
+	end
+
+	-- Mark as found.
+	remoteTable = findRemoteTables(vupvalues)
+
+	-- Return true if we found the remote table.
+	return remoteTable ~= nil
+end
+
+---Search for random table.
+---@param value any
+---@return boolean
+local function searchForRandomTable(value)
+	-- Cached.
+	if randomTable then
+		return true
+	end
+
+	-- Check if this is the random table.
+	if typeof(value) ~= "table" then
+		return false
+	end
+
+	if getrawmetatable(value) then
+		return false
+	end
+
+	local firstIndex, firstValue = next(value)
+
+	if typeof(firstIndex) ~= "number" then
+		return false
+	end
+
+	if typeof(firstValue) ~= "number" then
+		return false
+	end
+
+	if firstValue < 100000 or firstValue > 100000000 then
+		return false
+	end
+
+	if #value ~= 68 then
+		return false
+	end
+
+	-- Mark as found.
+	randomTable = value
+
+	-- Return true.
+	return true
+end
+
+---Search through 'getgc' for data.
+local function searchForKeyHandlerData()
+	for _, value in next, getgc(true) do
+		if not searchForRandomTable(value) then
+			continue
+		end
+
+		if not searchForRemoteTable(value) then
+			continue
+		end
+
+		return true
+	end
+end
+
 ---Initialize the KeyHandler module.
 KeyHandling.init = LPH_NO_VIRTUALIZE(function()
 	local retries = 0
 
 	while true do
-		for _, value in next, getgc(true) do
-			if typeof(value) ~= "table" then
-				continue
-			end
-
-			if getrawmetatable(value) then
-				continue
-			end
-
-			local firstIndex, firstValue = next(value)
-
-			if typeof(firstIndex) ~= "number" then
-				continue
-			end
-
-			if typeof(firstValue) ~= "number" then
-				continue
-			end
-
-			if firstValue < 100000 or firstValue > 100000000 then
-				continue
-			end
-
-			if #value ~= 68 then
-				continue
-			end
-
-			randomTable = value
-		end
-
-		for _, value in next, getgc(true) do
-			if typeof(value) ~= "table" then
-				continue
-			end
-
-			if getrawmetatable(value) then
-				continue
-			end
-
-			if #value ~= 0 then
-				continue
-			end
-
-			local firstIndex, firstValue = next(value)
-
-			if typeof(firstIndex) ~= "string" then
-				continue
-			end
-			if typeof(firstValue) ~= "Instance" then
-				continue
-			end
-
-			if not firstValue:IsA("BaseRemoteEvent") then
-				continue
-			end
-
-			remoteTable = value
-		end
-
-		if remoteTable and randomTable then
+		-- If we're able to find all the data, break.
+		if searchForKeyHandlerData() then
 			break
 		end
 
+		-- Retry if we can't find the data.
 		Logger.warn(
 			"KeyHandler retry (%i attempts) with results (%s, %s)",
 			retries,
@@ -222,9 +291,14 @@ KeyHandling.init = LPH_NO_VIRTUALIZE(function()
 		retries = retries + 1
 
 		if retries >= 10 then
-			return Logger.warn("KeyHandler failed to initialize after 10 attempts.")
+			-- Warn.
+			Logger.warn("KeyHandler failed to initialize after 10 attempts.")
+
+			-- Error.
+			return error("Please report this message to the developers.")
 		end
 
+		-- Wait.
 		task.wait(0.5)
 	end
 end)

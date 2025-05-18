@@ -93,8 +93,10 @@ function Lycoris.init()
 	end
 
 	if game.PlaceId ~= LOBBY_PLACE_ID then
+		-- Attempt to initialize KeyHandling.
 		KeyHandling.init()
 
+		-- Attempt to initialize Hooking.
 		Hooking.init()
 	end
 
