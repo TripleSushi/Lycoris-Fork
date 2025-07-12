@@ -39,18 +39,12 @@ end
 function PartBuilderSection:exload(timing)
 	self.useHitboxCFrame:SetRawValue(timing.uhc)
 	self.partName:SetRawValue(timing.pname)
-	self.linkedAnimationIds:SetRawValue({})
-	self.linkedAnimationIds:SetValues(timing.linked)
-	self.linkedAnimationIds:Display()
 end
 
 ---Reset the elements. Extend me.
 function PartBuilderSection:reset()
 	BuilderSection.reset(self)
 	self.partName:SetRawValue("")
-	self.linkedAnimationIds:SetRawValue({})
-	self.linkedAnimationIds:SetValues({})
-	self.linkedAnimationIds:Display()
 end
 
 ---Set creation timing properties. Override me.

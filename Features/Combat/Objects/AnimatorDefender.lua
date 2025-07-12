@@ -13,9 +13,6 @@ local Logger = require("Utility/Logger")
 ---@module Utility.Configuration
 local Configuration = require("Utility/Configuration")
 
----@module Game.InputClient
-local InputClient = require("Game/InputClient")
-
 ---@module Game.Timings.PlaybackData
 local PlaybackData = require("Game/Timings/PlaybackData")
 

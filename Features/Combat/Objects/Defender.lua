@@ -25,9 +25,11 @@ local TaskSpawner = require("Utility/TaskSpawner")
 ---@module Features.Combat.Targeting
 local Targeting = require("Features/Combat/Targeting")
 
+---@module Features.Combat.PositionHistory
+local PositionHistory = require("Features/Combat/PositionHistory")
+
 ---@class Defender
 ---@field tasks Task[]
----@field phistory PositionHistory
 ---@field tmaid Maid Cleaned up every clean cycle.
 ---@field rhook table<string, function> Hooked functions that we can restore on clean-up.
 ---@field markers table<string, boolean> Blocking markers for unknown length timings. If the entry exists and is true, then we're blocking.
@@ -249,9 +251,10 @@ Defender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 		return self:notify(timing, "No effect replicator module found.")
 	end
 
+	---@todo: SK Swing breaks this check and we cannot parry second move
 	if
-		effectReplicatorModule:FindEffect("LightAttack")
-		or effectReplicatorModule:FindEffect("CriticalAttack")
+		effectReplicatorModule:FindEffect("Telegraph_Generic")
+		or effectReplicatorModule:FindEffect("EarlyTelegraph_Generic")
 		or effectReplicatorModule:FindEffect("Followup")
 		or effectReplicatorModule:FindEffect("CastingSpell")
 	then
@@ -326,31 +329,18 @@ Defender.hitbox = LPH_NO_VIRTUALIZE(function(self, cframe, fd, size, filter)
 		return nil
 	end
 
-	-- Hit detection table.
-	local hitDetectionData = {
-		[HIT_DETECTION_OK] = cframe,
-		[HIT_DETECTION_HISTORY] = self.phistory:closest(tick() - self:ping()),
-	}
-
 	-- Used CFrame.
-	local usedCFrame = nil
+	local usedCFrame = cframe
+
+	if fd then
+		usedCFrame = usedCFrame * CFrame.new(0, 0, -(size.Z / 2))
+	end
 
 	-- Current hit detection result.
 	local hdr = HIT_DETECTION_MISS
 
-	-- Iterate over hit detection data.
-	for idx, dataCFrame in next, hitDetectionData do
-		usedCFrame = dataCFrame
-
-		if fd then
-			usedCFrame = usedCFrame * CFrame.new(0, 0, -(size.Z / 2))
-		end
-
-		if #workspace:GetPartBoundsInBox(usedCFrame, size, overlapParams) > 0 then
-			break
-		end
-
-		hdr = idx
+	if #workspace:GetPartBoundsInBox(usedCFrame, size, overlapParams) > 0 then
+		hdr = HIT_DETECTION_OK
 	end
 
 	-- Visualize color.
@@ -498,6 +488,7 @@ Defender.hc = LPH_NO_VIRTUALIZE(function(self, cframe, timing, action, filter, t
 
 	---@note: We check for 'fhb' here even though the base timing may not have it.
 	while timing.duih and not timing.rpue and not self:hitbox(cframe, timing.fhb, timing.hitbox, filter) do
+		print(cframe)
 		if not self:rc(timing, start, track) then
 			return false
 		end
@@ -788,13 +779,11 @@ function Defender:detach()
 end
 
 ---Create new Defender object.
----@param phistory PositionHistory
 ---@return Defender
-function Defender.new(phistory)
+function Defender.new()
 	local self = setmetatable({}, Defender)
 	self.tasks = {}
 	self.rhook = {}
-	self.phistory = phistory
 	self.tmaid = Maid.new()
 	self.maid = Maid.new()
 	self.ppart = nil

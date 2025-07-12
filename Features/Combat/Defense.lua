@@ -22,8 +22,8 @@ local Configuration = require("Utility/Configuration")
 ---@module Game.InputClient
 local InputClient = require("Game/InputClient")
 
----@module Features.Combat.Objects.PositionHistory
-local PositionHistory = require("Features/Combat/Objects/PositionHistory")
+---@module Features.Combat.PositionHistory
+local PositionHistory = require("Features/Combat/PositionHistory")
 
 ---@module Utility.Logger
 local Logger = require("Utility/Logger")
@@ -44,9 +44,6 @@ local defenseMaid = Maid.new()
 local defenderObjects = {}
 local defenderPartObjects = {}
 local defenderAnimationObjects = {}
-
--- Local player position history.
-local localPositionHistory = PositionHistory.new()
 
 -- Stored deleted playback data.
 local deletedPlaybackData = {}
@@ -187,7 +184,7 @@ local updateHistory = LPH_NO_VIRTUALIZE(function()
 		return
 	end
 
-	localPositionHistory:add(humanoidRootPart.CFrame, tick())
+	PositionHistory.add(humanoidRootPart.CFrame, tick())
 end)
 
 ---Update visualizations.
