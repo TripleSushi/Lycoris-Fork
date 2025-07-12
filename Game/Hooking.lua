@@ -366,12 +366,13 @@ local onNameCall = LPH_NO_VIRTUALIZE(function(...)
 	end
 
 	local isActivatingMantra = self.Name == "ActivateMantra"
+	local blockInputOptions = Configuration.expectOptionValue("BlockInputOptions") or {}
 
 	if typeof(args[2]) == "Instance" and isActivatingMantra then
 		Defense.lastMantraActivate = args[2]
 	end
 
-	if isActivatingMantra and Configuration.expectToggleValue("BlockPunishableMantras") and Defense.blocking() then
+	if blockInputOptions["Punishable Mantras"] and isActivatingMantra and Defense.blocking() then
 		return
 	end
 
@@ -439,14 +440,15 @@ local onUnreliableFireServer = LPH_NO_VIRTUALIZE(function(...)
 
 	local leftClickRemote = KeyHandling.getRemote("LeftClick")
 	local criticalClickRemote = KeyHandling.getRemote("CriticalClick")
+	local blockInputOptions = Configuration.expectOptionValue("BlockInputOptions") or {}
 
 	if leftClickRemote and self == leftClickRemote then
-		local block = (Configuration.expectToggleValue("BlockPunishableM1s") and Defense.blocking())
+		local block = (blockInputOptions["Punishable M1s"] and Defense.blocking())
 		return (not block) and oldUnreliableFireServer(...)
 	end
 
 	if criticalClickRemote and self == criticalClickRemote then
-		local block = (Configuration.expectToggleValue("BlockPunishableCriticals") and Defense.blocking())
+		local block = (blockInputOptions["Punishable Criticals"] and Defense.blocking())
 		return (not block) and oldUnreliableFireServer(...)
 	end
 

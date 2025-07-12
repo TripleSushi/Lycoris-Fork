@@ -27,6 +27,7 @@ local Targeting = require("Features/Combat/Targeting")
 
 ---@class Defender
 ---@field tasks Task[]
+---@field phistory PositionHistory
 ---@field tmaid Maid Cleaned up every clean cycle.
 ---@field rhook table<string, function> Hooked functions that we can restore on clean-up.
 ---@field markers table<string, boolean> Blocking markers for unknown length timings. If the entry exists and is true, then we're blocking.
@@ -47,6 +48,11 @@ local textChatService = game:GetService("TextChatService")
 -- Constants.
 local MAX_VISUALIZATION_TIME = 5.0
 local MAX_DUIH_WAIT = 10.0
+
+-- Enums.
+local HIT_DETECTION_MISS = 0
+local HIT_DETECTION_HISTORY = 1
+local HIT_DETECTION_OK = 2
 
 ---Log a miss to the UI library with distance check.
 ---@param type string
@@ -206,12 +212,14 @@ Defender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 		return self:notify(timing, "No keybinds module found.")
 	end
 
+	local selectedFilters = Configuration.expectOptionValue("AutoDefenseFilters") or {}
+
 	for _, keybind in next, keybindsModule.Current["Block"] or {} do
 		if not userInputService:IsKeyDown(Enum.KeyCode[tostring(keybind)]) then
 			continue
 		end
 
-		if not Configuration.expectToggleValue("CheckHoldingBlockInput") then
+		if not selectedFilters["Disable While Holding Block Key"] then
 			continue
 		end
 
@@ -221,13 +229,13 @@ Defender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 	local chatInputBarConfiguration = textChatService:FindFirstChildOfClass("ChatInputBarConfiguration")
 
 	if
-		Configuration.expectToggleValue("CheckTextboxFocused")
+		selectedFilters["Disable When Textbox Focused"]
 		and (userInputService:GetFocusedTextBox() or chatInputBarConfiguration.IsFocused)
 	then
 		return self:notify(timing, "User is typing in a text box.")
 	end
 
-	if Configuration.expectToggleValue("CheckWindowActive") and not iswindowactive() then
+	if selectedFilters["Disable When Window Not Active"] and not iswindowactive() then
 		return self:notify(timing, "Window is not active.")
 	end
 
@@ -258,19 +266,19 @@ Defender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 		return self:notify(timing, "User is knocked.")
 	end
 
-	if timing.tag == "M1" and Configuration.expectToggleValue("CheckM1Attack") then
+	if timing.tag == "M1" and selectedFilters["Filter Out M1s"] then
 		return self:notify(timing, "Attacker is using a 'M1' attack.")
 	end
 
-	if timing.tag == "Mantra" and Configuration.expectToggleValue("CheckMantra") then
+	if timing.tag == "Mantra" and selectedFilters["Filter Out Mantras"] then
 		return self:notify(timing, "Attacker is using a 'Mantra' attack.")
 	end
 
-	if timing.tag == "Critical" and Configuration.expectToggleValue("CheckCritical") then
+	if timing.tag == "Critical" and selectedFilters["Filter Out Criticals"] then
 		return self:notify(timing, "Attacker is using a 'Critical' attack.")
 	end
 
-	if timing.tag == "Undefined" and Configuration.expectToggleValue("CheckUndefined") then
+	if timing.tag == "Undefined" and selectedFilters["Filter Out Undefined"] then
 		return self:notify(timing, "Attacker is using an 'Undefined' attack.")
 	end
 
@@ -294,9 +302,10 @@ Defender.vupdate = LPH_NO_VIRTUALIZE(function(self)
 end)
 
 ---Run hitbox check. Returns wheter if the hitbox is being touched.
----@todo: Add backtracking to the player to compensate for lag on the server and extrapolation for the other player to compensate for their next position in the future.
+---@todo: Add extrapolation for the other player to compensate for their next position in the future.
 ---@todo: Add a check to see if the player was looking at us in the last 0.25 seconds aswell.
----@todo: An issue is that the player's current look vector will not be the same as when they attack due to a parry timing being seperate from the attack; causing this check to fail.
+--- An issue is that the player's current look vector will not be the same as when they attack due to a parry timing being seperate from the attack;
+--- causing this check to fail.
 ---@param cframe CFrame
 ---@param fd boolean
 ---@param size Vector3
@@ -317,19 +326,43 @@ Defender.hitbox = LPH_NO_VIRTUALIZE(function(self, cframe, fd, size, filter)
 		return nil
 	end
 
-	-- Real CFrame.
-	local realCFrame = cframe
+	-- Hit detection table.
+	local hitDetectionData = {
+		[HIT_DETECTION_OK] = cframe,
+		[HIT_DETECTION_HISTORY] = self.phistory:closest(tick() - self:ping()),
+	}
 
-	-- Add facing depth if we need to.
-	if fd then
-		realCFrame = realCFrame * CFrame.new(0, 0, -(size.Z / 2))
+	-- Used CFrame.
+	local usedCFrame = nil
+
+	-- Current hit detection result.
+	local hdr = HIT_DETECTION_MISS
+
+	-- Iterate over hit detection data.
+	for idx, dataCFrame in next, hitDetectionData do
+		usedCFrame = dataCFrame
+
+		if fd then
+			usedCFrame = usedCFrame * CFrame.new(0, 0, -(size.Z / 2))
+		end
+
+		if #workspace:GetPartBoundsInBox(usedCFrame, size, overlapParams) > 0 then
+			break
+		end
+
+		hdr = idx
 	end
 
-	-- Check in bounds.
-	local inBounds = #workspace:GetPartBoundsInBox(realCFrame, size, overlapParams) > 0
-
 	-- Visualize color.
-	local visColor = inBounds and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+	local visColor = Color3.fromRGB(255, 0, 0)
+
+	if hdr == HIT_DETECTION_OK then
+		visColor = Color3.fromRGB(0, 255, 0)
+	end
+
+	if hdr == HIT_DETECTION_HISTORY then
+		visColor = Color3.fromRGB(255, 0, 255)
+	end
 
 	-- Create visualization part if it doesn't exist.
 	if not self.vpart then
@@ -359,7 +392,7 @@ Defender.hitbox = LPH_NO_VIRTUALIZE(function(self, cframe, fd, size, filter)
 
 	-- Visual part.
 	self.vpart.Size = size
-	self.vpart.CFrame = realCFrame
+	self.vpart.CFrame = usedCFrame
 	self.vpart.Color = visColor
 
 	-- Player part.
@@ -370,7 +403,7 @@ Defender.hitbox = LPH_NO_VIRTUALIZE(function(self, cframe, fd, size, filter)
 	-- Set timestamp.
 	self.lvisualization = os.clock()
 
-	return inBounds
+	return hdr ~= HIT_DETECTION_MISS
 end)
 
 ---Check initial state.
@@ -755,10 +788,13 @@ function Defender:detach()
 end
 
 ---Create new Defender object.
-function Defender.new()
+---@param phistory PositionHistory
+---@return Defender
+function Defender.new(phistory)
 	local self = setmetatable({}, Defender)
 	self.tasks = {}
 	self.rhook = {}
+	self.phistory = phistory
 	self.tmaid = Maid.new()
 	self.maid = Maid.new()
 	self.ppart = nil

@@ -15,6 +15,9 @@ return LPH_NO_VIRTUALIZE(function()
 	---@module GUI.Library
 	local Library = require("GUI/Library")
 
+	---@module Utility.CoreGuiManager
+	local CoreGuiManager = require("Utility/CoreGuiManager")
+
 	-- Visualizer maid.
 	local visualizerMaid = Maid.new()
 
@@ -23,9 +26,10 @@ return LPH_NO_VIRTUALIZE(function()
 	local userInputService = game:GetService("UserInputService")
 	local players = game:GetService("Players")
 
-	local screenGui = visualizerMaid:mark(Instance.new("ScreenGui"))
+	local screenGui = CoreGuiManager.imark(Instance.new("ScreenGui"))
 	screenGui.Name = "ScreenGui"
 	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	screenGui.Enabled = false
 
 	local outer = Instance.new("Frame")
 	outer.Name = "Outer"
@@ -549,7 +553,6 @@ return LPH_NO_VIRTUALIZE(function()
 	function AnimationVisualizer.init()
 		-- Initialize GUI.
 		screenGui.Name = "AnimationVisualizer"
-		screenGui.Parent = game:GetService("CoreGui")
 		screenGui.Enabled = false
 		screenGui.DisplayOrder = 1
 

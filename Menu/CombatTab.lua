@@ -164,50 +164,20 @@ function CombatTab.initAutoDefenseSection(groupbox)
 		{ rollCancelToggle, true },
 	})
 
-	autoDefenseDepBox:AddDivider()
-
-	autoDefenseDepBox:AddToggle("CheckM1Attack", {
-		Text = "Check If M1 Attack",
-		Tooltip = "If the attack is recognized as an 'M1', stop the auto defense from proceeding.",
-		Default = false,
-	})
-
-	autoDefenseDepBox:AddToggle("CheckMantra", {
-		Text = "Check If Mantra Attack",
-		Tooltip = "If the attack is recognized as an 'Mantra', stop the auto defense from proceeding.",
-		Default = false,
-	})
-
-	autoDefenseDepBox:AddToggle("CheckCritical", {
-		Text = "Check If Critical Attack",
-		Tooltip = "If the attack is recognized as an 'Critical', stop the auto defense from proceeding.",
-		Default = false,
-	})
-
-	autoDefenseDepBox:AddToggle("CheckUndefined", {
-		Text = "Check If Undefined Attack",
-		Tooltip = "If the attack is recognized as an 'Undefined' attack (e.g mobs), stop the auto defense from proceeding.",
-		Default = false,
-	})
-
-	autoDefenseDepBox:AddDivider()
-
-	autoDefenseDepBox:AddToggle("CheckHoldingBlockInput", {
-		Text = "Check If Holding Block Input",
-		Tooltip = "If we are holding the block input, stop the auto defense from proceeding.",
-		Default = false,
-	})
-
-	autoDefenseDepBox:AddToggle("CheckWindowActive", {
-		Text = "Check If Window Is Active",
-		Tooltip = "If Roblox isn't the active window, stop the auto defense from proceeding.",
-		Default = false,
-	})
-
-	autoDefenseDepBox:AddToggle("CheckTextboxFocused", {
-		Text = "Check If Textbox Is Focused",
-		Tooltip = "If a textbox is focused, stop the auto defense from proceeding.",
-		Default = false,
+	autoDefenseDepBox:AddDropdown("AutoDefenseFilters", {
+		Text = "Auto Defense Filters",
+		Values = {
+			"Filter Out M1s",
+			"Filter Out Mantras",
+			"Filter Out Criticals",
+			"Filter Out Undefined",
+			"Disable When Textbox Focused",
+			"Disable When Window Not Active",
+			"Disable While Holding Block Key",
+		},
+		Multi = true,
+		AllowNull = true,
+		Default = {},
 	})
 
 	autoDefenseDepBox:SetupDependencies({
@@ -222,29 +192,16 @@ function CombatTab.initFeintDetectionSection(groupbox) end
 -- Initialize attack assistance section.
 ---@param groupbox table
 function CombatTab.initAttackAssistanceSection(groupbox)
-	groupbox:AddToggle("FeintM1WhileDefending", {
-		Text = "Feint M1 While Defending",
-		Default = false,
-	})
-
-	groupbox:AddToggle("FeintMantrasWhileDefending", {
-		Text = "Feint Mantras While Defending",
-		Default = false,
-	})
-
-	groupbox:AddToggle("BlockPunishableM1s", {
-		Text = "Block Punishable M1s",
-		Default = false,
-	})
-
-	groupbox:AddToggle("BlockPunishableCriticals", {
-		Text = "Block Punishable Criticals",
-		Default = false,
-	})
-
-	groupbox:AddToggle("BlockPunishableMantras", {
-		Text = "Block Punishable Mantras",
-		Default = false,
+	groupbox:AddDropdown("BlockInputOptions", {
+		Text = "Block Input Options",
+		Values = {
+			"Punishable M1s",
+			"Punishable Criticals",
+			"Punishable Mantras",
+		},
+		Multi = true,
+		AllowNull = true,
+		Default = {},
 	})
 
 	groupbox:AddSlider("DefaultPunishableWindow", {

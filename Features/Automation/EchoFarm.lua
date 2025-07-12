@@ -39,6 +39,7 @@ local runService = game:GetService("RunService")
 local userInputService = game:GetService("UserInputService")
 
 -- EchoFarm module.
+---@todo: Skip the wiping lobby state(s) by calling remotes to directly wipe the slot while in game.
 local EchoFarm = {}
 
 -- Callbacks table.

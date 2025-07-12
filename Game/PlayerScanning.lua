@@ -7,6 +7,9 @@ local PlayerScanning = {
 	scanning = false,
 }
 
+---@module Utility.CoreGuiManager
+local CoreGuiManager = require("Utility/CoreGuiManager")
+
 ---@module Utility.Signal
 local Signal = require("Utility/Signal")
 
@@ -24,6 +27,9 @@ local players = game:GetService("Players")
 local httpService = game:GetService("HttpService")
 local collectionService = game:GetService("CollectionService")
 local runService = game:GetService("RunService")
+
+-- Instances.
+local moderatorSound = CoreGuiManager.imark(Instance.new("Sound"))
 
 -- Maid.
 local playerScanningMaid = Maid.new()
@@ -75,12 +81,10 @@ local runPlayerScans = LPH_NO_VIRTUALIZE(function()
 				)
 
 				if Configuration.expectToggleValue("NotifyModSound") then
-					local moderatorSound = Instance.new("Sound", game:GetService("CoreGui"))
 					moderatorSound.SoundId = "rbxassetid://6045346303"
 					moderatorSound.PlaybackSpeed = 1
 					moderatorSound.Volume = Configuration.expectToggleValue("NotifyModSoundVolume") or 10
-					moderatorSound.PlayOnRemove = true
-					moderatorSound:Destroy()
+					moderatorSound:Play()
 				end
 			end
 

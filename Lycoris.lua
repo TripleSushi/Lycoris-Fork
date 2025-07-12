@@ -43,6 +43,9 @@ local Signal = require("Utility/Signal")
 ---@module Game.Timings.ModuleManager
 local ModuleManager = require("Game/Timings/ModuleManager")
 
+---@module Utility.CoreGuiManager
+local CoreGuiManager = require("Utility/CoreGuiManager")
+
 -- Lycoris maid.
 local lycorisMaid = Maid.new()
 
@@ -99,6 +102,8 @@ function Lycoris.init()
 		-- Attempt to initialize Hooking.
 		Hooking.init()
 	end
+
+	CoreGuiManager.set()
 
 	PersistentData.init()
 
@@ -200,6 +205,8 @@ function Lycoris.detach()
 	Features.detach()
 
 	PlayerScanning.detach()
+
+	CoreGuiManager.clear()
 
 	local modules = replicatedStorage:FindFirstChild("Modules")
 	local bloxstrapRPC = modules and modules:FindFirstChild("BloxstrapRPC")

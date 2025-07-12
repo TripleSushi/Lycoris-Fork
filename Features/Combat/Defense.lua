@@ -22,8 +22,8 @@ local Configuration = require("Utility/Configuration")
 ---@module Game.InputClient
 local InputClient = require("Game/InputClient")
 
----@module Utility.TaskSpawner
-local TaskSpawner = require("Utility/TaskSpawner")
+---@module Features.Combat.Objects.PositionHistory
+local PositionHistory = require("Features/Combat/Objects/PositionHistory")
 
 ---@module Utility.Logger
 local Logger = require("Utility/Logger")
@@ -44,6 +44,9 @@ local defenseMaid = Maid.new()
 local defenderObjects = {}
 local defenderPartObjects = {}
 local defenderAnimationObjects = {}
+
+-- Local player position history.
+local localPositionHistory = PositionHistory.new()
 
 -- Stored deleted playback data.
 local deletedPlaybackData = {}
@@ -170,6 +173,21 @@ local onEffectReplicated = LPH_NO_VIRTUALIZE(function(effect)
 	end
 
 	InputClient.left()
+end)
+
+---Update history.
+local updateHistory = LPH_NO_VIRTUALIZE(function()
+	local character = players.LocalPlayer.Character
+	if not character then
+		return
+	end
+
+	local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+	if not humanoidRootPart then
+		return
+	end
+
+	localPositionHistory:add(humanoidRootPart.CFrame, tick())
 end)
 
 ---Update visualizations.
@@ -403,7 +421,8 @@ function Defense.init()
 
 	defenseMaid:add(gameDescendantAdded:connect("Defense_OnDescendantAdded", onGameDescendantAdded))
 	defenseMaid:add(gameDescendantRemoved:connect("Defense_OnDescendantRemoved", onGameDescendantRemoved))
-	defenseMaid:add(renderStepped:connect("Defense_RenderStepped", updateVisualizations))
+	defenseMaid:add(renderStepped:connect("Defense_UpdateVisualizations", updateVisualizations))
+	defenseMaid:add(renderStepped:connect("Defense_UpdateHistory", updateHistory))
 	defenseMaid:add(postSimulation:connect("Defense_UpdateDefenders", updateDefenders))
 	defenseMaid:add(clientEffectEvent:connect("Defense_ClientEffectEvent", onClientEffectEvent))
 	defenseMaid:add(clientEffectLargeEvent:connect("Defense_ClientEffectEventLarge", onClientEffectEvent))

@@ -7,9 +7,6 @@ local Signal = require("Utility/Signal")
 ---@module Game.Timings.SaveManager
 local SaveManager = require("Game/Timings/SaveManager")
 
----@module Features.Combat.Targeting
-local Targeting = require("Features/Combat/Targeting")
-
 ---@module Utility.Logger
 local Logger = require("Utility/Logger")
 
@@ -86,7 +83,6 @@ AnimatorDefender.rc = LPH_NO_VIRTUALIZE(function(self, timing, start, track)
 end)
 
 ---Check if we're in a valid state to proceed with the action.
----@todo: Add extra effect checks because we don't want our input to be buffered when we can't even parry.
 ---@param timing AnimationTiming
 ---@param action Action
 ---@return boolean
@@ -261,26 +257,6 @@ AnimatorDefender.process = LPH_NO_VIRTUALIZE(function(self, track)
 	local effectReplicatorModule = require(effectReplicator)
 	if not effectReplicatorModule then
 		return
-	end
-
-	local midAttackEffect = effectReplicatorModule:FindEffect("MidAttack")
-	local midAttackData = midAttackEffect and midAttackEffect.index
-	local midAttackExpiry = midAttackData and midAttackData.Expiration
-	local midAttackCanFeint = midAttackExpiry and (os.clock() - midAttackExpiry) <= 0.45
-
-	-- Stop! We need to feint if we're currently attacking. Input block will handle the rest.
-	-- Assume, we cannot react in time. Example: we attacked just right before this process call.
-	---@note: Replicate to other types. Improve me or move me.
-	local shouldFeintAttack = midAttackCanFeint and Configuration.expectToggleValue("FeintM1WhileDefending")
-	local shouldFeintMantra = effectReplicatorModule:FindEffect("CastingSpell")
-		and Configuration.expectToggleValue("FeintMantrasWhileDefending")
-
-	if not effectReplicatorModule:FindEffect("FeintCool") and (shouldFeintAttack or shouldFeintMantra) then
-		-- Log.
-		self:notify(timing, "Automatically feinting attack.")
-
-		-- Feint.
-		InputClient.feint()
 	end
 
 	---@note: Clean up previous tasks that are still waiting or suspended because they're in a different track.

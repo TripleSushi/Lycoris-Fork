@@ -24,6 +24,9 @@ local PersistentData = {
 
 		-- Echo farm persistence - do we need to activate on initialization?
 		aei = false,
+
+		-- Bestiary data.
+		best = nil,
 	},
 }
 
@@ -50,12 +53,19 @@ end
 
 ---Initialize PersistentData module.
 function PersistentData.init()
-	if not memStorageService:HasItem("LYCORIS_PERSISTENT_DATA") then
-		return
+	local hasSuccess, hasResult = pcall(memStorageService.HasItem, memStorageService, "LYCORIS_PERSISTENT_DATA")
+
+	if not hasSuccess then
+		return hasResult and Logger.warn("(%s) Failed to check for PersistentData snapshot.", tostring(hasResult))
 	end
 
-	local success, result =
-		pcall(Deserializer.unmarshal_one, String.tba(memStorageService:GetItem("LYCORIS_PERSISTENT_DATA")))
+	local itemSuccess, itemResult = pcall(memStorageService.GetItem, memStorageService, "LYCORIS_PERSISTENT_DATA")
+
+	if not itemSuccess then
+		return Logger.warn("(%s) Failed to get PersistentData snapshot", tostring(itemResult))
+	end
+
+	local success, result = pcall(Deserializer.unmarshal_one, String.tba(itemResult))
 
 	if not success then
 		return Logger.warn("(%s) Failed to deserialize PersistentData snapshot.", tostring(result))

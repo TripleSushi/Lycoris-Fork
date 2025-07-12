@@ -5,7 +5,7 @@ end
 
 ---@todo: Chinese Tracker Unit V2
 -- Improvements from the previous version:
--- Obtain all data without the use of the UI & compare with UI (account for Stream Sniper).
+-- Obtain all data without the use of the UI
 -- Collect all possible Deepwoken data including inventory, talents, health, quests, and more.
 -- Send this data to the ArmorShield database for further checking.
 -- Catch the ban evaders :groan:

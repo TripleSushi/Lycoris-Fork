@@ -9,11 +9,17 @@ return LPH_NO_VIRTUALIZE(function()
 	local memStorageService = game:GetService("MemStorageService")
 	local players = game:GetService("Players")
 
+	---@module Utility.PersistentData
+	local PersistentData = require("Utility/PersistentData")
+
 	---@module Utility.Maid
 	local Maid = require("Utility/Maid")
 
 	---@module Utility.Signal
 	local Signal = require("Utility/Signal")
+
+	---@module Utility.CoreGuiManager
+	local CoreGuiManager = require("Utility/CoreGuiManager")
 
 	---@module Utility.TaskSpawner
 	local TaskSpawner = require("Utility/TaskSpawner")
@@ -32,8 +38,9 @@ return LPH_NO_VIRTUALIZE(function()
 
 	-- Main GUI.
 	---@type ScreenGui
-	local bestiaryGui = maid:mark(Instance.new("ScreenGui"))
+	local bestiaryGui = CoreGuiManager.imark(Instance.new("ScreenGui"))
 	bestiaryGui.ResetOnSpawn = true
+	bestiaryGui.Enabled = false
 
 	-- Constants.
 	local BUTTON_SELECTED_COLOR = Color3.fromRGB(89, 121, 119)
@@ -130,16 +137,11 @@ return LPH_NO_VIRTUALIZE(function()
 	local button_2 = Instance.new("TextButton")
 	local shadow_3 = Instance.new("TextLabel")
 	local pointer_2 = Instance.new("ImageLabel")
-	local hover = Instance.new("Sound")
-	local click = Instance.new("Sound")
+	local hover = CoreGuiManager.imark(Instance.new("Sound"))
 
 	-- Properties.
 	bestiaryClient.Name = "BestiaryClient"
 	bestiaryClient.Parent = bestiaryGui
-
-	click.SoundId = "rbxassetid://4729609016"
-	click.Name = "click"
-	click.Parent = bestiaryClient
 
 	hover.SoundId = "rbxassetid://4729721770"
 	hover.Name = "hover"
@@ -662,11 +664,8 @@ return LPH_NO_VIRTUALIZE(function()
 				end
 
 				-- Play sound.
-				local sfx = hover:Clone()
-				sfx.Parent = game:GetService("CoreGui")
-				sfx.PlaybackSpeed = math.random(100, 105) / 100
-				sfx.PlayOnRemove = true
-				sfx:Destroy()
+				hover.PlaybackSpeed = math.random(100, 105) / 100
+				hover:Play()
 
 				-- Set details.
 				container.Visible = true
@@ -783,8 +782,6 @@ return LPH_NO_VIRTUALIZE(function()
 			data = formatTable(humanoidData),
 			stat = formatTable(humanoidStats),
 		}
-
-		memStorageService:SetItem("BestiaryData", httpService:JSONEncode(savedData))
 	end
 
 	---Set the visibility of the Bestiary.
@@ -795,11 +792,8 @@ return LPH_NO_VIRTUALIZE(function()
 
 	---Initialize the Bestiary module.
 	function Bestiary.init()
-		-- Load the initial memory data.
-		local memoryData = httpService:JSONDecode(memStorageService:GetItem("BestiaryData", "[]"))
-		for index, value in next, memoryData do
-			savedData[index] = value
-		end
+		-- Set saved data.
+		savedData = PersistentData.get("best") or {}
 
 		-- Fetch instances.
 		local live = workspace:WaitForChild("Live")
@@ -809,7 +803,6 @@ return LPH_NO_VIRTUALIZE(function()
 
 		-- Initialize GUI.
 		bestiaryGui.Name = "BestiaryGui"
-		bestiaryGui.Parent = game:GetService("CoreGui")
 		bestiaryGui.Enabled = false
 		bestiaryGui.DisplayOrder = 1
 

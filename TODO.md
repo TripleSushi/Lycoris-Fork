@@ -1,6 +1,8 @@
 # What do we need to do?
 - Combat ❌
     - Auto Defense ❌
+        - Failure Rate ❌
+        - Fake Mistime Rate ❌
         - Fallback To Counter Mantras ❌
         - Fallback To Blocking ❌
     - Feint Detection ❌

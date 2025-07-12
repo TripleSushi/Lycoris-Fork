@@ -14,6 +14,9 @@ return LPH_NO_VIRTUALIZE(function()
 	---@module Utility.OriginalStoreManager
 	local OriginalStoreManager = require("Utility/OriginalStoreManager")
 
+	---@module Utility.CoreGuiManager
+	local CoreGuiManager = require("Utility/CoreGuiManager")
+
 	---@module Utility.TaskSpawner
 	local TaskSpawner = require("Utility/TaskSpawner")
 
@@ -39,6 +42,9 @@ return LPH_NO_VIRTUALIZE(function()
 	-- Maids.
 	local monitoringMaid = Maid.new()
 	local spectateMaid = Maid.new()
+
+	-- Instances.
+	local beepSound = CoreGuiManager.imark(Instance.new("Sound"))
 
 	-- Update limiting.
 	local lastUpdateTime = os.clock()
@@ -190,12 +196,10 @@ return LPH_NO_VIRTUALIZE(function()
 			Monitoring.seen[player] = true
 
 			if Configuration.expectToggleValue("PlayerProximityBeep") then
-				local beepSound = Instance.new("Sound", game:GetService("CoreGui"))
 				beepSound.SoundId = "rbxassetid://100849623977896"
 				beepSound.PlaybackSpeed = 1
 				beepSound.Volume = Configuration.expectOptionValue("PlayerProximityBeepVolume") or 0.1
-				beepSound.PlayOnRemove = true
-				beepSound:Destroy()
+				beepSound:Play()
 			end
 		end
 	end

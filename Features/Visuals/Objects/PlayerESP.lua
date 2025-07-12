@@ -161,7 +161,9 @@ end)
 function PlayerESP.new(identifier, player, character)
 	local shadow = Instance.new("Part")
 	shadow.Transparency = 1.0
-	shadow.Parent = game:GetService("CoreGui")
+	shadow.Anchored = true
+	shadow.Parent = workspace
+	shadow.CanCollide = false
 
 	local self = setmetatable(InstanceESP.new(shadow, identifier, "Unknown Player"), PlayerESP)
 	self.player = player

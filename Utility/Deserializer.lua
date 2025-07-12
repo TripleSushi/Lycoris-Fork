@@ -85,7 +85,7 @@ function Deserializer.at(stream)
 	end
 
 	if byte == 0xc4 or byte == 0xc5 or byte == 0xc6 then
-		return stream:le_read_bytes(byteData(stream))
+		return stream:leReadBytes(byteData(stream))
 	end
 
 	if byte == 0xd9 or byte == 0xda or byte == 0xdb then

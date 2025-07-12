@@ -1,9 +1,9 @@
 local Profiler = require("Utility/Profiler")
+local CoreGuiManager = require("Utility/CoreGuiManager")
 
 return LPH_NO_VIRTUALIZE(function()
 	local InputService = game:GetService("UserInputService")
 	local TextService = game:GetService("TextService")
-	local CoreGui = game:GetService("CoreGui")
 	local Teams = game:GetService("Teams")
 	local Players = game:GetService("Players")
 	local RunService = game:GetService("RunService")
@@ -13,12 +13,11 @@ return LPH_NO_VIRTUALIZE(function()
 	local Mouse = LocalPlayer:GetMouse()
 
 	local ProtectGui = protectgui or (syn and syn.protect_gui) or function() end
-	local ScreenGui = Instance.new("ScreenGui")
+	local ScreenGui = CoreGuiManager.imark(Instance.new("ScreenGui"))
 
 	ProtectGui(ScreenGui)
 
 	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
-	ScreenGui.Parent = CoreGui
 
 	local Toggles = {}
 	local Options = {}
