@@ -169,19 +169,29 @@ end
 ---Initialize logger section.
 ---@param groupbox table
 function BuilderTab.initLoggerSection(groupbox)
-	groupbox:AddToggle("ShowAnimationVisualizer", {
+	local animVisualizerToggle = groupbox:AddToggle("ShowAnimationVisualizer", {
 		Text = "Show Animation Visualizer",
 		Default = false,
 		Callback = AnimationVisualizer.visible,
 	})
 
-	groupbox:AddToggle("ShowLoggerWindow", {
+	animVisualizerToggle:AddKeyPicker(
+		"AnimationVisualizerKeyBind",
+		{ Default = "N/A", SyncToggleState = true, Text = "Animation Visualizer" }
+	)
+
+	local showLoggerToggle = groupbox:AddToggle("ShowLoggerWindow", {
 		Text = "Show Logger Window",
 		Default = false,
 		Callback = function(value)
 			Library.InfoLoggerFrame.Visible = value
 		end,
 	})
+
+	showLoggerToggle:AddKeyPicker(
+		"ShowLoggerWindowKeyBind",
+		{ Default = "N/A", SyncToggleState = true, Text = "Logger Window" }
+	)
 
 	groupbox:AddSlider("MinimumLoggerDistance", {
 		Text = "Minimum Logger Distance",
