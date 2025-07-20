@@ -28,7 +28,7 @@ return function(self, timing)
 		return self:action(timing, action)
 	end
 
-	plistener:callback(function(child)
+	plistener:connect(function(child)
 		if child.Name ~= "IceDagger" then
 			return
 		end
