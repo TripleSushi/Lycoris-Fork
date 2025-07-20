@@ -8,7 +8,7 @@ return function(self, timing)
 	if not self.entity.Name:match("mecha") then
 		local action = Action.new()
 		action._when = 600
-		action._type = "Dodge"
+		action._type = "Forced Full Dodge"
 		action.hitbox = Vector3.new(15, 70, 20)
 		action.name = "Normal Kick Timing"
 		return self:action(timing, action)

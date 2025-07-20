@@ -773,7 +773,7 @@ end)
 ---@param timing Timing
 Defender.actions = LPH_NO_VIRTUALIZE(function(self, timing)
 	for _, action in next, timing.actions:get() do
-		self:action(timing, action, false)
+		self:action(timing, action)
 	end
 end)
 

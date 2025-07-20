@@ -46,9 +46,6 @@ return LPH_NO_VIRTUALIZE(function()
 	---@module Utility.Logger
 	local Logger = require("Utility/Logger")
 
-	---@module Utility.OriginalStoreManager
-	local OriginalStoreManager = require("Utility/OriginalStoreManager")
-
 	-- Signals.
 	local renderStepped = Signal.new(runService.RenderStepped)
 
@@ -121,7 +118,6 @@ return LPH_NO_VIRTUALIZE(function()
 				or {
 					owned = isNetworkOwner,
 					model = model,
-					map = OriginalStoreManager.new(),
 				}
 
 			-- Update part data.

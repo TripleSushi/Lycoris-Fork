@@ -5,12 +5,16 @@ local Action = getfenv().Action
 ---@param self AnimatorDefender
 ---@param timing AnimationTiming
 return function(self, timing)
-	for idx = 1, 2 do
+	for idx = 0, 1 do
 		local action = Action.new()
-		action._when = 500 + (idx * 600)
+		action._when = 400
 		action._type = "Parry"
 		action.hitbox = Vector3.new(40, 40, 40)
 		action.name = "Dynamic Crocco Timing"
+
+		if idx == 1 then
+			action._when = 1100
+		end
 
 		if self.entity.Name:match("king") then
 			action.hitbox *= 2.0
