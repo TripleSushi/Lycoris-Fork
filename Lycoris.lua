@@ -169,7 +169,7 @@ function Lycoris.init()
 		end
 
 		-- Auto-save.
-		local success, result = SaveManager.autosave()
+		local initial, result = SaveManager.autosave()
 
 		-- Make a marker to show that we were able to autosave properly.
 		pcall(function()
@@ -178,7 +178,7 @@ function Lycoris.init()
 				string.format(
 					"%s : %s the config file '%s' with result %i after player removal.",
 					DateTime.now():FormatLocalTime("LLLL", "en-us"),
-					success and "Successfully saved" or "Failed to save",
+					initial and "(1) Attempted to save" or "(2) Attempted to save",
 					SaveManager.llcn or "N/A",
 					result
 				)
