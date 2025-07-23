@@ -88,6 +88,47 @@ local hasNonBooleans = LPH_NO_VIRTUALIZE(function(tbl)
 	return true
 end)
 
+---Get amount of entries in table.
+---@param tbl table
+local getTableLength = LPH_NO_VIRTUALIZE(function(tbl)
+	local count = 0
+
+	for _ in next, tbl do
+		count = count + 1
+	end
+
+	return count
+end)
+
+---Validate keys.
+---@param tbl table
+local validateKeys = LPH_NO_VIRTUALIZE(function(tbl)
+	local allowedKeys = {
+		["Left"] = true,
+		["Right"] = true,
+		["W"] = true,
+		["A"] = true,
+		["S"] = true,
+		["D"] = true,
+		["Thumbstick1"] = true,
+		["C"] = true,
+		["f"] = true,
+		["H"] = true,
+		["Space"] = true,
+		["ctrl"] = true,
+	}
+
+	for key, _ in next, tbl do
+		if allowedKeys[key] then
+			continue
+		end
+
+		return false
+	end
+
+	return true
+end)
+
 ---Fetch last roll move direction.
 ---@return Vector3?
 InputClient.getLastRollMoveDirection = LPH_NO_VIRTUALIZE(function()
@@ -154,6 +195,10 @@ InputClient.getInputData = LPH_NO_VIRTUALIZE(function()
 			end
 
 			if not hasNonBooleans(upvalue) then
+				continue
+			end
+
+			if getTableLength(upvalue) >= 1 and not validateKeys(upvalue) then
 				continue
 			end
 

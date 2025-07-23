@@ -255,6 +255,12 @@ function CombatTab.initCombatAssistance(groupbox)
 		Default = false,
 	})
 
+	groupbox:AddToggle("EasyMantraFeint", {
+		Text = "Easy Mantra Feint",
+		Default = false,
+		Tooltip = "Automatically left click when attempting to feint a mantra.",
+	})
+
 	groupbox:AddToggle("M1Hold", {
 		Text = "M1 Hold",
 		Default = false,

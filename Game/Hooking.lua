@@ -53,6 +53,24 @@ local INPUT_RIGHT_CLICK = 2
 ---@param type number
 ---@param block boolean
 local function onInterceptedInput(type, block)
+	local effectReplicator = replicatedStorage:FindFirstChild("EffectReplicator")
+	if not effectReplicator then
+		return
+	end
+
+	local effectReplicatorModule = require(effectReplicator)
+	if not effectReplicatorModule then
+		return
+	end
+
+	if
+		Configuration.expectToggleValue("EasyMantraFeint")
+		and type == INPUT_RIGHT_CLICK
+		and effectReplicatorModule:FindEffect("CastingSpell")
+	then
+		InputClient.left()
+	end
+
 	if not Configuration.expectToggleValue("AutoFlowState") then
 		return
 	end
@@ -78,16 +96,6 @@ local function onInterceptedInput(type, block)
 
 	local flowStateRemote = flowStateTool:FindFirstChild("ActivateRt")
 	if not flowStateRemote then
-		return
-	end
-
-	local effectReplicator = replicatedStorage:FindFirstChild("EffectReplicator")
-	if not effectReplicator then
-		return
-	end
-
-	local effectReplicatorModule = require(effectReplicator)
-	if not effectReplicatorModule then
 		return
 	end
 

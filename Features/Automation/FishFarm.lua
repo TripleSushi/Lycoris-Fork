@@ -76,6 +76,7 @@ local function updateFishFarm()
 		return
 	end
 
+	---@todo: add fish meat lol
 	local baitTable = {
 		"Plumfruit",
 		"Pomar",

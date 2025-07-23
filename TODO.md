@@ -81,7 +81,7 @@
     - Loot all option
     - Easy to be built into other modules
 - Finish "Echo Farm"
-- No Blur -> fix for no water
+- Auto Ragdoll Recover
 
 # What moves do we need to add?
 https://docs.google.com/spreadsheets/d/1jcZFsSF5iSfbYryL9edl5B_r34tlMo0HPwoFqKiPps4/edit?gid=1386834576#gid=1386834576
