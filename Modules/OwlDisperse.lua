@@ -26,7 +26,7 @@ return function(self, timing)
 	timing.fhb = false
 	timing.duih = true
 	timing.rpue = true
-	timing.imxd = 100
+	timing.imxd = 300
 	timing._rsd = (duration / 2.5) * 1000
 	timing._rpd = 250
 	timing.hitbox = Vector3.new(100, 100, 100)

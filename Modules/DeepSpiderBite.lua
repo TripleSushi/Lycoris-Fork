@@ -8,7 +8,7 @@ return function(self, timing)
 	local speed = self.track.Speed
 	local action = Action.new()
 	action._when = 400
-	action._type = "Parry"
+	action._type = "Dodge"
 	action.hitbox = Vector3.new(40, 40, 40)
 	action.name = string.format("(%.2f) Dynamic Spider Timing", speed)
 
