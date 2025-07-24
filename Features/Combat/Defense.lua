@@ -223,7 +223,10 @@ end)
 ---@param position number
 ---@param str string
 local hssp = LPH_NO_VIRTUALIZE(function(position, str)
-	if lastAutoWispUpdate and os.clock() - lastAutoWispUpdate <= Configuration.expectToggleValue("AutoWispDelay") then
+	if
+		lastAutoWispUpdate
+		and os.clock() - lastAutoWispUpdate <= (Configuration.expectOptionValue("AutoWispDelay") or 0)
+	then
 		return Logger.warn(
 			"(%.2f - %.2f = %.2f vs. %.2f) Auto Wisp is on cooldown.",
 			os.clock(),
