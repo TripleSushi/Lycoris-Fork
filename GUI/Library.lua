@@ -2519,10 +2519,10 @@ return LPH_NO_VIRTUALIZE(function()
 				end
 
 				if Input.KeyCode == Enum.KeyCode.Minus then
-					CurrentAmount = CurrentAmount / 10
+					CurrentAmount = math.max(CurrentAmount / 10, 0.00001)
 				end
 
-				if Input.KeyCode == Enum.KeyCode.Equals then
+				if Input.KeyCode == Enum.KeyCode.Equals and (CurrentAmount * 10) <= Slider.Max then
 					CurrentAmount = CurrentAmount * 10
 				end
 
