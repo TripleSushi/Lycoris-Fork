@@ -84,8 +84,6 @@
     - Easy to be built into other modules
 - Finish "Echo Farm"
 - Auto Ragdoll Recover
-- Make the Player Proximity notification stay there until they're out of your proximity -juan
-- Make Player Proximity include their ingame name "pizzalover69 (Winter Olaf) blah blah -juan
 - Make chat include their ingame name "Juanito (Winter Olaf):" -juan
 - Add a check if a non-humanoid is block broken and to stop parrying -juan
 
