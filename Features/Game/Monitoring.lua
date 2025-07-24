@@ -60,7 +60,7 @@ return LPH_NO_VIRTUALIZE(function()
 		local spoofName = Configuration.expectToggleValue("InfoSpoofing")
 			and Configuration.expectToggleValue("SpoofOtherPlayers")
 
-		return spoofName and "[REDACTED]" or player.Name
+		return spoofName and "[REDACTED]" or string.format("%s (%s)", player:GetAttribute("CharacterName"), player.Name)
 	end
 
 	---On spectate input began.
@@ -168,19 +168,20 @@ return LPH_NO_VIRTUALIZE(function()
 
 		-- Handle monitoring.
 		for player, _ in next, Monitoring.seen do
-			-- Check if the player is in range.
 			local isInPlayerRange = table.find(playersInRange, player)
 			if isInPlayerRange then
 				continue
 			end
 
-			Logger.notify("%s is now outside of your proximity radius.", fetchName(player))
+			local removeNotification = Monitoring.seen[player]
+
+			removeNotification()
 
 			Monitoring.seen[player] = nil
 		end
 
 		for _, player in next, playersInRange do
-			if Monitoring.seen[player] then
+			if Monitoring.seen[player] ~= nil then
 				continue
 			end
 
@@ -191,9 +192,8 @@ return LPH_NO_VIRTUALIZE(function()
 				continue
 			end
 
-			Logger.notify("%s entered your proximity radius of %i studs.", fetchName(player), proximityRange)
-
-			Monitoring.seen[player] = true
+			Monitoring.seen[player] =
+				Logger.mnnotify("%s entered your proximity radius of %i studs.", fetchName(player), proximityRange)
 
 			if Configuration.expectToggleValue("PlayerProximityBeep") then
 				beepSound.SoundId = "rbxassetid://100849623977896"

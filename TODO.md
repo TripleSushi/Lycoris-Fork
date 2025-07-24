@@ -69,10 +69,12 @@
 - Talent Highlighter -> Build Assistance
     - For traits: red if exceeded or none, green if keep going
     - For mantras: red if not in build, green if in
-    - Clean up talents
+    - For attributes: red if exceeded or none, green if keep going + shrine of order detection
+    - Clean up talent visual
     - Have it work across all types of places that use talent cards
 - Finish "Auto Fish"
-    - Auto Eat + Get Food At Guildbase
+    - Auto Eat
+    - Get Food At Guildbase
     - Server Hop If Players Nearby
     - Webhook Notification
     - Incorporate Auto Loot
@@ -82,8 +84,6 @@
     - Easy to be built into other modules
 - Finish "Echo Farm"
 - Auto Ragdoll Recover
-- Make the Player Proximity notification stay there until they're out of your proximity -juan
-- Make Player Proximity include their ingame name "pizzalover69 (Winter Olaf) blah blah -juan
 - Make chat include their ingame name "Juanito (Winter Olaf):" -juan
 - Add a check if a non-humanoid is block broken and to stop parrying -juan
 

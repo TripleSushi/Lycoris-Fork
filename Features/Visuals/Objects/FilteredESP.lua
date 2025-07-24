@@ -2,7 +2,7 @@
 local Configuration = require("Utility/Configuration")
 
 ---@class FilteredESP
----@note: This is a wrapper object
+---@note: This is a wrapper object.
 ---@field object ModelESP|PartESP
 ---@field identifier string
 ---@field delayTimestamp number?

@@ -13,6 +13,13 @@ return LPH_NO_VIRTUALIZE(function()
 		return string.format("[%s %s] [Lycoris Recode]: %s", os.date("%x"), os.date("%X"), str)
 	end
 
+	---Create a manually managed notification.
+	---@param str string
+	---@return function
+	function Logger.mnnotify(str, ...)
+		return Library:ManuallyManagedNotify(string.format(str, ...))
+	end
+
 	---Notify message with a default short cooldown to create consistent cooldowns between files.
 	---@param str string
 	function Logger.notify(str, ...)
