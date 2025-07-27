@@ -509,7 +509,7 @@ local onNameCall = LPH_NO_VIRTUALIZE(function(...)
 	end
 
 	---@note: Fix object if we're using a lighting template.
-	local lightingTemplate = args[3]
+	local lightingTemplate = args[4]
 
 	if
 		getnamecallmethod() == "Create"
@@ -520,12 +520,10 @@ local onNameCall = LPH_NO_VIRTUALIZE(function(...)
 		if Configuration.expectToggleValue("NoFog") then
 			lightingTemplate["FogStart"] = 9e9
 			lightingTemplate["FogEnd"] = 9e9
-			args[2] = TweenInfo.new(0.0)
 		end
 
 		if Configuration.expectToggleValue("ModifyAmbience") then
 			lightingTemplate["Ambient"] = modifyAmbienceColor(lightingTemplate["Ambient"])
-			args[2] = TweenInfo.new(0.0)
 		end
 
 		return oldNameCall(unpack(args))

@@ -62,6 +62,7 @@
 - Work on all the ---@todo comments.
 - Figure out lag-compensation for PartDefenders.
 - Chaser tween to objective + tween to nearest instead
+- Ethiron tween to objective
 - Figure out later how to match projectiles to users.
 - Config data shuffling + encoding
 - Create a scale utility which will calculate how far along a hitbox you are with a percentage. Each percentage will have markers which will determine what time we need to parry at.
@@ -87,7 +88,14 @@
 - Finish "Echo Farm"
 - Auto Ragdoll Recover
 - Hitbox Visualizer
+- Chaser Multi Player Support
+- Hide Obelisks That Are Already Turned On
+- Bone Altar ESP + Hide Altars With Bones
 - PVP Safety
+- Fix FOV
+- Fix No Fog
+- Fix Username Check + Add Ignore Players
+- Depths Cathedral TP
 
 # What moves do we need to add?
 https://docs.google.com/spreadsheets/d/1jcZFsSF5iSfbYryL9edl5B_r34tlMo0HPwoFqKiPps4/edit?gid=1386834576#gid=1386834576
