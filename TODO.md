@@ -102,9 +102,7 @@
 - Fix FOV   
 - Fix Username Check + Add Ignore Players
 - Depths Cathedral TP
-- Mob AI breaker
-- Detect Dungeon and not load in Teleports
-- Fix Lionfish Beam
+
 
 # What moves do we need to add?
 https://docs.google.com/spreadsheets/d/1jcZFsSF5iSfbYryL9edl5B_r34tlMo0HPwoFqKiPps4/edit?gid=1386834576#gid=1386834576

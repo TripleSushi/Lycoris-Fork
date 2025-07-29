@@ -60,7 +60,8 @@ return LPH_NO_VIRTUALIZE(function()
 		local spoofName = Configuration.expectToggleValue("InfoSpoofing")
 			and Configuration.expectToggleValue("SpoofOtherPlayers")
 
-		return spoofName and "[REDACTED]" or string.format("(%s) %s", player:GetAttribute("CharacterName") or "Unknown Character Name", player.Name)
+		return spoofName and "[REDACTED]"
+			or string.format("(%s) %s", player:GetAttribute("CharacterName") or "Unknown Character Name", player.Name)
 	end
 
 	---On spectate input began.
