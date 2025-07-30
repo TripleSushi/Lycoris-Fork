@@ -1,8 +1,11 @@
+---@module Features.Combat.Objects.RepeatInfo
+local RepeatInfo = require("Features/Combat/Objects/RepeatInfo")
+
 ---Module function.
 ---@param self AnimatorDefender
 ---@param timing AnimationTiming
 return function(self, timing)
-	self:hook("rc", function()
+	self:hook("rc", function(_)
 		local center = self.entity:FindFirstChild("IceBladeCenter")
 		if not center then
 			return
@@ -24,5 +27,5 @@ return function(self, timing)
 	timing._rsd = 750
 	timing._rpd = 150
 	timing.hitbox = Vector3.new(20, 20, 20)
-	self:crpue(self.entity, nil, timing, 0, os.clock())
+	self:rpue(self.entity, timing, RepeatInfo.new(timing))
 end

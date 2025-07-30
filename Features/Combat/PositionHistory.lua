@@ -29,7 +29,7 @@ end
 
 ---Get closest position (in time) to a timestamp.
 ---@param timestamp number
----@return Vector3
+---@return CFrame?
 function PositionHistory.closest(timestamp)
 	local closestDelta = nil
 	local closestPosition = nil

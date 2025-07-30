@@ -4,8 +4,11 @@ local Defender = require("Features/Combat/Objects/Defender")
 ---@module Game.Timings.SaveManager
 local SaveManager = require("Game/Timings/SaveManager")
 
----@module Features.Combat.Targeting
-local Targeting = require("Features/Combat/Targeting")
+---@module Features.Combat.Objects.RepeatInfo
+local RepeatInfo = require("Features/Combat/Objects/RepeatInfo")
+
+---@module Features.Combat.Objects.HitboxOptions
+local HitboxOptions = require("Features/Combat/Objects/HitboxOptions")
 
 ---@class EffectDefender: Defender
 ---@field owner Model The owner of the effect.
@@ -42,8 +45,12 @@ EffectDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 		return self:notify(timing, "No character found.")
 	end
 
-	if not self:hc(humanoidRootPart, timing, action, { players.LocalPlayer.Character }, nil) then
-		return false
+	local options = HitboxOptions.new(humanoidRootPart, timing, { character })
+	options.spredict = false
+	options.action = action
+
+	if not self:hc(options, timing.rpue and RepeatInfo.new(timing) or nil) then
+		return self:notify(timing, "Not in hitbox.")
 	end
 
 	return true

@@ -1,6 +1,9 @@
 ---@module Modules.Globals.Waiter
 local Waiter = getfenv().Waiter
 
+---@module Features.Combat.Objects.RepeatInfo
+local RepeatInfo = require("Features/Combat/Objects/RepeatInfo")
+
 ---Module function.
 ---@param self AnimatorDefender
 ---@param timing AnimationTiming
@@ -23,5 +26,7 @@ return function(self, timing)
 	timing.hitbox = Vector3.new(60, 20, 60)
 
 	local track = Waiter.fet("rbxassetid://10622235550", animator)
-	self:crpue(self.entity, track, timing, 0, os.clock())
+	local info = RepeatInfo.new(timing)
+	info.track = track
+	self:rpue(self.entity, timing, info)
 end

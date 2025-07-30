@@ -32,6 +32,12 @@ local Targeting = require("Features/Combat/Targeting")
 ---@module Game.Timings.PartTiming
 local PartTiming = require("Game/Timings/PartTiming")
 
+---@module Features.Combat.Objects.HitboxOptions
+local HitboxOptions = require("Features/Combat/Objects/HitboxOptions")
+
+---@module Features.Combat.Objects.RepeatInfo
+local RepeatInfo = require("Features/Combat/Objects/RepeatInfo")
+
 ---@module Utility.Maid
 local Maid = require("Utility/Maid")
 
@@ -82,6 +88,8 @@ function ModuleManager.load(tfs, global)
 		getfenv(lf).Entitites = Entitites
 		getfenv(lf).Targeting = Targeting
 		getfenv(lf).Logger = Logger
+		getfenv(lf).HitboxOptions = HitboxOptions
+		getfenv(lf).RepeatInfo = RepeatInfo
 
 		-- Load globals if we should.
 		for name, entry in next, (not global) and ModuleManager.globals or {} do

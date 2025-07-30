@@ -7,6 +7,9 @@ local Timing = getfenv().Timing
 ---@module Modules.Globals.Waiter
 local Waiter = getfenv().Waiter
 
+---@module Features.Combat.Objects.RepeatInfo
+local RepeatInfo = require("Features/Combat/Objects/RepeatInfo")
+
 ---Module function.
 ---@param self AnimatorDefender
 ---@param timing AnimationTiming
@@ -53,10 +56,13 @@ return function(self, timing)
 
 	local startTimestamp = os.clock()
 
+	local info = RepeatInfo.new(timing)
+	info.track = track
+
 	---@todo: Move to 'rc'
 	self:hook("stopped", function(...)
 		return os.clock() - startTimestamp >= 1.5
 	end)
 
-	self:crpue(self.entity, track, timing, 0, os.clock())
+	self:rpue(self.entity, timing, info)
 end
