@@ -28,6 +28,12 @@ local Targeting = require("Features/Combat/Targeting")
 ---@module Features.Combat.PositionHistory
 local PositionHistory = require("Features/Combat/PositionHistory")
 
+---@module Features.Combat.Objects.RepeatInfo
+local RepeatInfo = require("Features/Combat/Objects/RepeatInfo")
+
+---@module Features.Combat.Objects.HitboxOptions
+local HitboxOptions = require("Features/Combat/Objects/HitboxOptions")
+
 ---@class Defender
 ---@field tasks Task[]
 ---@field tmaid Maid Cleaned up every clean cycle.
@@ -50,11 +56,6 @@ local textChatService = game:GetService("TextChatService")
 -- Constants.
 local MAX_VISUALIZATION_TIME = 5.0
 local MAX_REPEAT_WAIT = 10.0
-
--- Enums.
-local HIT_DETECTION_MISS = 0
-local HIT_DETECTION_HISTORY = 1
-local HIT_DETECTION_OK = 2
 
 ---Log a miss to the UI library with distance check.
 ---@param type string
@@ -111,52 +112,6 @@ function Defender:distance(from)
 	return (entRootPart.Position - localRootPart.Position).Magnitude
 end
 
----Call RPUE function.
----@param self Defender
----@param entity Model
----@param track AnimationTrack?
----@param timing Timing
----@param index number
----@param start number
-Defender.crpue = LPH_NO_VIRTUALIZE(function(self, entity, track, timing, index, start)
-	-- Check if we're in the initial condition.
-	local initial = index == 0
-
-	-- Fetch delay depending on if we're on the initial condition or not.
-	local tdelay = initial and timing:rsd() or timing:rpd()
-
-	-- Spawn task.
-	self:mark(
-		Task.new(
-			string.format("RPUE_%s_%i", timing.name, index),
-			tdelay - self.ping(),
-			timing.punishable,
-			timing.after,
-			self.rpue,
-			self,
-			entity,
-			track,
-			timing,
-			index,
-			start
-		)
-	)
-
-	-- Don't notify if we're not on the initial condition.
-	if not initial then
-		return
-	end
-
-	-- Notify.
-	self:notify(
-		timing,
-		"Added RPUE '%s' (%.2fs, then every %.2fs) with relevant ping subtracted.",
-		timing.name,
-		timing:rsd(),
-		timing:rpd()
-	)
-end)
-
 ---Find target - hookable function.
 ---@param self Defender
 ---@param entity Model
@@ -168,11 +123,9 @@ end)
 ---Repeat until parry end.
 ---@param self Defender
 ---@param entity Model
----@param track AnimationTrack?
 ---@param timing Timing
----@param index number
----@param start number
-Defender.rpue = LPH_NO_VIRTUALIZE(function(self, entity, track, timing, index, start)
+---@param info RepeatInfo
+Defender.rpue = LPH_NO_VIRTUALIZE(function(self, entity, timing, info)
 	local distance = self:distance(entity)
 	if not distance then
 		return Logger.warn("Stopping RPUE '%s' because the distance is not valid.", timing.name)
@@ -182,14 +135,33 @@ Defender.rpue = LPH_NO_VIRTUALIZE(function(self, entity, track, timing, index, s
 		return self:notify(timing, "Distance is out of range.")
 	end
 
-	if not self:rc(timing, start, track) then
+	if not self:rc(info) then
 		return Logger.warn("Stopping RPUE '%s' because the repeat condition is not valid.", timing.name)
 	end
 
 	local target = self:target(entity)
-	local success = target and self:hc(target.root, timing, nil, { players.LocalPlayer.Character }, nil)
 
-	self:crpue(entity, track, timing, index + 1, start)
+	local options = HitboxOptions.new(CFrame.zero, timing)
+	options.spredict = true
+	options.part = target and target.root
+
+	local success = target and self:hc(options, timing.rpue and RepeatInfo.new(timing) or nil)
+
+	info.index = info.index + 1
+
+	self:mark(
+		Task.new(
+			string.format("RPUE_%s_%i", timing.name, info.index),
+			timing:rpd() - self.ping(),
+			timing.punishable,
+			timing.after,
+			self.rpue,
+			self,
+			self.entity,
+			timing,
+			info
+		)
+	)
 
 	if not target then
 		return Logger.warn("Skipping RPUE '%s' because the target is not valid.", timing.name)
@@ -199,7 +171,7 @@ Defender.rpue = LPH_NO_VIRTUALIZE(function(self, entity, track, timing, index, s
 		return Logger.warn("Skipping RPUE '%s' because we are not in the hitbox.", timing.name)
 	end
 
-	self:notify(timing, "(%i) Action 'RPUE Parry' is being executed.", index)
+	self:notify(timing, "(%i) Action 'RPUE Parry' is being executed.", info.index)
 
 	InputClient.parry()
 end)
@@ -307,9 +279,7 @@ end)
 
 ---Run hitbox check. Returns wheter if the hitbox is being touched.
 ---@todo: Add extrapolation for the other player to compensate for their next position in the future.
----@todo: Add a check to see if the player was looking at us in the last 0.25 seconds aswell.
---- An issue is that the player's current look vector will not be the same as when they attack due to a parry timing being seperate from the attack;
---- causing this check to fail.
+---@todo: An issue is that the player's current look vector will not be the same as when they attack due to a parry timing being seperate from the attack causing this check to fail.
 ---@param self Defender
 ---@param cframe CFrame
 ---@param fd boolean
@@ -339,23 +309,11 @@ Defender.hitbox = LPH_NO_VIRTUALIZE(function(self, cframe, fd, size, filter, ide
 		usedCFrame = usedCFrame * CFrame.new(0, 0, -(size.Z / 2))
 	end
 
-	-- Current hit detection result.
-	local hdr = HIT_DETECTION_MISS
-
-	if #workspace:GetPartBoundsInBox(usedCFrame, size, overlapParams) > 0 then
-		hdr = HIT_DETECTION_OK
-	end
+	-- Detect hit.
+	local hit = #workspace:GetPartBoundsInBox(usedCFrame, size, overlapParams) > 0
 
 	-- Visualize color.
-	local visColor = Color3.fromRGB(255, 0, 0)
-
-	if hdr == HIT_DETECTION_OK then
-		visColor = Color3.fromRGB(0, 255, 0)
-	end
-
-	if hdr == HIT_DETECTION_HISTORY then
-		visColor = Color3.fromRGB(255, 0, 255)
-	end
+	local visColor = hit and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
 
 	-- Create visualization part if it doesn't exist.
 	if not self.vpart then
@@ -398,7 +356,8 @@ Defender.hitbox = LPH_NO_VIRTUALIZE(function(self, cframe, fd, size, filter, ide
 	-- Set timestamp.
 	self.lvisualization = os.clock()
 
-	return hdr ~= HIT_DETECTION_MISS
+	-- Return reuslt.
+	return hit
 end)
 
 ---Check initial state.
@@ -471,72 +430,95 @@ function Defender.ping()
 end
 
 ---Repeat conditional.
----@param timing Timing
----@param start number
+---@param self Defender
+---@param info RepeatInfo
 ---@return boolean
-Defender.rc = LPH_NO_VIRTUALIZE(function(_, timing, start, _)
-	if os.clock() - start >= MAX_REPEAT_WAIT then
+Defender.rc = LPH_NO_VIRTUALIZE(function(self, info)
+	if os.clock() - info.start >= MAX_REPEAT_WAIT then
 		return false
 	end
 
 	return true
 end)
 
----Handle hitbox check and delay until in hitbox.
+---Handle delay until in hitbox.
 ---@param self Defender
----@param partOrCframe Part|CFrame
----@param timing Timing|EffectTiming|AnimationTiming
----@param action Action?
----@param filter Instance[]
----@param track AnimationTrack?
+---@param options HitboxOptions
+---@param info RepeatInfo
 ---@return boolean
-Defender.hc = LPH_NO_VIRTUALIZE(function(self, partOrCframe, timing, action, filter, track)
-	local start = os.clock()
+Defender.duih = LPH_NO_VIRTUALIZE(function(self, options, info)
+	while task.wait() do
+		if not self:rc(info) then
+			return false
+		end
+
+		if not self:hc(options, nil) then
+			continue
+		end
+
+		return true
+	end
+end)
+
+---Handle hitbox check options.
+---@param self Defender
+---@param options HitboxOptions
+---@param info RepeatInfo? Pass this in if you want to use the repeat until in hitbox conditional.
+---@return boolean
+Defender.hc = LPH_NO_VIRTUALIZE(function(self, options, info)
+	local action = options.action
+	local timing = options.timing
 
 	if action and action.ihbc then
 		return true
 	end
 
-	---@note: We check for 'fhb' here even though the base timing may not have it.
-	while timing.duih and not timing.rpue do
-		if not self:rc(timing, start, track) then
-			return false
-		end
-
-		if
-			self:hitbox(
-				typeof(partOrCframe) == "Instance" and partOrCframe.CFrame or partOrCframe,
-				timing.fhb,
-				timing.hitbox,
-				filter,
-				timing.name
-			)
-		then
-			return true
-		end
-
-		task.wait()
+	if info then
+		return self:duih(options, info)
 	end
 
-	local uh = action and action.hitbox or timing.hitbox
-	if not uh then
+	local result =
+		self:hitbox(options:pos(), timing.fhb, action and action.hitbox or timing.hitbox, options.filter, timing.name)
+
+	if result or not options.spredict then
+		return result
+	end
+
+	local character = players.LocalPlayer.Character
+	if not character then
 		return false
 	end
 
-	local shouldUseHitboxCheck = (timing.duih and timing.rpue) or not timing.duih
-
-	if
-		shouldUseHitboxCheck
-		and not self:hitbox(
-			typeof(partOrCframe) == "Instance" and partOrCframe.CFrame or partOrCframe,
-			timing.fhb,
-			uh,
-			filter,
-			timing.name
-		)
-	then
+	local root = character:FindFirstChild("HumanoidRootPart")
+	if not root then
 		return false
 	end
+
+	local closest = PositionHistory.closest(tick() - self.ping())
+	if not closest then
+		return false
+	end
+
+	local oldCFrame = root.CFrame
+
+	root.CFrame = closest
+
+	result = self:hitbox(
+		options:extrapolate(self.ping()),
+		timing.fhb,
+		action and action.hitbox or timing.hitbox,
+		options.filter,
+		timing.name
+	)
+
+	root.CFrame = oldCFrame
+
+	if not result then
+		return false
+	end
+
+	self.vpart.Color = Color3.fromRGB(255, 0, 255)
+	self.ppart.Color = Color3.fromRGB(255, 0, 255)
 
 	return true
 end)
@@ -589,6 +571,16 @@ Defender.handle = LPH_NO_VIRTUALIZE(function(self, timing, action)
 
 	if action._type == "End Block" then
 		return self:bend()
+	end
+
+	if action._type == "Dodge" and action._type == "Forced Full Dodge" then
+		if effectReplicatorModule:FindEffect("DodgeCool") then
+			return self:notify(timing, "Action group 'Dodge' blocked because of 'DodgeCool' effect.")
+		end
+
+		if effectReplicatorModule:FindEffect("Stun") then
+			return self:notify(timing, "Action group 'Dodge' blocked because of 'Stun' effect.")
+		end
 	end
 
 	if action._type == "Dodge" then

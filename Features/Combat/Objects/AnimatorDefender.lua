@@ -19,6 +19,15 @@ local PlaybackData = require("Game/Timings/PlaybackData")
 ---@module Game.InputClient
 local InputClient = require("Game/InputClient")
 
+---@module Features.Combat.Objects.RepeatInfo
+local RepeatInfo = require("Features/Combat/Objects/RepeatInfo")
+
+---@module Features.Combat.Objects.HitboxOptions
+local HitboxOptions = require("Features/Combat/Objects/HitboxOptions")
+
+---@module Features.Combat.Objects.Task
+local Task = require("Features/Combat/Objects/Task")
+
 ---@class AnimatorDefender: Defender
 ---@field animator Animator
 ---@field entity Model
@@ -58,26 +67,24 @@ end)
 
 ---Repeat conditional. Extra parameter 'track' added on.
 ---@param self AnimatorDefender
----@param timing AnimationTiming
----@param start number
----@param track AnimationTrack?
+---@param info RepeatInfo
 ---@return boolean
-AnimatorDefender.rc = LPH_NO_VIRTUALIZE(function(self, timing, start, track)
+AnimatorDefender.rc = LPH_NO_VIRTUALIZE(function(self, info)
 	---@note: There are cases where we might not have a track. If it's not handled properly, it will throw an error.
 	-- Perhaps, the animation can end and we're handling a different repeat conditional.
-	if not track then
+	if not info.track then
 		return Logger.warn(
 			"(%s) Did you forget to pass the track? Or perhaps you forgot to place a hook before using this function.",
-			timing.name
+			info.timing.name
 		)
 	end
 
-	if self:stopped(track, timing) then
+	if self:stopped(info.track, info.timing) then
 		return false
 	end
 
-	if timing.iae and timing.ieae and os.clock() - start >= MAX_REPEAT_TIME then
-		return self:notify(timing, "Max repeat time exceeded.")
+	if info.timing.iae and info.timing.ieae and os.clock() - info.start >= MAX_REPEAT_TIME then
+		return self:notify(info.timing, "Max repeat time exceeded.")
 	end
 
 	return true
@@ -152,7 +159,14 @@ AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 		return false
 	end
 
-	if not self:hc(root, timing, action, { character }, self.track) then
+	local options = HitboxOptions.new(root, timing)
+	options.spredict = true
+	options.action = action
+
+	local info = RepeatInfo.new(timing)
+	info.track = self.track
+
+	if not self:hc(options, timing.rpue and info or nil) then
 		return self:notify(timing, "Not in hitbox.")
 	end
 
@@ -195,17 +209,6 @@ function AnimatorDefender:pvalidate(track)
 	local isComingFromPlayer = players:GetPlayerFromCharacter(self.entity)
 
 	if isComingFromPlayer and track.WeightTarget <= 0.05 then
-		--[[
-		Logger.warn(
-			"Animation %s is being skipped from player %s with speed %.2f and weight-target %.2f. It is hidden.",
-			track.Animation.AnimationId,
-			self.entity.Name,
-			track.WeightTarget,
-			track.Speed
-		)
-		]]
-		--
-
 		return false
 	end
 
@@ -307,7 +310,31 @@ AnimatorDefender.process = LPH_NO_VIRTUALIZE(function(self, track)
 	end
 
 	-- Start RPUE.
-	self:crpue(self.entity, track, timing, 0, os.clock())
+	local info = RepeatInfo.new(timing)
+	info.track = track
+
+	self:mark(
+		Task.new(
+			string.format("RPUE_%s_%i", timing.name, 0),
+			timing:rsd() - self.ping(),
+			timing.punishable,
+			timing.after,
+			self.rpue,
+			self,
+			self.entity,
+			timing,
+			info
+		)
+	)
+
+	-- Notify.
+	self:notify(
+		timing,
+		"Added RPUE '%s' (%.2fs, then every %.2fs) with relevant ping subtracted.",
+		timing.name,
+		timing:rsd(),
+		timing:rpd()
+	)
 end)
 
 ---Clean up the defender.

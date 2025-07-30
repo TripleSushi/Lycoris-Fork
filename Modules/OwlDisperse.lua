@@ -1,6 +1,9 @@
 ---@module Utility.Logger
 local Logger = getfenv().Logger
 
+---@module Features.Combat.Objects.RepeatInfo
+local RepeatInfo = require("Features/Combat/Objects/RepeatInfo")
+
 ---Module function.
 ---@param self EffectDefender
 ---@param timing EffectTiming
@@ -15,8 +18,8 @@ return function(self, timing)
 		return
 	end
 
-	self:hook("rc", function(_, _, start, _)
-		if os.clock() - start >= (duration + 0.2) then
+	self:hook("rc", function(info)
+		if os.clock() - info.start >= (duration + 0.2) then
 			return Logger.warn("(%.2f) Stopping RPUE '%s' because we've went past the duration.", duration, timing.name)
 		end
 
@@ -30,5 +33,5 @@ return function(self, timing)
 	timing._rsd = (duration / 2.5) * 1000
 	timing._rpd = 250
 	timing.hitbox = Vector3.new(100, 100, 100)
-	self:crpue(owner, nil, timing, 0, os.clock())
+	self:rpue(self.entity, timing, RepeatInfo.new(timing))
 end

@@ -13,6 +13,10 @@ local function hasNetworkOwnership(part)
 		return isnetworkowner(part)
 	end
 
+	if getexecutorname():match("Volcano") then
+		return isnetworkowner(part)
+	end
+
 	local success, partPeerId = pcall(function()
 		return gethiddenproperty(part, "NetworkOwnerV3")
 	end)

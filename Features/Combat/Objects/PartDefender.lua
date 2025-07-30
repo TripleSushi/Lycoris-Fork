@@ -4,6 +4,12 @@ local Defender = require("Features/Combat/Objects/Defender")
 ---@module Game.Timings.SaveManager
 local SaveManager = require("Game/Timings/SaveManager")
 
+---@module Features.Combat.Objects.RepeatInfo
+local RepeatInfo = require("Features/Combat/Objects/RepeatInfo")
+
+---@module Features.Combat.Objects.HitboxOptions
+local HitboxOptions = require("Features/Combat/Objects/HitboxOptions")
+
 ---@class PartDefender: Defender
 ---@field part BasePart
 ---@field timing PartTiming
@@ -16,8 +22,6 @@ PartDefender.__type = "Part"
 local players = game:GetService("Players")
 
 ---Get CFrame.
----@note: Lag compensation of some kind? Maybe extrapolation.
----@todo: Have initial facing angle -> replace the direction of the part.
 ---@param self PartDefender
 ---@return CFrame
 PartDefender.cframe = LPH_NO_VIRTUALIZE(function(self)
@@ -39,8 +43,12 @@ PartDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 		return self:notify(timing, "No character found.")
 	end
 
-	if not self.timing.duih and not self:hc(self:cframe(), timing, action, { character }, nil) then
-		return false
+	local options = HitboxOptions.new(self:cframe(), timing)
+	options.spredict = false
+	options.action = action
+
+	if not self.timing.duih and not self:hc(options, timing.rpue and RepeatInfo.new(timing) or nil) then
+		return self:notify(timing, "Not in hitbox.")
 	end
 
 	return true

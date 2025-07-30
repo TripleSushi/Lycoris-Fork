@@ -1,6 +1,9 @@
 ---@module Game.Timings.Action
 local Action = getfenv().Action
 
+---@module Features.Combat.Objects.RepeatInfo
+local RepeatInfo = require("Features/Combat/Objects/RepeatInfo")
+
 ---Module function.
 ---@param self AnimatorDefender
 ---@param timing AnimationTiming
@@ -24,6 +27,6 @@ return function(self, timing)
 		timing._rsd = 0
 		timing._rpd = 100
 		timing.hitbox = Vector3.new(50, 50, 50)
-		self:crpue(self.entity, nil, timing, 0, os.clock())
+		self:rpue(self.entity, timing, RepeatInfo.new(timing))
 	end
 end
