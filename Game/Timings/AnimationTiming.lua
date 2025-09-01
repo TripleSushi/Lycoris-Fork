@@ -6,9 +6,9 @@ local Timing = require("Game/Timings/Timing")
 ---@field rpue boolean Repeat parry until end.
 ---@field _rsd number Repeat start delay in miliseconds. Never access directly.
 ---@field _rpd number Delay between each repeat parry in miliseconds. Never access directly.
----@param ha boolean Flag to see whether or not this timing can be cancelled by a hit.
----@param iae boolean Flag to see whether or not this timing should ignore animation end.
----@param ieae boolean Flag to see whether or not this timing should ignore early animation end.
+---@field ha boolean Flag to see whether or not this timing can be cancelled by a hit.
+---@field iae boolean Flag to see whether or not this timing should ignore animation end.
+---@field ieae boolean Flag to see whether or not this timing should ignore early animation end.
 local AnimationTiming = setmetatable({}, { __index = Timing })
 AnimationTiming.__index = AnimationTiming
 

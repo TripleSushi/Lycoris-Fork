@@ -164,7 +164,7 @@ AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 	options.action = action
 	options.entity = self.entity
 
-	local info = RepeatInfo.new(timing)
+	local info = RepeatInfo.new(timing, self.rdelay())
 	info.track = self.track
 
 	if not self:hc(options, timing.duih and info or nil) then

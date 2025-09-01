@@ -56,7 +56,6 @@ local replicatedStorage = game:GetService("ReplicatedStorage")
 local textChatService = game:GetService("TextChatService")
 local userInputService = game:GetService("UserInputService")
 local guiService = game:GetService("GuiService")
-local tweenService = game:GetService("TweenService")
 
 -- Signals.
 local renderStepped = Signal.new(runService.RenderStepped)
@@ -72,6 +71,9 @@ local cardFrames = {}
 local labelMap = {}
 local hoveringMap = {}
 
+-- Terrain attachments.
+local attachments = {}
+
 -- Groups.
 local groups = {}
 
@@ -83,6 +85,7 @@ local showRobloxChatMap = visualsMaid:mark(OriginalStoreManager.new())
 local noAnimatedSeaMap = visualsMaid:mark(OriginalStoreManager.new())
 local noPersistentMap = visualsMaid:mark(OriginalStoreManager.new())
 local buildAssistanceMap = visualsMaid:mark(OriginalStoreManager.new())
+local jobBoardMap = visualsMaid:mark(OriginalStoreManager.new())
 
 ---Update sanity tracker.
 local updateSanityTracker = LPH_NO_VIRTUALIZE(function()
@@ -886,6 +889,18 @@ local updateNoAnimatedSea = LPH_NO_VIRTUALIZE(function()
 	end
 end)
 
+---Update terrain attachments.
+local updateTerrainAttachments = LPH_NO_VIRTUALIZE(function()
+	for _, attachment in next, attachments do
+		local jtg = attachment:FindFirstChild("JobTrackerGui")
+		if not jtg then
+			continue
+		end
+
+		jobBoardMap:add(jtg, "MaxDistance", Configuration.idOptionValue("JobBoard", "MaxDistance") or 1e9)
+	end
+end)
+
 ---Update visuals.
 local updateVisuals = LPH_NO_VIRTUALIZE(function()
 	for _, group in next, groups do
@@ -901,6 +916,12 @@ local updateVisuals = LPH_NO_VIRTUALIZE(function()
 	end
 
 	lastVisualsUpdate = os.clock()
+
+	if Configuration.idToggleValue("JobBoard", "Enable") then
+		updateTerrainAttachments()
+	else
+		jobBoardMap:restore()
+	end
 
 	if Configuration.expectToggleValue("SanityTracker") then
 		updateSanityTracker()
@@ -1136,6 +1157,15 @@ onWorkspaceChildAdded = LPH_NO_VIRTUALIZE(function(child)
 	end
 end)
 
+---On terrain added.
+local onTerrainChildAdded = LPH_NO_VIRTUALIZE(function(child)
+	if child.Name ~= "Attachment" and not child:IsA("Attachment") then
+		return
+	end
+
+	attachments[#attachments + 1] = child
+end)
+
 ---On player added.
 ---@param player Player
 local onPlayerAdded = LPH_NO_VIRTUALIZE(function(player)
@@ -1179,7 +1209,9 @@ function Visuals.init()
 	local npcs = workspace:WaitForChild("NPCs")
 	local ingredients = workspace:WaitForChild("Ingredients")
 	local thrown = workspace:WaitForChild("Thrown")
+	local terrain = workspace:WaitForChild("Terrain")
 
+	createChildrenListener(terrain, "Terrain", onTerrainChildAdded, onInstanceRemoving)
 	createChildrenListener(workspace, "Workspace", onWorkspaceChildAdded, onInstanceRemoving)
 	createChildrenListener(thrown, "Thrown", onThrownChildAdded, onInstanceRemoving)
 	createChildrenListener(live, "Live", onLiveChildrenAdded, onInstanceRemoving)
