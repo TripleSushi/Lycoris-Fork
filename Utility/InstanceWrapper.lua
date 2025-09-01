@@ -21,7 +21,7 @@ InstanceWrapper.tween = LPH_NO_VIRTUALIZE(function(instanceMaid, identifier, ...
 	local onAncestorChange = Signal.new(instance.AncestryChanged)
 
 	instanceMaid[identifier] = instance
-	instanceMaid:add(onAncestorChange:connect("SerenityInstance_OnAncestorChange", function(_)
+	instanceMaid:add(onAncestorChange:connect("Instance_OnAncestorChange", function(_)
 		if instance:IsDescendantOf(game) then
 			return
 		end
@@ -50,7 +50,7 @@ InstanceWrapper.mark = LPH_NO_VIRTUALIZE(function(instanceMaid, identifier, inst
 	end
 
 	instanceMaid[identifier] = inst
-	instanceMaid:add(onAncestorChange:connect("SerenityInstance_OnAncestorChange", function(_)
+	instanceMaid:add(onAncestorChange:connect("Instance_OnAncestorChange", function(_)
 		if inst:IsDescendantOf(game) then
 			return
 		end
@@ -81,7 +81,7 @@ InstanceWrapper.create = LPH_NO_VIRTUALIZE(function(instanceMaid, identifier, ty
 	end
 
 	instanceMaid[identifier] = newInstance
-	instanceMaid:add(onAncestorChange:connect("SerenityInstance_OnAncestorChange", function(_)
+	instanceMaid:add(onAncestorChange:connect("Instance_OnAncestorChange", function(_)
 		if newInstance:IsDescendantOf(game) then
 			return
 		end
