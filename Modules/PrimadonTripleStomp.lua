@@ -26,7 +26,7 @@ return function(self, timing)
 
 	if self.entity.Name:match(".monkyking") and self.track.Speed >= 1.7 and self.track.Speed <= 2.0 then
 		timings = {
-			[1] = 600,
+			[1] = 500,
 			[2] = 900,
 			[3] = 1100,
 		}
