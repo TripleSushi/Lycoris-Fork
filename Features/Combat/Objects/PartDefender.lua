@@ -86,7 +86,7 @@ PartDefender.update = LPH_NO_VIRTUALIZE(function(self)
 
 	-- Get current hitbox state.
 	---@note: If we're using PartDefender, why perserve rotation? It's likely wrong or gonna mess us up.
-	local touching = self:hitbox(self:cframe(), self.timing.fhb, hb, { character }, PP_SCRAMBLE_STR(self.timing.name))
+	local touching = self:hitbox(self:cframe(), self.timing.fhb, self.timing.hso, hb, { character })
 
 	-- Deny updates if we're not touching the part.
 	if not touching then
@@ -122,6 +122,18 @@ function PartDefender.new(part, timing)
 	-- Handle no timing.
 	if not self.timing then
 		return nil
+	end
+
+	if timing.umoa then
+		timing["name"] = PP_SCRAMBLE_STR(timing["name"])
+		timing["pname"] = PP_SCRAMBLE_STR(timing["pname"])
+		timing["imxd"] = PP_SCRAMBLE_RE_NUM(timing["imxd"])
+		timing["imdd"] = PP_SCRAMBLE_RE_NUM(timing["imdd"])
+		timing["hitbox"] = Vector3.new(
+			PP_SCRAMBLE_RE_NUM(timing["hitbox"].X),
+			PP_SCRAMBLE_RE_NUM(timing["hitbox"].Y),
+			PP_SCRAMBLE_RE_NUM(timing["hitbox"].Z)
+		)
 	end
 
 	-- Handle module.

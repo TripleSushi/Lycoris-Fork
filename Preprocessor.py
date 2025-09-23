@@ -576,7 +576,7 @@ class LuaPreprocessor:
             if to_process:
                 # Aggregate net changes across all new patches instead of emitting per-patch spam.
                 # For each (container, id) track starting presence and ending presence plus fields modified.
-                IGNORE_FIELDS = {'dp', 'pfht'}
+                IGNORE_FIELDS = {'dp', 'pfht', 'imb', 'hso'}
                 aggregate: dict[str, dict[str, dict[str, Any]]] = {k: {} for k in containers}
 
                 # Build index maps from the CURRENT (original, unscrambled) timing data so we can recover display names.
@@ -673,6 +673,7 @@ class LuaPreprocessor:
                         start_present = info['start_present']
                         end_present = info['end_present']
                         changed_fields = info['changed_fields']  # already excludes ignored fields
+
                         # Attempt to resolve a friendly name: first any captured name, else lookup from index map, else cid.
                         name_display = info['name']
                         if not name_display:

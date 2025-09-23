@@ -342,17 +342,32 @@ def main():
     # 1. Rebuild local truth from patches so we have authoritative baseline
     rebuild_truth_from_patches()
 
-    # 2. If a remote truth already exists (TARGET_TRUTH_FILE), compute differences BEFORE overwriting it
+    # 2. If a remote truth already exists, determine which is most recent.
     if os.path.exists(TARGET_TRUTH_FILE) and os.path.getsize(TARGET_TRUTH_FILE) > 0 and os.path.exists(TRUTH_TIMING_FILE):
         try:
+            local_mod_time = os.path.getmtime(TRUTH_TIMING_FILE)
+            remote_mod_time = os.path.getmtime(TARGET_TRUTH_FILE)
+
             local_truth_data = load_data(TRUTH_TIMING_FILE)
             remote_truth_data = load_data(TARGET_TRUTH_FILE)
-            if str(local_truth_data) != str(remote_truth_data):
+
+            # If files are identical, do nothing.
+            if str(local_truth_data) == str(remote_truth_data):
+                print("[*] Local and remote truth files are identical.")
+            
+            # If remote is newer, it's the source of truth. Overwrite local.
+            elif remote_mod_time > local_mod_time:
+                print("[!] Remote truth is newer. Overriding local truth file.")
+                shutil.copy2(TARGET_TRUTH_FILE, TRUTH_TIMING_FILE)
+                # No patch needed, remote is the authority.
+            
+            # If local is newer, something changed locally that needs to be patched and pushed.
+            else:
                 initial_diff = find_differences(local_truth_data, remote_truth_data)
                 if initial_diff:
-                    print("[!] Detected differences between existing remote truth and local truth on startup. Creating patch.")
+                    print("[!] Local truth is newer. Creating patch for remote changes.")
                     write_patch_file(initial_diff, DEV_NAME)
-                    # Rebuild again including the new patch, then push truth outward
+                    # Rebuild again to include the new patch.
                     rebuild_truth_from_patches()
         except Exception as e:
             print(f"[!] Failed to compute initial differences: {e}")
