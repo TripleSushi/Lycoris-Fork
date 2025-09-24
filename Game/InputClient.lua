@@ -159,6 +159,41 @@ InputClient.getLastRollMoveDirection = LPH_NO_VIRTUALIZE(function()
 	return lastRollMoveDirection
 end)
 
+---Fetch human controller.
+---@return table?
+InputClient.getHumanController = LPH_NO_VIRTUALIZE(function()
+	---@note: Shouldn't be too many connections to PreAnimation.
+	for _, connection in next, getconnections(runService.PreAnimation) do
+		local func = connection.Function
+		if not func then
+			continue
+		end
+
+		if iscclosure(func) or isexecutorclosure(func) then
+			continue
+		end
+
+		local upvalues = debug.getupvalues(func)
+		if not upvalues then
+			continue
+		end
+
+		for _, upvalue in next, upvalues do
+			if typeof(upvalue) ~= "table" then
+				continue
+			end
+
+			if upvalue.Jumping == nil then
+				continue
+			end
+
+			return upvalue
+		end
+	end
+
+	return nil
+end)
+
 ---Fetch input data.
 ---@return table?
 InputClient.getInputData = LPH_NO_VIRTUALIZE(function()

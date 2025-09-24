@@ -60,6 +60,9 @@ return LPH_NO_VIRTUALIZE(function()
 
 	local RainbowStep = 0
 	local Hue = 0
+	local RainbowColorPickers = {}
+	-- Maintain iteration state so we fairly round-robin update rainbow color pickers
+	local RainbowIteratorKey = nil
 
 	table.insert(
 		Library.Signals,
@@ -77,7 +80,13 @@ return LPH_NO_VIRTUALIZE(function()
 
 			RainbowStep = RainbowStep + Delta
 
-			if RainbowStep >= (1 / 60) then
+			if RainbowStep >= (1 / 10) then
+				-- If there are no rainbow color pickers, reset state and return
+				if next(RainbowColorPickers) == nil then
+					RainbowIteratorKey = nil
+					return
+				end
+
 				RainbowStep = 0
 
 				Hue = Hue + (1 / 400)
@@ -89,11 +98,25 @@ return LPH_NO_VIRTUALIZE(function()
 				Library.CurrentRainbowHue = Hue
 				Library.CurrentRainbowColor = Color3.fromHSV(Hue, 0.8, 1)
 
-				for _, ColorPicker in next, ColorPickers do
-					if ColorPicker.Rainbow then
-						ColorPicker:Display()
-					end
+				-- Ensure iterator key is valid; if the last key was removed, restart
+				if RainbowIteratorKey ~= nil and RainbowColorPickers[RainbowIteratorKey] == nil then
+					RainbowIteratorKey = nil
 				end
+
+				-- Advance to next picker; if at end, wrap to first
+				local nextKey = next(RainbowColorPickers, RainbowIteratorKey)
+				if nextKey == nil then
+					nextKey = next(RainbowColorPickers, nil)
+				end
+
+				-- Defensive: if still nil (race where set became empty), bail
+				if not nextKey then
+					RainbowIteratorKey = nil
+					return
+				end
+
+				RainbowIteratorKey = nextKey
+				RainbowIteratorKey:Display()
 			end
 
 			local LocalPlayer = game:GetService("Players").LocalPlayer
@@ -1058,6 +1081,12 @@ return LPH_NO_VIRTUALIZE(function()
 			end)
 
 			function ColorPicker:Display()
+				if ColorPicker.Rainbow then
+					RainbowColorPickers[ColorPicker] = true
+				else
+					RainbowColorPickers[ColorPicker] = nil
+				end
+
 				ColorPicker.Value = Color3.fromHSV(ColorPicker.Hue, ColorPicker.Sat, ColorPicker.Vib)
 				SatVibMap.BackgroundColor3 = Color3.fromHSV(ColorPicker.Hue, 1, 1)
 
@@ -3450,7 +3479,7 @@ return LPH_NO_VIRTUALIZE(function()
 	end
 
 	function Library:ManuallyManagedNotify(Text)
-				if shared.Lycoris.silent then
+		if shared.Lycoris.silent then
 			return
 		end
 

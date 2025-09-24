@@ -83,6 +83,7 @@ return LPH_NO_VIRTUALIZE(function()
 					if Options[idx] then
 						Options[idx].Rainbow = data.rainbow
 						Options[idx]:SetValue({ data.hue, data.sat, data.vib }, data.transparency)
+						Options[idx]:Display()
 					end
 				end,
 			},

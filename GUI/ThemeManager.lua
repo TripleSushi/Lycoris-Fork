@@ -76,6 +76,7 @@ return LPH_NO_VIRTUALIZE(function()
 					if Options[idx] then
 						Options[idx].Rainbow = themeData.rainbow
 						Options[idx]:SetValue({ themeData.hue, themeData.sat, themeData.vib }, themeData.transparency)
+						Options[idx]:Display()
 					end
 				end
 			end

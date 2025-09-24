@@ -140,6 +140,11 @@ end)
 ---@param timing Timing
 ---@param info RepeatInfo
 Defender.srpue = LPH_NO_VIRTUALIZE(function(self, entity, timing, info)
+	if timing.umoa then
+		timing["_rpd"] = PP_SCRAMBLE_RE_NUM(timing["_rpd"])
+		timing["_rsd"] = PP_SCRAMBLE_RE_NUM(timing["_rsd"])
+	end
+
 	self:mark(Task.new(string.format("RPUE_%s_%i", timing.name, 0), function()
 		return timing:rsd() - info.irdelay - self.sdelay()
 	end, timing.punishable, timing.after, self.rpue, self, entity, timing, info))
@@ -640,8 +645,10 @@ end)
 ---@param action Action
 ---@param notify boolean
 Defender.handle = LPH_NO_VIRTUALIZE(function(self, timing, action, notify)
-	if not self:valid(timing, action) then
-		return
+	if PP_SCRAMBLE_STR(action._type) ~= "End Block" then
+		if not self:valid(timing, action) then
+			return
+		end
 	end
 
 	if not notify then
@@ -691,17 +698,12 @@ Defender.handle = LPH_NO_VIRTUALIZE(function(self, timing, action, notify)
 	end
 
 	if PP_SCRAMBLE_STR(action._type) == "Jump" then
-		local character = players.LocalPlayer.Character
-		if not character then
+		local humanController = InputClient.getHumanController()
+		if not humanController then
 			return
 		end
 
-		local humanoid = character:FindFirstChild("Humanoid")
-		if not humanoid then
-			return
-		end
-
-		return humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+		return humanController:Jump()
 	end
 
 	if PP_SCRAMBLE_STR(action._type) == "Teleport Up" then
