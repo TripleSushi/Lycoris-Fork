@@ -565,7 +565,7 @@ class LuaPreprocessor:
                     to_process = [(ts, diff) for ts, diff in patches if ts > last_ts]
 
             # Aggregate and print diffs in the same format as before
-            containers = ['animation', 'part', 'sound']
+            containers = ['animation', 'part', 'sound', 'effect']
             per_container_counts = {k: {'added': 0, 'removed': 0, 'modified': 0} for k in containers}
             added_total = removed_total = modified_total = 0
             per_container_msgs: list[str] = []
@@ -576,7 +576,7 @@ class LuaPreprocessor:
             if to_process:
                 # Aggregate net changes across all new patches instead of emitting per-patch spam.
                 # For each (container, id) track starting presence and ending presence plus fields modified.
-                IGNORE_FIELDS = {'dp', 'pfht', 'imb', 'hso'}
+                IGNORE_FIELDS = {'dp', 'pfht', 'imb', 'hso', 'tag', 'scrambled'}
                 aggregate: dict[str, dict[str, dict[str, Any]]] = {k: {} for k in containers}
 
                 # Build index maps from the CURRENT (original, unscrambled) timing data so we can recover display names.
@@ -744,11 +744,13 @@ class LuaPreprocessor:
             "internalAnimationContainer": data.get("animation") or [],
             "internalPartContainer": data.get("part") or [],
             "internalSoundContainer": data.get("sound") or [],
+            "internalEffectContainer": data.get("effect") or [],
         }
         stats = {
             "internalAnimationContainer": {"timings": 0, "actions": 0},
             "internalPartContainer": {"timings": 0, "actions": 0},
             "internalSoundContainer": {"timings": 0, "actions": 0},
+            "internalEffectContainer": {"timings": 0, "actions": 0}, 
         }
         out = src
         for var, arr in arrays.items():
@@ -801,6 +803,7 @@ class LuaPreprocessor:
                     fmt("internalAnimationContainer", "anim"),
                     fmt("internalPartContainer", "part"),
                     fmt("internalSoundContainer", "sound"),
+                    fmt("internalEffectContainer", "effect"),
                 ]
             )
             total_t = sum(v["timings"] for v in stats.values())
