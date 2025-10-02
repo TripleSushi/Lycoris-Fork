@@ -23,11 +23,16 @@ return function(self, timing)
 		return self:action(timing, action)
 	end
 
-	local speed = Waiter.wfsc(self.track)
+	local ispeed = self.track.Speed
+
+	repeat
+		task.wait()
+	until self.track.Speed ~= ispeed
+
 	local action = Action.new()
-	action._when = 400 / speed
+	action._when = 300 / self.track.Speed
 	action._type = "Parry"
 	action.hitbox = Vector3.new(50, 10, 50)
-	action.name = string.format("(%.2f) Ground Slide Silentheart Timing", speed)
+	action.name = string.format("(%.2f) Ground Slide Silentheart Timing", self.track.Speed)
 	self:action(timing, action)
 end

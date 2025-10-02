@@ -143,30 +143,6 @@ function BuilderTab.initSaveManagerSection(groupbox)
 	end)
 end
 
----Initialize merge manager section.
----@param groupbox table
-function BuilderTab.initMergeManagerSection(groupbox)
-	local configList = groupbox:AddDropdown("MergeConfigList", {
-		Text = "Config List",
-		Values = SaveManager.list(),
-		AllowNull = true,
-	})
-
-	local mergeConfigType = groupbox:AddDropdown("MergeConfigType", {
-		Text = "Merge Type",
-		Values = { "Add New Timings", "Overwrite and Add Everything" },
-		Default = 1,
-	})
-
-	groupbox:AddButton({
-		Text = "Merge With Current Config",
-		DoubleClick = true,
-		Func = function()
-			SaveManager.merge(configList.Value, mergeConfigType.Value)
-		end,
-	})
-end
-
 ---Initialize logger section.
 ---@param groupbox table
 function BuilderTab.initLoggerSection(groupbox)
@@ -259,7 +235,6 @@ function BuilderTab.init(window)
 
 	-- Initialize sections.
 	BuilderTab.initSaveManagerSection(tab:AddDynamicGroupbox("Save Manager"))
-	BuilderTab.initMergeManagerSection(tab:AddDynamicGroupbox("Merge Manager"))
 	BuilderTab.initModuleManagerSection(tab:AddDynamicGroupbox("Module Manager"))
 	BuilderTab.initLoggerSection(tab:AddDynamicGroupbox("Logger"))
 

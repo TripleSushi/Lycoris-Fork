@@ -20,19 +20,6 @@ function Waiter.ftrack(aid, animator)
 	end
 end
 
----Wait for speed change.
----@param track AnimationTrack
----@return number
-function Waiter.wfsc(track)
-	local sstart = track.Speed
-
-	while sstart == track.Speed do
-		task.wait()
-	end
-
-	return sstart
-end
-
 ---Stepped wait.
 ---@param defender Defender
 ---@param time number The time to wait in seconds.

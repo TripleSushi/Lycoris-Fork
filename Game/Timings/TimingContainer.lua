@@ -1,26 +1,8 @@
----@module Utility.Logger
-local Logger = require("Utility/Logger")
-
 ---@class TimingContainer
 ---@field timings table<string, Timing>
 ---@field module Timing
 local TimingContainer = {}
 TimingContainer.__index = TimingContainer
-
----Merge timing container.
----@param other TimingContainer
----@param type MergeType
-function TimingContainer:merge(other, type)
-	assert(type ~= 1 and type ~= 2, "Invalid timing table merge type")
-
-	for idx, timing in next, other.timings do
-		if type == 1 and timing[idx] then
-			continue
-		end
-
-		self.timings[idx] = timing
-	end
-end
 
 ---Find a timing from name.
 ---@param name string
