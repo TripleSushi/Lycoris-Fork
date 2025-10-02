@@ -23,10 +23,6 @@ TimingSave.__index = TimingSave
 ---@note: Increment me when the data structure changes and we need to add backwards compatibility.
 local TIMING_SAVE_VERSION = 1
 
----@alias MergeType
----| '1' # Only add new timings
----| '2' # Overwrite and add everything
-
 ---Get timing save.
 ---@return TimingContainer[]
 function TimingSave:get()
@@ -37,20 +33,6 @@ end
 function TimingSave:clear()
 	for _, container in next, self._data do
 		container:clear()
-	end
-end
-
----Merge with another TimingSave object.
----@param save TimingSave The other save.
----@param type MergeType
-function TimingSave:merge(save, type)
-	for idx, other in next, save._data do
-		local container = self._data[idx]
-		if not container then
-			continue
-		end
-
-		container:merge(other, type)
 	end
 end
 

@@ -63,26 +63,5 @@ function Weapon.data(entity)
 	}
 end
 
----Create Weapon action.
----@param entity Model
----@param base number Base timing to scale swing speed off of.
----@param scale boolean Scale dynamically?
----@return Action?
-function Weapon.action(entity, base, scale)
-	local data = Weapon.data(entity)
-	if not data then
-		return
-	end
-
-	local ss = data.ss
-	local length = data.length
-
-	local action = Action.new()
-	action._when = scale and (base / ss) or base
-	action._type = "Parry"
-	action.hitbox = Vector3.new(length * 2, length * 2.5, length * 2)
-	return action
-end
-
 -- Return Weapon module.
 return Weapon

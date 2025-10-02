@@ -88,45 +88,6 @@ function SaveManager.list()
 	return out
 end
 
----Merge with current config.
----@param name string
----@param type MergeType
-function SaveManager.merge(name, type)
-	if not name or #name <= 0 then
-		return Logger.longNotify("Config name cannot be empty.")
-	end
-
-	local success, result = pcall(fs.read, fs, name .. ".txt")
-
-	if not success then
-		Logger.longNotify("Failed to read config file %s.", name)
-
-		return Logger.warn("Timing manager ran into the error '%s' while attempting to read config %s.", result, name)
-	end
-
-	success, result = pcall(Deserializer.unmarshal_one, String.tba(result))
-
-	if not success then
-		Logger.longNotify("Failed to deserialize config file %s.", name)
-
-		return Logger.warn(
-			"Timing manager ran into the error '%s' while attempting to deserialize config %s.",
-			result,
-			name
-		)
-	end
-
-	if typeof(result) ~= "table" then
-		Logger.longNotify("Failed to load config file %s.", name)
-
-		return Logger.warn("Timing manager failed to load config %s with result %s.", name, tostring(result))
-	end
-
-	config:merge(TimingSave.new(result), type)
-
-	Logger.notify("Config file %s has merged with the loaded one.", name)
-end
-
 ---Refresh dropdown values with timing data.
 ---@param dropdown table
 function SaveManager.refresh(dropdown)

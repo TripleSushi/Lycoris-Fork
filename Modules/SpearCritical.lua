@@ -1,16 +1,14 @@
----@module Modules.Globals.Weapon
-local Weapon = getfenv().Weapon
+---@class Action
+local Action = getfenv().Action
 
 ---Module function.
 ---@param self AnimatorDefender
 ---@param timing AnimationTiming
 return function(self, timing)
-	local action = Weapon.action(self.entity, 400 * 0.93, true)
-	if not action then
-		return
-	end
-
-	action.name = "Dynamic Spear Critical Timing"
-
+	local action = Action.new()
+	action._when = 400
+	action._type = "Parry"
+	action.hitbox = Vector3.new(10, 10, 20)
+	action.name = "Static Spear Critical"
 	return self:action(timing, action)
 end
