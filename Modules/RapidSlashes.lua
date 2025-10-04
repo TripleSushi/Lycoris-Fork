@@ -12,7 +12,7 @@ return function(self, timing)
 	local range = data.perfect * 2 + data.crystal * 1
 
 	local action = Action.new()
-	action._when = 450
+	action._when = 400
 	action._type = "Parry"
 	action.hitbox = Vector3.new(35, 15, 20 + range)
 	action.name = "Dynamic Rapid Slashes Timing"

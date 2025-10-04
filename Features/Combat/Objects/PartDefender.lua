@@ -10,6 +10,9 @@ local RepeatInfo = require("Features/Combat/Objects/RepeatInfo")
 ---@module Features.Combat.Objects.HitboxOptions
 local HitboxOptions = require("Features/Combat/Objects/HitboxOptions")
 
+---@module Utility.Configuration
+local Configuration = require("Utility/Configuration")
+
 ---@class PartDefender: Defender
 ---@field part BasePart
 ---@field timing PartTiming
@@ -44,15 +47,14 @@ PartDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 		return self:notify(timing, "No character found.")
 	end
 
-	local options = HitboxOptions.new(self:cframe(), timing)
+	local options = HitboxOptions.new(self.part, timing)
 	options.spredict = false
 	options.action = action
 
-	if
-		(not timing.duih and not timing.umoa)
-		and not self:hc(options, timing.duih and RepeatInfo.new(timing, self.rdelay(), self.vuid) or nil)
-	then
-		return self:notify(timing, "Not in hitbox.")
+	if not timing.duih or timing.umoa then
+		if not self:hc(options, timing.duih and RepeatInfo.new(timing, self.rdelay(), self.vuid) or nil) then
+			return self:notify(timing, "Not in hitbox.")
+		end
 	end
 
 	return true
@@ -118,6 +120,10 @@ end)
 ---@param timing PartTiming?
 ---@return PartDefender?
 function PartDefender.new(part, timing)
+	if not Configuration.expectToggleValue("EnableAutoDefense") then
+		return nil
+	end
+
 	local self = setmetatable(Defender.new(), PartDefender)
 	self.part = part
 	self.timing = timing or self:initial(part, SaveManager.ps, nil, part.Name)
