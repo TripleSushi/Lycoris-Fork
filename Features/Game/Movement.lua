@@ -4,9 +4,6 @@ local Configuration = require("Utility/Configuration")
 ---@module Utility.OriginalStoreManager
 local OriginalStoreManager = require("Utility/OriginalStoreManager")
 
----@module Utility.TaskSpawner
-local TaskSpawner = require("Utility/TaskSpawner")
-
 ---@module Utility.Maid
 local Maid = require("Utility/Maid")
 
@@ -16,48 +13,6 @@ local movementMaid = Maid.new()
 -- Services.
 local players = game:GetService("Players")
 local replicatedStorage = game:GetService("ReplicatedStorage")
-
--- AA gun map.
-local aaGunMap = OriginalStoreManager.new()
-
----Update anti air bypass.
----@param rootPart BasePart
-local function updateAABypass(rootPart)
-	---@note: This method was patched on 3/25/2025.
-	--[[
-	local modOffice = workspace:FindFirstChild("ModOffice")
-	if not modOffice then
-		return
-	end
-
-	aaGunMap:add(modOffice, "ModelStreamingMode", Enum.ModelStreamingMode.Persistent)
-
-	local officeCreature = modOffice:FindFirstChild("OfficeCreature")
-	if not officeCreature then
-		return movementMaid:add(
-			TaskSpawner.spawn(
-				"Movement_RequestStreamModOffice",
-				players.LocalPlayer.RequestStreamAroundAsync,
-				players.LocalPlayer,
-				modOffice:GetPivot().Position,
-				0.1
-			)
-		)
-	end
-
-	local effectReplicator = replicatedStorage:FindFirstChild("EffectReplicator")
-	if not effectReplicator then
-		return
-	end
-
-	officeCreature.CollisionGroup = "Default"
-	officeCreature.CanCollide = true
-
-	firetouchinterest(officeCreature, rootPart, 0)
-	firetouchinterest(officeCreature, rootPart, 1)
-	]]
-	--
-end
 
 return LPH_NO_VIRTUALIZE(function()
 	-- Movement related stuff is handled here.
@@ -405,12 +360,6 @@ return LPH_NO_VIRTUALIZE(function()
 			updateFlyHack(rootPart, humanoid)
 		else
 			movementMaid["flyBodyVelocity"] = nil
-		end
-
-		if Configuration.expectToggleValue("AAGunBypass") then
-			updateAABypass(rootPart)
-		else
-			aaGunMap:restore()
 		end
 
 		if Configuration.expectToggleValue("Speedhack") then

@@ -26,7 +26,7 @@ return function(self, timing)
 		timing.fhb = true
 	elseif thrown:FindFirstChild("ChainPortalShadow") then
 		action._when = 250
-		action.hitbox = Vector3.new(10, 10, 15)
+		action.hitbox = Vector3.new(40, 40, 40)
 		action.name = "Shadow Chains Timing"
 		timing.fhb = true
 	else
