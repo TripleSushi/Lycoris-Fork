@@ -61,7 +61,7 @@
     - Incorporate Auto Loot
   
 - Finish "Auto Loot"
-    - Easy to use filters
+    - Easy to use filters (item count + name is all you need now cuz needles)
     - Loot all option
     - Easy to be built into other modules
   
