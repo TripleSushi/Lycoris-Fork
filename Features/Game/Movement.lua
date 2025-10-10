@@ -105,6 +105,12 @@ return LPH_NO_VIRTUALIZE(function()
 				continue
 			end
 
+			if not pcall(function()
+				return bone.CanCollide
+			end) then
+				continue
+			end
+
 			noClipMap:add(bone, "CanCollide", knockedRestore and noClipMap:get(bone):get() or false)
 		end
 	end
