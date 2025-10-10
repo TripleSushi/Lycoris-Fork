@@ -121,7 +121,8 @@ Timing diff vs. previous snapshot: +12/-4/~69 (animation: +8/-1/~60, part: +3/-2
 **New features?**
 ```diff
 + (added) Attach to back rework
++ (added) Build stealer feature
 ```
 *Planning on revamping Tween To Objectives and adding quality of life on my list.*
 
-*Your commit ID should == "8573a4" when the update is fully pushed to you.*
+*Your commit ID should == "f8dbc5" when the update is fully pushed to you.*
