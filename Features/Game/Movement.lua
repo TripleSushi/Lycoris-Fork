@@ -105,9 +105,11 @@ return LPH_NO_VIRTUALIZE(function()
 				continue
 			end
 
-			if not pcall(function()
+			local success, result = pcall(function()
 				return bone.CanCollide ~= nil
-			end) then
+			end)
+
+			if not success or not result then
 				continue
 			end
 
