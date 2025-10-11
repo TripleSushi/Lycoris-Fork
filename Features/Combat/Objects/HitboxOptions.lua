@@ -4,6 +4,7 @@
 ---@field cframe CFrame? Else, the part's CFrame will be used.
 ---@field timing Timing|AnimationTiming|SoundTiming
 ---@field action Action?
+---@field cache Vector3 Cached hitbox size.
 ---@field filter Instance[]
 ---@field spredict boolean If true, a check will run for predicted positions.
 ---@field ptime number? The predicted time in seconds for extrapolation.
@@ -52,18 +53,29 @@ function HitboxOptions:clone()
 	return options
 end
 
----Get the hitbox size.
----@return Vector3
-function HitboxOptions:hitbox()
+---Update cache.
+function HitboxOptions:ucache()
+	if not self.timing then
+		return error("HitboxOptions:update - no timing specified")
+	end
+
 	local hitbox = self.action and self.action.hitbox or self.timing.hitbox
 
 	if self.timing.duih then
 		hitbox = self.timing.hitbox
 	end
 
-	hitbox = Vector3.new(PP_SCRAMBLE_NUM(hitbox.X), PP_SCRAMBLE_NUM(hitbox.Y), PP_SCRAMBLE_NUM(hitbox.Z))
+	self.cache = Vector3.new(PP_SCRAMBLE_NUM(hitbox.X), PP_SCRAMBLE_NUM(hitbox.Y), PP_SCRAMBLE_NUM(hitbox.Z))
+end
 
-	return hitbox
+---Get the hitbox size.
+---@return Vector3
+function HitboxOptions:hitbox()
+	if not self.cache then
+		self:ucache()
+	end
+
+	return self.cache
 end
 
 ---Get extrapolated position.
@@ -111,6 +123,7 @@ HitboxOptions.new = LPH_NO_VIRTUALIZE(function(target, timing, filter)
 	self.timing = timing
 	self.action = nil
 	self.filter = filter or {}
+	self.cache = Vector3.zero
 	self.spredict = false
 	self.hmid = nil
 	self.entity = nil
@@ -120,9 +133,11 @@ HitboxOptions.new = LPH_NO_VIRTUALIZE(function(target, timing, filter)
 	self.mcolor = Color3.new(1, 0, 0)
 	self.ptime = nil
 
-	if not self.part and not self.cframe then
-		return error("HitboxOptions: No part or CFrame specified.")
+	if not self.part and not self.cframe or not self.timing then
+		return error("HitboxOptions: No part or CFrame or timing specified.")
 	end
+
+	self:ucache()
 
 	if filter then
 		return self

@@ -143,6 +143,7 @@ AnimatorDefender.pfh = LPH_NO_VIRTUALIZE(function(self, options)
 	clone.spredict = false
 	clone.hcolor = Color3.new(0, 1, 1)
 	clone.mcolor = Color3.new(1, 1, 0)
+	clone:ucache()
 
 	local result = false
 	local store = OriginalStore.new()
@@ -160,11 +161,13 @@ end)
 ---@return boolean
 AnimatorDefender.phd = LPH_NO_VIRTUALIZE(function(self, timing, options)
 	for _, cframe in next, PositionHistory.stepped(self.entity, HISTORY_STEPS, timing.phds) or {} do
+		print(cframe)
 		local clone = options:clone()
 		clone.spredict = false
 		clone.cframe = cframe
 		clone.hcolor = Color3.new(0.839215, 0.976470, 0.537254)
 		clone.mcolor = Color3.new(0.564705, 0, 1)
+		clone:ucache()
 
 		if not self:hc(clone, nil) then
 			continue
@@ -172,6 +175,7 @@ AnimatorDefender.phd = LPH_NO_VIRTUALIZE(function(self, timing, options)
 
 		return true
 	end
+	print("noooo we return false")
 end)
 
 ---Run our facing extrapolation / interpolation.
@@ -259,6 +263,7 @@ AnimatorDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 	options.ptime = self:fsecs(timing)
 	options.action = action
 	options.entity = self.entity
+	options:ucache()
 
 	local info = RepeatInfo.new(timing, self.rdelay(), self:uid(10))
 	info.track = self.track

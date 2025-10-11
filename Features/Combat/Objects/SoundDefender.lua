@@ -51,6 +51,7 @@ SoundDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 	local options = HitboxOptions.new(self.part, timing)
 	options.spredict = false
 	options.action = action
+	options:ucache()
 
 	if not self:hc(options, timing.duih and RepeatInfo.new(timing, self.rdelay(), self:uid(10)) or nil) then
 		return self:notify(timing, "Not in hitbox.")

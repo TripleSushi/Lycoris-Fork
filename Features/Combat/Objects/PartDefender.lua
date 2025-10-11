@@ -50,6 +50,7 @@ PartDefender.valid = LPH_NO_VIRTUALIZE(function(self, timing, action)
 	local options = HitboxOptions.new(self.part, timing)
 	options.spredict = false
 	options.action = action
+	options:ucache()
 
 	if not timing.duih or timing.umoa then
 		if not self:hc(options, timing.duih and RepeatInfo.new(timing, self.rdelay(), self.vuid) or nil) then

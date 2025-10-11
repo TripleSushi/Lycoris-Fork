@@ -78,8 +78,12 @@ return function(self, timing)
 	elseif data.type == "Dagger" then
 		windup = (0.175 / self.track.Speed) + 0.100
 	elseif data.type == "Sword" then
-		windup = (0.150 / self.track.Speed) + 0.100
+		windup = (0.150 / self.track.Speed) + 0.075
 	end
+
+	-- We only want to turn on 'Past Hitbox Detection' when we're not doing 'Predict Facing Hitbox'
+	timing.phd = not timing.pfh
+	timing.phds = 1.0
 
 	if not windup then
 		return self:notify(timing, "(%s) No windup for this weapon type.", data.type)
@@ -89,7 +93,7 @@ return function(self, timing)
 	local action = Action.new()
 	action._when = windup * 1000
 	action._type = "Parry"
-	action.hitbox = Vector3.new(data.length * 2.5, data.length * 3, data.length * 2.5)
+	action.hitbox = Vector3.new(data.length * 2.7, data.length * 3, data.length * 2.7)
 	action.name = string.format(
 		"(%.2f, %.2f, %.2f) (%.2f) Dynamic Weapon Swing",
 		data.oss,
