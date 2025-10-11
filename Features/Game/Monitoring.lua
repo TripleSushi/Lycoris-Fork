@@ -435,7 +435,7 @@ return LPH_NO_VIRTUALIZE(function()
 	---Update player proximity.
 	local function updatePlayerProximity()
 		local proximityRange = Configuration.expectOptionValue("PlayerProximityRange") or 350
-		local playersInRange = Finder.geir(proximityRange, true)
+		local playersInRange = Finder.gpir(proximityRange)
 		if not playersInRange then
 			return
 		end

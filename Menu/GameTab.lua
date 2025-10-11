@@ -118,7 +118,7 @@ function GameTab.initLocalCharacterSection(groupbox)
 		Default = false,
 	})
 
-	ttbDepBox:AddToggle("IgnorePlayers", {
+	ttbDepBox:AddToggle("AttachIgnorePlayers", {
 		Text = "Ignore Players",
 		Tooltip = "Do not attach to players.",
 		Default = true,

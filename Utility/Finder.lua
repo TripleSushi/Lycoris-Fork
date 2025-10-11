@@ -92,10 +92,61 @@ Finder.sdparts = LPH_NO_VIRTUALIZE(function(instance, filter, distance)
 	return validParts
 end)
 
+---This function is sorted from the nearest to the farthest player.
+---Get players within a certain range in studs from the local player.
+---@param range number
+---@return Model[]
+Finder.gpir = LPH_NO_VIRTUALIZE(function(range)
+	local live = workspace:FindFirstChild("Live")
+	if not live then
+		return
+	end
+
+	local localCharacter = players.LocalPlayer.Character
+	local localRootPart = localCharacter and localCharacter:FindFirstChild("HumanoidRootPart")
+	if not localRootPart then
+		return
+	end
+
+	local playersInRange = {}
+	local playersDistance = {}
+
+	for _, player in next, players:GetPlayers() do
+		if player == players.LocalPlayer then
+			continue
+		end
+
+		local character = player.Character
+		if not character then
+			continue
+		end
+
+		local rootPart = character:FindFirstChild("HumanoidRootPart")
+		if not rootPart then
+			continue
+		end
+
+		local playerDistance = (rootPart.Position - localRootPart.Position).Magnitude
+		if playerDistance > range then
+			continue
+		end
+
+		table.insert(playersInRange, player)
+
+		playersDistance[player] = playerDistance
+	end
+
+	table.sort(playersInRange, function(playerOne, playerTwo)
+		return playersDistance[playerOne] < playersDistance[playerTwo]
+	end)
+
+	return playersInRange
+end)
+
 ---This function is sorted from the nearest to the farthest entity.
 ---Get entity within a certain range in studs from the local player.
 ---@param range number
----@param pfilter boolean? If true, only keep players. If false, only keep entities. If nil, do nothing.
+---@param pfilter boolean If true, filter out all players from the search.
 ---@return Model[]
 Finder.geir = LPH_NO_VIRTUALIZE(function(range, pfilter)
 	local live = workspace:FindFirstChild("Live")
@@ -136,20 +187,18 @@ Finder.geir = LPH_NO_VIRTUALIZE(function(range, pfilter)
 		return entitiesDistance[mobOne] < entitiesDistance[mobTwo]
 	end)
 
-	if pfilter == nil then
+	if not pfilter then
 		return entitiesInRange
 	end
 
 	local list = {}
 
 	for _, entity in next, entitiesInRange do
-		local player = players:GetPlayerFromCharacter(entity)
-
-		if pfilter and not player or player then
+		if players:GetPlayerFromCharacter(entity) then
 			continue
 		end
 
-		list[#list + 1] = player
+		table.insert(list, entity)
 	end
 
 	return list

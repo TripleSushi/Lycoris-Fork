@@ -159,11 +159,11 @@ function Lycoris.init()
 		),
 		timeStart = PersistentData.get("fli") or os.time(),
 		largeImage = {
-			assetId = LRM_UserNote and 13029433631 or 11289930484,
+			assetId = LRM_UserNote and 109802578297970 or 11289930484,
 			hoverText = LRM_UserNote and "Testing Deepwoken" or "Developing Deepwoken",
 		},
 		smallImage = {
-			assetId = LRM_UserNote and 11809086414 or 15828456271,
+			assetId = LRM_UserNote and 17278571027 or 15828456271,
 			hoverText = LRM_UserNote and "Testing Deepwoken" or "Developing Deepwoken",
 		},
 	})
@@ -222,11 +222,11 @@ function Lycoris.detach()
 				or "Detached from script - something broke, fixing a bug, or a hot-reload.",
 			timeStart = PersistentData.get("fli") or os.time(),
 			largeImage = {
-				assetId = LRM_UserNote and 90216003739455 or 11289930484,
+				assetId = LRM_UserNote and 109802578297970 or 11289930484,
 				hoverText = LRM_UserNote and "Not Testing Deepwoken" or "Developing Deepwoken",
 			},
 			smallImage = {
-				assetId = LRM_UserNote and 13086087956 or 15828456271,
+				assetId = LRM_UserNote and 17278571027 or 15828456271,
 				hoverText = LRM_UserNote and "Not Testing Deepwoken" or "Developing Deepwoken",
 			},
 		})

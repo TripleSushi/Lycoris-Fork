@@ -16,6 +16,9 @@ local MobESP = require("Features/Visuals/Objects/MobESP")
 ---@module Features.Visuals.Objects.PlayerESP
 local PlayerESP = require("Features/Visuals/Objects/PlayerESP")
 
+---@module Utility.TaskSpawner
+local TaskSpawner = require("Utility/TaskSpawner")
+
 ---@module Features.Visuals.Objects.FilteredESP
 local FilteredESP = require("Features/Visuals/Objects/FilteredESP")
 
@@ -1089,9 +1092,11 @@ local onThrownChildAdded = LPH_NO_VIRTUALIZE(function(child)
 		return emplaceObject(child, PartESP.new("OwlFeathers", child, "Owl Feathers"))
 	end
 
-	if child:IsA("Model") and child:WaitForChild("LootUpdated", 0.1) then
-		return emplaceObject(child, ModelESP.new("Chest", child, "Chest"))
-	end
+	visualsMaid:mark(TaskSpawner.spawn("Visuals_ChestCheck", function()
+		if child:IsA("Model") and child:WaitForChild("LootUpdated", 0.1) then
+			return emplaceObject(child, ModelESP.new("Chest", child, "Chest"))
+		end
+	end))
 end)
 
 ---Create children listener.
@@ -1198,7 +1203,7 @@ onWorkspaceChildAdded = LPH_NO_VIRTUALIZE(function(child)
 	end
 
 	if name == "RareObelisk" then
-		return emplaceObject(child, PartESP.new("RareObelisk", child, "Rare Obelisk"))
+		return emplaceObject(child, ModelESP.new("RareObelisk", child, "Rare Obelisk"))
 	end
 
 	if name == "HealBrick" then
@@ -1206,12 +1211,14 @@ onWorkspaceChildAdded = LPH_NO_VIRTUALIZE(function(child)
 	end
 
 	if name == "MantraObelisk" then
-		return emplaceObject(child, PartESP.new("MantraObelisk", child, "Mantra Obelisk"))
+		return emplaceObject(child, ModelESP.new("MantraObelisk", child, "Mantra Obelisk"))
 	end
 
-	if child:IsA("MeshPart") and child:FindFirstChild("InteractPrompt") and not name:match("Barrel") then
-		return emplaceObject(child, PartESP.new("BRWeapon", child, name))
-	end
+	visualsMaid:mark(TaskSpawner.spawn("Visuals_BRWeaponCheck", function()
+		if child:IsA("MeshPart") and child:WaitForChild("InteractPrompt", 0.1) and not name:match("Barrel") then
+			return emplaceObject(child, PartESP.new("BRWeapon", child, name))
+		end
+	end))
 end)
 
 ---On terrain added.
