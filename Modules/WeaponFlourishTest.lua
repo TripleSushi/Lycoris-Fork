@@ -43,6 +43,9 @@ return function(self, timing)
 		windup = (0.16 / self.track.Speed) + 0.100
 	end
 
+	timing.phd = true
+	timing.phds = 1.0
+
 	if not windup then
 		return self:notify(timing, "(%s) No windup for this weapon type.", data.type)
 	end

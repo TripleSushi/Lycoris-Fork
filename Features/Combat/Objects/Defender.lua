@@ -148,9 +148,15 @@ Defender.srpue = LPH_NO_VIRTUALIZE(function(self, entity, timing, info)
 		timing["_rsd"] = PP_SCRAMBLE_RE_NUM(timing["_rsd"])
 	end
 
+	local cache = {
+		["name"] = PP_SCRAMBLE_STR(timing.name),
+		["imdd"] = PP_SCRAMBLE_NUM(timing.imdd),
+		["imxd"] = PP_SCRAMBLE_NUM(timing.imxd),
+	}
+
 	self:mark(Task.new(string.format("RPUE_%s_%i", timing.name, 0), function()
 		return timing:rsd() - info.irdelay - self.sdelay()
-	end, timing.punishable, timing.after, self.rpue, self, entity, timing, info))
+	end, timing.punishable, timing.after, self.rpue, self, entity, timing, info, cache))
 
 	-- Notify.
 	if not LRM_UserNote or LRM_UserNote == "tester" then
@@ -177,17 +183,15 @@ end)
 ---@param entity Model
 ---@param timing Timing
 ---@param info RepeatInfo
-Defender.rpue = LPH_NO_VIRTUALIZE(function(self, entity, timing, info)
+---@param cache table? Cache table for RPUE to prevent unnecessary recalculations.
+Defender.rpue = LPH_NO_VIRTUALIZE(function(self, entity, timing, info, cache)
 	local distance = self:distance(entity)
 	if not distance then
-		return Logger.warn("Stopping RPUE '%s' because the distance is not valid.", PP_SCRAMBLE_STR(timing.name))
+		return Logger.warn("Stopping RPUE '%s' because the distance is not valid.", cache.name)
 	end
 
 	if not self:rc(info) then
-		return Logger.warn(
-			"Stopping RPUE '%s' because the repeat condition is not valid.",
-			PP_SCRAMBLE_STR(timing.name)
-		)
+		return Logger.warn("Stopping RPUE '%s' because the repeat condition is not valid.", cache.name)
 	end
 
 	local target = self:target(entity)
@@ -197,6 +201,7 @@ Defender.rpue = LPH_NO_VIRTUALIZE(function(self, entity, timing, info)
 	options.ptime = self:fsecs(timing)
 	options.entity = entity
 	options.hmid = info.hmid
+	options:ucache()
 
 	local success = true
 
@@ -204,24 +209,24 @@ Defender.rpue = LPH_NO_VIRTUALIZE(function(self, entity, timing, info)
 		success = self:hc(options, info)
 	end
 
-	if timing and (distance < PP_SCRAMBLE_NUM(timing.imdd) or distance > PP_SCRAMBLE_NUM(timing.imxd)) then
+	if timing and (distance < cache.imdd or distance > cache.imxd) then
 		success = false
 	end
 
 	info.index = info.index + 1
 
-	self:mark(Task.new(string.format("RPUE_%s_%i", PP_SCRAMBLE_STR(timing.name), info.index), function()
+	self:mark(Task.new(string.format("RPUE_%s_%i", cache.name, info.index), function()
 		return timing:rpd() - info.irdelay - self.sdelay()
 	end, timing.punishable, timing.after, self.rpue, self, entity, timing, info))
 
 	if not target then
-		return Logger.warn("Skipping RPUE '%s' because the target is not valid.", PP_SCRAMBLE_STR(timing.name))
+		return Logger.warn("Skipping RPUE '%s' because the target is not valid.", cache.name)
 	end
 
 	if not success then
 		return Logger.warn(
 			"Skipping RPUE '%s' because we are not in the %s.",
-			PP_SCRAMBLE_STR(timing.name),
+			cache.name,
 			timing.duih and "hitbox" or "distance range"
 		)
 	end
@@ -557,6 +562,7 @@ end)
 Defender.duih = LPH_NO_VIRTUALIZE(function(self, options, info)
 	local clone = options:clone()
 	clone.hmid = info.hmid
+	clone:ucache()
 
 	while task.wait() do
 		if not self:rc(info) then
