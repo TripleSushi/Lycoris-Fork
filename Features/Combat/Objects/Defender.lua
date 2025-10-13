@@ -152,10 +152,12 @@ Defender.srpue = LPH_NO_VIRTUALIZE(function(self, entity, timing, info)
 		["name"] = PP_SCRAMBLE_STR(timing.name),
 		["imdd"] = PP_SCRAMBLE_NUM(timing.imdd),
 		["imxd"] = PP_SCRAMBLE_NUM(timing.imxd),
+		["rsd"] = timing:rsd(),
+		["rpd"] = timing:rpd(),
 	}
 
 	self:mark(Task.new(string.format("RPUE_%s_%i", timing.name, 0), function()
-		return timing:rsd() - info.irdelay - self.sdelay()
+		return cache["rsd"] - info.irdelay - self.sdelay()
 	end, timing.punishable, timing.after, self.rpue, self, entity, timing, info, cache))
 
 	-- Notify.
@@ -164,8 +166,8 @@ Defender.srpue = LPH_NO_VIRTUALIZE(function(self, entity, timing, info)
 			timing,
 			"Added RPUE '%s' (%.2fs, then every %.2fs) with ping '%.2f' (changing) subtracted.",
 			PP_SCRAMBLE_STR(timing.name),
-			timing:rsd(),
-			timing:rpd(),
+			cache["rsd"],
+			cache["rpd"],
 			self.rtt()
 		)
 	else
@@ -216,7 +218,7 @@ Defender.rpue = LPH_NO_VIRTUALIZE(function(self, entity, timing, info, cache)
 	info.index = info.index + 1
 
 	self:mark(Task.new(string.format("RPUE_%s_%i", cache.name, info.index), function()
-		return timing:rpd() - info.irdelay - self.sdelay()
+		return cache["rpd"] - info.irdelay - self.sdelay()
 	end, timing.punishable, timing.after, self.rpue, self, entity, timing, info))
 
 	if not target then
