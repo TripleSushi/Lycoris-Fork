@@ -10,14 +10,17 @@ local EchoFarm = require("Features/Automation/EchoFarm")
 ---@module Game.ServerHop
 local ServerHop = require("Game/ServerHop")
 
+---@module Features.Game.Interactions
+local Interactions = require("Features/Game/Interactions")
+
 ---@module Game.Wipe
 local Wipe = require("Game/Wipe")
 
 ---@module Features.Game.Tweening
 local Tweening = require("Features/Game/Tweening")
 
----@module Utility.PersistentData
-local PersistentData = require("Utility/PersistentData")
+---@module Utility.Finder
+local Finder = require("Utility/Finder")
 
 -- Services.
 local players = game:GetService("Players")
@@ -209,6 +212,98 @@ function AutomationTab.initDebuggingSection(groupbox)
 
 	groupbox:AddButton("Wipe Slot", function()
 		Wipe.invoke(players.LocalPlayer:GetAttribute("DataSlot"))
+	end)
+
+	groupbox:AddButton("Wipe Slot (pass down battleaxe)", function()
+		Wipe.invoke(players.LocalPlayer:GetAttribute("DataSlot"), { "Battleaxe" })
+	end)
+
+	groupbox:AddButton("Character Selection Echo Farm", function()
+		EchoFarm.ccreation()
+	end)
+
+	groupbox:AddButton("Equip Weapon Test", function()
+		local item = Finder.weweapon("Battleaxe")
+		if not item then
+			return Logger.longNotify("You do not have a valid Battleaxe to equip.")
+		end
+
+		Interactions.etool(item)
+	end)
+
+	groupbox:AddButton("Use Enchant Stone Test", function()
+		local weapon = Finder.weweapon("Battleaxe")
+		if not weapon then
+			return Logger.longNotify("You do not have a valid Battleaxe to enchant.")
+		end
+
+		Interactions.etool(weapon)
+
+		weapon:Activate()
+
+		local item = Finder.tool("Enchant Stone", false)
+		if not item then
+			return Logger.longNotify("You do not have an Enchant Stone to use.")
+		end
+
+		Interactions.utool(item, true)
+
+		--[[
+		Battleaxe
+		<font color="rgb(222,235,243)"><i>+Damage: 20 (20)</i></font>
+		<font color="rgb(222,235,243)"><i>+PEN: 5%</i></font>
+		<font color="rgb(222,235,243)"><i>+Weight (Posture DMG): 6</i></font>
+		<font color="rgb(222,235,243)"><i>+Range: 8</i></font>
+		<font color="rgb(222,235,243)"><i>+Swing Speed: 0.83x</i></font>
+		+Enchant: Storm
+		<font size="12"><i>Shock your foes on hit every 5s. Rain will upgrade this shock into a lightning bolt called down from above.</i></font>
+		+5% PEN
+		Stances: 2H
+		]]
+		--
+
+		-- Wait for the RichStats of the item we are enchanting to update.
+		local equipped = Finder.tool("Weapon", true)
+
+		repeat
+			task.wait()
+		until equipped:GetAttribute("RichStats"):match("Enchant")
+
+		-- Notify.
+		Logger.longNotify("Successfully applied enchant to Battleaxe.")
+	end)
+
+	groupbox:AddButton("Use Idol Test", function()
+		local item = Finder.tool("Idol", false)
+		if not item then
+			return Logger.longNotify("You do not have an Idol to use.")
+		end
+
+		Interactions.utool(item, "Give me relief from my Flaws.")
+	end)
+
+	groupbox:AddButton("Hippo Pool Interact Test", function()
+		local item = Finder.tool("Weapon Manual", false)
+		if not item then
+			return Logger.longNotify("You do not have a Weapon Manual to pass down.")
+		end
+
+		Interactions.etool(item)
+
+		local npcs = workspace:WaitForChild("NPCs")
+		local pool = npcs:WaitForChild("Hippocampal Pool")
+
+		Interactions.interact(pool, {
+			{ choice = "[Inspect]" },
+			{ choice = "[Pass down item]" },
+			{ exit = true },
+		}, true)
+	end)
+
+	groupbox:AddButton("Teleport Test (Fragments)", function()
+		local HIPPO_POOL_POS = CFrame.new(3145.83, 1149.72, 1548.17)
+		local character = players.LocalPlayer.Character or players.LocalPlayer.CharacterAdded:Wait()
+		character:PivotTo(HIPPO_POOL_POS)
 	end)
 
 	groupbox:AddButton("Titus Gate (S1-EchoFarm)", function()

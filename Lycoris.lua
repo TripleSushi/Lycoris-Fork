@@ -134,7 +134,7 @@ function Lycoris.init()
 		end
 
 		-- Handle lobby state for wiping. This takes priority over every farm.
-		if PersistentData.get("wslot") then
+		if PersistentData.get("wdata") then
 			return Wipe.lobby()
 		end
 	end
@@ -144,7 +144,7 @@ function Lycoris.init()
 
 	if game.PlaceId == DEPTHS_PLACE_ID then
 		-- Handle depths state for wiping. This takes priority over every other farm.
-		if PersistentData.get("wslot") then
+		if PersistentData.get("wdata") then
 			Wipe.depths()
 		end
 	end

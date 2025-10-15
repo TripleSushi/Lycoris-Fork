@@ -130,28 +130,59 @@ Finder.etool = LPH_NO_VIRTUALIZE(function(name)
 	return nil
 end)
 
+---Find the first weapon without an enchant.
+---@param name string The name of the weapon to find. It is matched.
+---@return Tool?
+Finder.weweapon = LPH_NO_VIRTUALIZE(function(name)
+	local tools = Finder.tools(name, false)
+
+	for _, tool in next, tools do
+		local rstats = tool:GetAttribute("RichStats")
+		if not rstats then
+			continue
+		end
+
+		if rstats:match("Enchant") then
+			continue
+		end
+
+		return tool
+	end
+end)
+
 ---Find the first tool in a backpack by name.
 ---@param name string The name of the tool to find. It is matched.
+---@param exact boolean If true, the name must be an exact match.
 ---@return Tool?
-Finder.tool = LPH_NO_VIRTUALIZE(function(name)
+Finder.tool = LPH_NO_VIRTUALIZE(function(name, exact)
+	return Finder.tools(name, exact)[1]
+end)
+
+---Find the tools in a backpack by name.
+---@param name string The name of the tool to find. It is matched.
+---@param exact boolean If true, the name must be an exact match.
+---@return Tool[]
+Finder.tools = LPH_NO_VIRTUALIZE(function(name, exact)
 	local backpack = players.LocalPlayer:FindFirstChild("Backpack")
 	if not backpack then
-		return nil
+		return {}
 	end
+
+	local tools = {}
 
 	for _, item in next, backpack:GetChildren() do
 		if not item:IsA("Tool") then
 			continue
 		end
 
-		if not item.Name:match(name) then
+		if exact and (item.Name ~= name) or (not item.Name:match(name)) then
 			continue
 		end
 
-		return item
+		tools[#tools + 1] = item
 	end
 
-	return nil
+	return tools
 end)
 
 ---Get the nearest chest from a position.

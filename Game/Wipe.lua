@@ -5,6 +5,9 @@ local Wipe = {}
 local LOBBY_PLACE_ID = 4111023553
 local FRAGMENTS_OF_SELF_POS = Vector3.new(2910.00, 1133.03, 1474.00)
 
+---@module Features.Game.Interactions
+local Interactions = require("Features/Game/Interactions")
+
 ---@module Utility.PersistentData
 local PersistentData = require("Utility/PersistentData")
 
@@ -22,7 +25,6 @@ local DEBUGGING_MODE = true
 
 -- Services.
 local replicatedStorage = game:GetService("ReplicatedStorage")
-local players = game:GetService("Players")
 
 ---Telemetry log.
 local function telemetryLog(...)
@@ -37,21 +39,47 @@ end
 
 ---Wait until we're in the fragments of self area.
 function Wipe.pwait()
-	local slot = PersistentData.get("wslot")
-	if not slot then
-		return error("No wipe slot set in PersistentData.")
+	local wdata = PersistentData.get("wdata")
+	if not wdata then
+		return error("No wipe data set in PersistentData.")
 	end
 
 	local startTimestamp = os.clock()
 
 	while task.wait() do
 		if os.clock() - startTimestamp >= 30 then
-			return ServerHop.hop(slot, true)
+			return ServerHop.hop(wdata.slot, true)
 		end
 
 		if Finder.near(FRAGMENTS_OF_SELF_POS, 500) then
 			break
 		end
+	end
+end
+
+---Process all items we need to pass down.
+function Wipe.pitems()
+	local wdata = PersistentData.get("wdata")
+	if not wdata then
+		return error("No wipe data set in PersistentData.")
+	end
+
+	local npcs = workspace:WaitForChild("NPCs")
+	local hippocampusPool = npcs:WaitForChild("Hippocampal Pool")
+
+	for _, name in next, wdata.weapons do
+		local weapon = Finder.weweapon(name)
+		if not weapon then
+			continue
+		end
+
+		Interactions.etool(weapon)
+
+		Interactions.interact(hippocampusPool, {
+			{ choice = "[Inspect]" },
+			{ choice = "[Pass down item]" },
+			{ exit = true },
+		}, true)
 	end
 end
 
@@ -72,61 +100,39 @@ function Wipe.depths()
 	-- Look for people in the Fragments of Self area.
 	telemetryLog("(Depths) Looking for anyone in the Fragments of Self area.")
 
-	local wslot = PersistentData.get("wslot")
-	if not wslot then
-		return error("No wipe slot set in PersistentData.")
+	local wdata = PersistentData.get("wdata")
+	if not wdata then
+		return error("No wipe data set in PersistentData.")
 	end
 
 	if Finder.pnear(FRAGMENTS_OF_SELF_POS, 500) then
-		return ServerHop.hop(wslot, true)
+		return ServerHop.hop(wdata.slot, true)
 	end
 
-	-- Attempt to repeatedly teleport and interact.
+	-- Process items.
+	Wipe.pitems()
+
+	-- Interact with Self NPC.
 	local npcs = workspace:WaitForChild("NPCs")
 	local selfNpc = npcs:WaitForChild("Self")
-	local selfCFrame = selfNpc:GetPivot()
-	local character = players.LocalPlayer.Character or players.LocalPlayer.CharacterAdded:Wait()
-	local dialogueEvent = requests:WaitForChild("SendDialogue")
-	local interactPrompt = selfNpc:WaitForChild("InteractPrompt")
-	local getScore = requests:WaitForChild("GetScore")
-	local scoreReceived = false
-
-	getScore.OnClientEvent:Connect(function(_)
-		telemetryLog("(Depths) Received score data.")
-		scoreReceived = true
-	end)
 
 	telemetryLog("(Depths) Teleporting and interacting with Self NPC.")
 
-	while task.wait() do
-		-- Teleport to NPC.
-		character:PivotTo(selfCFrame * CFrame.new(0, 0, 2))
-
-		-- Fire prompt.
-		fireproximityprompt(interactPrompt)
-
-		-- Send the dialogue event for [The End] so we can get wiped.
-		dialogueEvent:FireServer({
-			["choice"] = "[The End]",
-		})
-
-		-- Break if we've received score data.
-		if scoreReceived then
-			break
-		end
-	end
+	Interactions.interact(selfNpc, {
+		{ choice = "[The End]" },
+	}, true)
 
 	telemetryLog("(Depths) Wiped slot. Server hopping after removing marker.")
 
 	-- Add or remove markers.
-	PersistentData.set("wslot", nil)
+	PersistentData.set("wdata", nil)
 
 	if PersistentData.get("efdata") then
 		PersistentData.stf("efdata", "wiped", true)
 	end
 
 	-- Server hop.
-	ServerHop.hop(wslot, true)
+	ServerHop.hop(wdata.slot, true)
 end
 
 ---Start the process for wiping a slot in the lobby.
@@ -137,26 +143,30 @@ function Wipe.lobby()
 	local requests = replicatedStorage:WaitForChild("Requests")
 	local wipeSlot = requests:WaitForChild("WipeSlot")
 
-	local wslot = PersistentData.get("wslot")
-	if not wslot then
-		return error("No wipe slot set in PersistentData.")
+	local wdata = PersistentData.get("wdata")
+	if not wdata then
+		return error("No wipe data set in PersistentData.")
 	end
 
 	repeat
 		task.wait()
-	until wipeSlot:InvokeServer(wslot)
+	until wipeSlot:InvokeServer(wdata.slot)
 
 	telemetryLog("(Lobby) (Step 2) Wiped slot. Server hopping.")
 
 	-- Server hop.
-	ServerHop.hop(wslot, false)
+	ServerHop.hop(wdata.slot, false)
 end
 
 ---Invoke a wipe for a specific slot.
 ---@param slot string The data slot to wipe.
-function Wipe.invoke(slot)
+---@param weapons string[]? Optional items to keep. Does not handle any validation.
+function Wipe.invoke(slot, weapons)
 	-- Mark slot.
-	PersistentData.set("wslot", slot)
+	PersistentData.set("wdata", {
+		slot = slot,
+		weapons = weapons or {},
+	})
 
 	telemetryLog("(Invoke) (Step 1) Marked slot %s in data.", slot)
 

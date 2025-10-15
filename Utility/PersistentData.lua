@@ -22,8 +22,8 @@ local PersistentData = {
 		-- Servers to ignore when server hopping.
 		sblacklist = {},
 
-		-- Wipe slot.
-		wslot = nil,
+		-- Wipe farm data.
+		wdata = nil,
 
 		-- Echo farm data.
 		efdata = nil,
