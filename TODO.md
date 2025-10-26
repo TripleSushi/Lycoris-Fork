@@ -11,7 +11,7 @@
         - Allow Flourish Feints ❌
         - Allow Attacks While Rolling ❌
         - Attack Animation Speed ✅
-            - Add option for M1s only ❌
+            - Tagging Filter ❌
             - Animation Speed Slider (0.5x - 1x - 2x) ✅ 
 
 - Game ❌
@@ -60,11 +60,10 @@
   
 - Finish "Extra Keybinds"
     - Keybind builder to partial item search find
+    - Instant log ability
   
-- Make "Echo Farm" Consistent
-
-- Auto Ragdoll Recover
-
+- Clean Up "Echo Farm"
+  
 - Chaser Multi Player Fixes
 
 - PVP Safety
@@ -73,11 +72,9 @@
 
 - Chain of Perfection Counter
   
-- Fix No Blur not working with low water
+- Fix No Blur Not Working With No Water
   
 - No Blind
-  
-- Instalog Keybind + Server hop Keybind
   
 - Auto Roll Cancel (for Float Like a Butterfly or Death From Above)
   
@@ -88,3 +85,5 @@
 - Rare NPC/Mob Notifier (Silhuett, Grudge, Ministry Heartspiller, Maljuror)
   
 - Unlock Zoom Distance
+
+- Layer Two Interact Aura

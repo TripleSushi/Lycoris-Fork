@@ -14,8 +14,10 @@ return function(self, timing)
 	end
 
 	timing.fhb = true
-	timing.dp = false
+	timing.pfh = true
+	timing.phd = true
 	timing.pfht = 0.3
+	timing.phds = 1.0
 
 	local windup = nil
 
@@ -44,7 +46,7 @@ return function(self, timing)
 	elseif data.type == "Fist" then
 		windup = (0.160 / self.track.Speed) + 0.140
 	elseif data.type == "Sword" then
-		windup = (0.16 / self.track.Speed) + 0.150
+		windup = (0.16 / self.track.Speed) + 0.120
 	elseif data.type == "Club" then
 		windup = (0.16 / self.track.Speed) + 0.150
 	elseif data.type == "Rifle" then

@@ -14,8 +14,9 @@ return function(self, timing)
 	end
 
 	timing.pfh = true
-	timing.dp = false
+	timing.phd = true
 	timing.pfht = 0.3
+	timing.phds = 1.0
 
 	local windup = nil
 
@@ -24,13 +25,13 @@ return function(self, timing)
 	if data.type == "Dagger" then
 		windup = (0.166 / self.track.Speed) + 0.120
 	elseif data.type == "Greataxe" then
-		windup = (0.141 / self.track.Speed) + 0.140
+		windup = (0.141 / self.track.Speed) + 0.100
 	elseif data.type == "Greathammer" then
-		windup = (0.150 / self.track.Speed) + 0.150
+		windup = (0.150 / self.track.Speed) + 0.100
 	elseif data.type == "Greatsword" then
-		windup = (0.157 / self.track.Speed) + 0.130
+		windup = (0.157 / self.track.Speed) + 0.100
 	elseif data.type == "Greatcannon" then
-		windup = (0.166 / self.track.Speed) + 0.130
+		windup = (0.166 / self.track.Speed) + 0.100
 	elseif data.type == "Twinblade" then
 		windup = (0.163 / self.track.Speed) + 0.130
 	elseif data.type == "Bow" then

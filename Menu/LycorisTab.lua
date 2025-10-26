@@ -44,7 +44,7 @@ function LycorisTab.initCheatSettingsSection(groupbox)
 
 		shared.Lycoris.dpscanning = not shared.Lycoris.dpscanning
 
-		if not shared.Lycoris.dpscanning then
+		if shared.Lycoris.dpscanning then
 			Logger.notify("Player scanning was disabled.")
 		else
 			Logger.notify("Player scanning was enabled.")

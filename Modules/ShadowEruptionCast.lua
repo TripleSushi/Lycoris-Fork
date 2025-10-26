@@ -19,7 +19,7 @@ return function(self, timing)
 	action._type = "Parry"
 
 	if root:FindFirstChild("REP_SOUND_5188185503") then
-		action._when = 1000
+		action._when = 1200
 		action.hitbox = Vector3.new(10, 10, 15)
 		action.name = "Ice Chains Timing"
 		timing.iae = true

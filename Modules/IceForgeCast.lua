@@ -43,7 +43,7 @@ return function(self, timing)
 		return self:action(timing, action)
 	end
 
-	task.wait(1.0 - self.rtt())
+	task.wait(3.1 - self.rtt())
 
 	if not hrp:FindFirstChild("REP_SOUND_13692212248") then
 		return
@@ -70,7 +70,7 @@ return function(self, timing)
 
 	local blockStarted = false
 
-	timing.mat = 2000
+	timing.mat = 5000
 	timing.iae = true
 
 	while task.wait() do
@@ -88,7 +88,7 @@ return function(self, timing)
 				continue
 			end
 
-			if self:distance(cube) >= 20 then
+			if self:distance(cube) >= 15 then
 				continue
 			end
 
