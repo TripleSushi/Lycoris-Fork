@@ -54,9 +54,9 @@ return function(self, timing)
 		action.name = "Fleeting Sparks Part"
 
 		local pt = PartTiming.new()
-		pt.uhc = true
+		pt.uhc = false
 		pt.duih = true
-		pt.fhb = true
+		pt.fhb = false
 		pt.name = "FleetingSparksProjectile"
 		pt.actions:push(action)
 		pt.cbm = true
@@ -67,7 +67,7 @@ return function(self, timing)
 		task.spawn(function()
 			local baseHitbox = Vector3.new(10, 10, 10)
 			local lastSpeed = 0
-			local smoothing = 0.25 -- 0.1–0.3 recommended: lower = snappier, higher = smoother
+			local smoothing = 0.3 -- 0.1–0.3 recommended: lower = snappier, higher = smoother
 
 			while projectile and projectile.Parent do
 				local velocity = projectile.AssemblyLinearVelocity or projectile.Velocity or Vector3.zero
@@ -78,7 +78,7 @@ return function(self, timing)
 				lastSpeed = smoothedSpeed
 
 				-- compute scale factor (smoothly changing)
-				local scaleFactor = math.clamp(smoothedSpeed / 6, 1, 3.5)
+				local scaleFactor = math.clamp(smoothedSpeed / 5, 1, 4)
 				local newHitbox = baseHitbox * scaleFactor
 
 				-- only update if size changed meaningfully
@@ -90,7 +90,7 @@ return function(self, timing)
 					end
 				end
 
-				task.wait(0.03) -- small step for smoother transitions and lower CPU usage
+				task.wait(0.05) -- small step for smoother transitions and lower CPU usage
 			end
 		end)
 
