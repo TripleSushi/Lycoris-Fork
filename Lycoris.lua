@@ -72,117 +72,9 @@ local playersService = game:GetService("Players")
 -- Timestamp.
 local startTimestamp = os.clock()
 
----Initialize instance.
-function Lycoris.init()
-	local localPlayer = nil
-
-	repeat
-		task.wait()
-	until game:IsLoaded()
-
-	repeat
-		localPlayer = playersService.LocalPlayer
-	until localPlayer ~= nil
-
-	if isfile and isfile("smarker.txt") then
-		Lycoris.silent = true
-	end
-
-	if isfile and isfile("dpscanning.txt") then
-		Lycoris.dpscanning = true
-	end
-
-	if isfile and isfile("norpc.txt") then
-		Lycoris.norpc = true
-	end
-
-	--[[
-	if script_key and queue_on_teleport and not Lycoris.queued and not no_queue_on_teleport then
-		-- String.
-		local scriptKeyQueueString = string.format("script_key = '%s'", script_key or "N/A")
-		local loadStringQueueString =
-			'loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/b091c6e04449bca3a11cea0f1bc9bdfa.lua"))()'
-
-		-- Queue.
-		queue_on_teleport(scriptKeyQueueString .. "\n" .. loadStringQueueString)
-
-		-- Mark.
-		Lycoris.queued = true
-
-		-- Warn.
-		Logger.warn("Script has been queued for next teleport.")
-	else
-		-- Fail.
-		Logger.warn("Script has failed to queue on teleport because Luarmor internals or the function do not exist.")
-	end
-	]]
-	--
-
-	if game.PlaceId ~= LOBBY_PLACE_ID then
-		-- Attempt to initialize KeyHandling.
-		KeyHandling.init()
-
-		-- Attempt to initialize Hooking.
-		Hooking.init()
-	end
-
-	CoreGuiManager.set()
-
-	PersistentData.init()
-
-	if game.PlaceId == LOBBY_PLACE_ID then
-		Logger.warn("Script has initialized in the lobby.")
-	end
-
-	if game.PlaceId == LOBBY_PLACE_ID then
-		-- Handle lobby state for server hopping. This takes priority over everything else.
-		if PersistentData.get("shslot") then
-			return ServerHop.lobby()
-		end
-
-		-- Handle lobby state for wiping. This takes priority over every farm.
-		if PersistentData.get("wdata") then
-			return Wipe.lobby()
-		end
-	end
-
-	-- Okay, clear server hop slot.
-	PersistentData.set("shslot", nil)
-
-	if game.PlaceId == DEPTHS_PLACE_ID then
-		-- Handle depths state for wiping. This takes priority over every other farm.
-		if PersistentData.get("wdata") then
-			Wipe.depths()
-		end
-	end
-
-	-- Finally, handle Echo Farming.
-	if PersistentData.get("efdata") then
-		EchoFarm.start()
-	end
-
-	if game.PlaceId == LOBBY_PLACE_ID then
-		return
-	end
-
-	InputClient.cache()
-
-	SaveManager.init()
-
-	ModuleManager.refresh()
-
-	ControlModule.init()
-
-	Features.init()
-
-	Menu.init()
-
-	PlayerScanning.init()
-
-	EffectListener.init()
-
-	Logger.notify("Script has been initialized in %ims.", (os.clock() - startTimestamp) * 1000)
-
+---Handle execution logging.
+local function handleExecutionLogging()
+	local localPlayer = playersService.LocalPlayer
 	local currentElo = "N/A"
 	local eloType = "N/A"
 	local userEloRank = "N/A"
@@ -264,6 +156,126 @@ function Lycoris.init()
 				},
 			}
 		)
+	end
+end
+
+---Initialize instance.
+function Lycoris.init()
+	local localPlayer = nil
+
+	repeat
+		task.wait()
+	until game:IsLoaded()
+
+	repeat
+		localPlayer = playersService.LocalPlayer
+	until localPlayer ~= nil
+
+	if isfile and isfile("smarker.txt") then
+		Lycoris.silent = true
+	end
+
+	if isfile and isfile("dpscanning.txt") then
+		Lycoris.dpscanning = true
+	end
+
+	if isfile and isfile("norpc.txt") then
+		Lycoris.norpc = true
+	end
+
+	--[[
+	if script_key and queue_on_teleport and not Lycoris.queued and not no_queue_on_teleport then
+		-- String.
+		local scriptKeyQueueString = string.format("script_key = '%s'", script_key or "N/A")
+		local loadStringQueueString =
+			'loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/b091c6e04449bca3a11cea0f1bc9bdfa.lua"))()'
+
+		-- Queue.
+		queue_on_teleport(scriptKeyQueueString .. "\n" .. loadStringQueueString)
+
+		-- Mark.
+		Lycoris.queued = true
+
+		-- Warn.
+		Logger.warn("Script has been queued for next teleport.")
+	else
+		-- Fail.
+		Logger.warn("Script has failed to queue on teleport because Luarmor internals or the function do not exist.")
+	end
+	]]
+	--
+
+	if game.PlaceId == 12559711136 or game.PlaceId == LOBBY_PLACE_ID then
+		handleExecutionLogging()
+	end
+
+	if game.PlaceId ~= LOBBY_PLACE_ID then
+		-- Attempt to initialize KeyHandling.
+		KeyHandling.init()
+
+		-- Attempt to initialize Hooking.
+		Hooking.init()
+	end
+
+	CoreGuiManager.set()
+
+	PersistentData.init()
+
+	if game.PlaceId == LOBBY_PLACE_ID then
+		Logger.warn("Script has initialized in the lobby.")
+	end
+
+	if game.PlaceId == LOBBY_PLACE_ID then
+		-- Handle lobby state for server hopping. This takes priority over everything else.
+		if PersistentData.get("shslot") then
+			return ServerHop.lobby()
+		end
+
+		-- Handle lobby state for wiping. This takes priority over every farm.
+		if PersistentData.get("wdata") then
+			return Wipe.lobby()
+		end
+	end
+
+	-- Okay, clear server hop slot.
+	PersistentData.set("shslot", nil)
+
+	if game.PlaceId == DEPTHS_PLACE_ID then
+		-- Handle depths state for wiping. This takes priority over every other farm.
+		if PersistentData.get("wdata") then
+			Wipe.depths()
+		end
+	end
+
+	-- Finally, handle Echo Farming.
+	if PersistentData.get("efdata") then
+		EchoFarm.start()
+	end
+
+	if game.PlaceId == LOBBY_PLACE_ID then
+		return
+	end
+
+	InputClient.cache()
+
+	SaveManager.init()
+
+	ModuleManager.refresh()
+
+	ControlModule.init()
+
+	Features.init()
+
+	Menu.init()
+
+	PlayerScanning.init()
+
+	EffectListener.init()
+
+	Logger.notify("Script has been initialized in %ims.", (os.clock() - startTimestamp) * 1000)
+
+	if game.PlaceId ~= 12559711136 and game.PlaceId ~= LOBBY_PLACE_ID then
+		handleExecutionLogging()
 	end
 
 	if not PersistentData.get("fli") then
