@@ -86,6 +86,12 @@
   
 - Rare NPC/Mob Notifier (Silhuett, Grudge, Ministry Heartspiller, Maljuror)
   
+- Auto Utility
+  - Reinforce
+  - Ardour Scream
+  - Judgement
+  - etc...
+ 
 - Unlock Zoom Distance
 
 - Layer Two Interact Aura

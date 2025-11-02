@@ -104,9 +104,10 @@ local function attackValidTargets()
 	end
 
 	---@note: Add some prediction to prevent mobs from running in a straight line.
+	local currentCamera = workspace.CurrentCamera
 	local at = targetHrp.CFrame + (targetHrp.AssemblyLinearVelocity * (0.1 + Defender.rtt()))
-	local pos = workspace.CurrentCamera:WorldToViewportPoint(at.Position)
-	local ray = workspace.CurrentCamera:ViewportPointToRay(pos.X, pos.Y)
+	local pos = currentCamera:WorldToViewportPoint(at.Position)
+	local ray = currentCamera:ViewportPointToRay(pos.X, pos.Y)
 
 	-- Override OnClientInvoke with new data.
 	getMouse.OnClientInvoke = function()
