@@ -46,7 +46,74 @@ local cachedTarget = nil
 -- Tweening offset.
 local offsetCFrame = CFrame.new(0.0, 30.0, 0.0)
 
--- Attack valid targets.
+-- Obstacles map. Position to radius.
+local OBSTACLES_MAP = {
+	-- Big castles.
+	{ pos = Vector3.new(-16837.07, 50.97, 12143.41), radius = 20 },
+
+	-- Small castles.
+	{ pos = Vector3.new(-16848.69, 50.87, 12182.70), radius = 10 },
+	{ pos = Vector3.new(-16849.81, 56.64, 12104.16), radius = 10 },
+	{ pos = Vector3.new(-16752.79, 53.05, 12054.92), radius = 10 },
+}
+
+---Target a part.
+---@param part BasePart
+local function targetPart(part)
+	local requests = replicatedStorage:WaitForChild("Requests")
+	local getMouse = requests:WaitForChild("GetMouse")
+
+	if not oldGetMouseInvoke then
+		oldGetMouseInvoke = getcallbackvalue(getMouse, "OnClientInvoke")
+	end
+
+	-- Override OnClientInvoke with new data.
+	---@todo: Spoof better later with proper 1:1 InputClient data.
+	getMouse.OnClientInvoke = function()
+		---@note: Add some prediction to prevent mobs from running in a straight line.
+		local currentCamera = workspace.CurrentCamera
+		local at = part.CFrame + (part.AssemblyLinearVelocity * (0.25 + Defender.rtt()))
+		local pos = currentCamera:WorldToViewportPoint(at.Position)
+		local ray = currentCamera:ViewportPointToRay(pos.X, pos.Y)
+
+		-- Return spoofed data.
+		return {
+			["Hit"] = at,
+			["Target"] = part,
+			["UnitRay"] = ray,
+			["X"] = pos.X,
+			["Y"] = pos.Y,
+		}
+	end
+end
+
+---Attack at obstacles.
+local function attackAtObstacles()
+	for _, obstacle in next, OBSTACLES_MAP do
+		local entity = Finder.enear(obstacle.pos, obstacle.radius)
+		if not entity then
+			continue
+		end
+
+		-- Root part?
+		local targetHrp = entity:FindFirstChild("HumanoidRootPart")
+		if not targetHrp then
+			continue
+		end
+
+		-- Target part.
+		targetPart(targetHrp)
+
+		-- Start attacking the target.
+		InputClient.left(targetHrp.CFrame, true)
+
+		-- Return.
+		return true
+	end
+
+	return false
+end
+---Attack valid targets.
 local function attackValidTargets()
 	local targets = Finder.geir(300, true)
 	if not targets then
@@ -85,37 +152,8 @@ local function attackValidTargets()
 	Tweening.stop("JoyFarm_TweenAboveShrine")
 	Tweening.goal("JoyFarm_TweenToTarget", goalCFrame, false)
 
-	-- Spoof OnClientEvent too.
-	local requests = replicatedStorage:WaitForChild("Requests")
-	local getMouse = requests:WaitForChild("GetMouse")
-
-	if not oldGetMouseInvoke then
-		oldGetMouseInvoke = getcallbackvalue(getMouse, "OnClientInvoke")
-	end
-
-	local effectReplicator = replicatedStorage:WaitForChild("EffectReplicator")
-	local effectReplicatorModule = require(effectReplicator)
-	if not effectReplicatorModule then
-		return warn("Failed to get EffectReplicator module for JoyFarm mouse spoofing.")
-	end
-
-	---@note: Add some prediction to prevent mobs from running in a straight line.
-	local currentCamera = workspace.CurrentCamera
-	local at = targetHrp.CFrame + (targetHrp.AssemblyLinearVelocity * (0.1 + Defender.rtt()))
-	local pos = currentCamera:WorldToViewportPoint(at.Position)
-	local ray = currentCamera:ViewportPointToRay(pos.X, pos.Y)
-
-	-- Override OnClientInvoke with new data.
-	---@todo: Spoof better later with proper 1:1 InputClient data.
-	getMouse.OnClientInvoke = function()
-		return {
-			["Hit"] = at,
-			["Target"] = targetHrp,
-			["UnitRay"] = ray,
-			["X"] = pos.X,
-			["Y"] = pos.Y,
-		}
-	end
+	-- Target part.
+	targetPart(targetHrp)
 
 	-- Start attacking the target.
 	InputClient.left(targetHrp.CFrame, true)
@@ -171,15 +209,20 @@ local jfAttackState = FiniteState.new("Attack", function(_, machine)
 
 		-- Tween us above the shrine. If we're attempting to attack a valid target, this will be overriden!
 		local shrine = Finder.wshrine()
-		Tweening.goal("JoyFarm_TweenAboveShrine", shrine:GetPivot() * CFrame.new(0.0, 30.0, 0.0), false)
+		Tweening.goal("JoyFarm_TweenAboveShrine", shrine:GetPivot() * offsetCFrame, false)
 		Tweening.stop("JoyFarm_TweenToTarget")
+
+		-- Check if anyone is near any obstacles?
+		if attackAtObstacles() then
+			continue
+		end
 
 		-- Attack valid targets.
 		if attackValidTargets() then
 			continue
 		end
 
-		-- We must clear the cached target if we failed to attack valid targets!
+		-- We must clear the cached target if we failed to attack valid targets.
 		cachedTarget = nil
 	end
 end, function()

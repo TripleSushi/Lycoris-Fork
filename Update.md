@@ -1,5 +1,5 @@
 # Deepwoken Rewrite
-**Module diff vs. previous snapshot: +15/-0/~33 (added/removed/changed)**
+**Module diff vs. previous snapshot: +0/-0/~3 (added/removed/changed)**
 ```diff
 + (changed) WeaponTest
 + (changed) RisingShadow

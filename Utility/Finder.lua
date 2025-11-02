@@ -42,6 +42,40 @@ Finder.wshrine = LPH_NO_VIRTUALIZE(function()
 	return shrine
 end)
 
+---Is a entity (not us or a player) within X studs of the specified position?
+---@param position Vector3
+---@param range number
+---@return Model|nil
+Finder.enear = LPH_NO_VIRTUALIZE(function(position, range)
+	local live = workspace:FindFirstChild("Live")
+	if not live then
+		return nil
+	end
+
+	for _, entity in next, live:GetChildren() do
+		if entity == players.LocalPlayer.Character then
+			continue
+		end
+
+		if players:GetPlayerFromCharacter(entity) then
+			continue
+		end
+
+		local rootPart = entity:FindFirstChild("HumanoidRootPart")
+		if not rootPart then
+			continue
+		end
+
+		if (position - rootPart.Position).Magnitude > range then
+			continue
+		end
+
+		return entity
+	end
+
+	return nil
+end)
+
 ---Is a player within X studs of the specified position?
 ---@param position Vector3
 ---@param range number
