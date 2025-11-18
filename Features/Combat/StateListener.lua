@@ -233,7 +233,7 @@ StateListener.astun = LPH_NO_VIRTUALIZE(function()
 		return false
 	end
 
-	if lAnimationValidTrack.IsPlaying and os.clock() - lAnimTimestamp <= (lAnimFaction:when() - Latency.rtt()) then
+	if lAnimationValidTrack.IsPlaying and os.clock() - lAnimTimestamp <= (lAnimFaction:when() + Latency.rtt()) then
 		return true
 	end
 
