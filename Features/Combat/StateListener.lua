@@ -223,7 +223,7 @@ StateListener.csb = LPH_NO_VIRTUALIZE(function()
 end)
 
 ---Are we in action stun? That small window after doing an action where you can't do anything.
----@return boolean
+---@return boolean, string
 StateListener.astun = LPH_NO_VIRTUALIZE(function()
 	local lAnimFaction = StateListener.lAnimFaction
 	local lAnimationValidTrack = StateListener.lAnimationValidTrack
@@ -234,7 +234,8 @@ StateListener.astun = LPH_NO_VIRTUALIZE(function()
 	end
 
 	if lAnimationValidTrack.IsPlaying and os.clock() - lAnimTimestamp <= (lAnimFaction:when() + Latency.rtt()) then
-		return true
+		return true,
+			string.format("%.2f vs. %.2f (+%.2f)", os.clock() - lAnimTimestamp, lAnimFaction:when(), Latency.rtt())
 	end
 
 	return false

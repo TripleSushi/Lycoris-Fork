@@ -306,8 +306,10 @@ Defender.valid = LPH_NO_VIRTUALIZE(function(self, options)
 		return internalNotifyFunction(timing, "No effect replicator module found.")
 	end
 
-	if not self.afeinted and not options.sstun and StateListener.astun() then
-		return internalNotifyFunction(timing, "User is in action (e.g swinging / critical / mantra) stun.")
+	local state, status = StateListener.astun()
+
+	if not self.afeinted and not options.sstun and state then
+		return internalNotifyFunction(timing, "(%s) User is in action stun.", status)
 	end
 
 	if effectReplicatorModule:FindEffect("Knocked") then
