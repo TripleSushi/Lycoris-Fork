@@ -23,6 +23,9 @@ local SaveManager = require("Game/Timings/SaveManager")
 ---@module Game.Timings.ModuleManager
 local ModuleManager = require("Game/Timings/ModuleManager")
 
+---@module Features.Combat.Objects.Defender
+local Defender = require("Features/Combat/Objects/Defender")
+
 -- Maids.
 local stateMaid = Maid.new()
 
@@ -230,7 +233,7 @@ StateListener.astun = LPH_NO_VIRTUALIZE(function()
 		return false
 	end
 
-	if lAnimationValidTrack.IsPlaying and os.clock() - lAnimTimestamp <= (lAnimFaction:when() + 0.1) then
+	if lAnimationValidTrack.IsPlaying and os.clock() - lAnimTimestamp <= (lAnimFaction:when() - Defender.rtt()) then
 		return true
 	end
 
