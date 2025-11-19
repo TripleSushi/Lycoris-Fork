@@ -60,7 +60,7 @@ local function onRenderStepped()
 	end
 
 	if StateListener.hblock() then
-		return
+		return QueuedBlocking.empty()
 	end
 
 	-- Are we blocking?
@@ -78,7 +78,7 @@ local function onRenderStepped()
 			continue
 		end
 
-		blockQueue[id] = nil
+		QueuedBlocking.stop(id)
 	end
 
 	-- Calculate if we have something in the queue.
@@ -147,6 +147,14 @@ function QueuedBlocking.invoke(type, id, dt)
 
 	sprintFunction(false)
 
+	Logger.warn(
+		"QueuedBlocking.invoke(...) - (at %.2f) Invoking block action '%s' of type %d with dead time (%s) to queue.",
+		os.clock(),
+		tostring(id),
+		type,
+		tostring(dt)
+	)
+
 	blockQueue[id] = {
 		start = os.clock(),
 		type = type,
@@ -162,6 +170,14 @@ end
 ---Stop a block action from the queue.
 ---@param id string The block action ID.
 function QueuedBlocking.stop(id)
+	if not blockQueue[id] then
+		return
+	end
+
+	-- Log.
+	Logger.warn("QueuedBlocking.stop(...) - Stopping block action '%s' in queue.", tostring(id))
+
+	-- Remove.
 	blockQueue[id] = nil
 end
 

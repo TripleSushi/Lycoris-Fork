@@ -595,6 +595,12 @@ end)
 ---@param action Action
 ---@param started number
 Defender.handle = LPH_NO_VIRTUALIZE(function(self, timing, action, started)
+	local actionType = PP_SCRAMBLE_STR(action._type)
+
+	if actionType == "End Block" then
+		QueuedBlocking.stop("Defender_StartBlock")
+	end
+
 	-- Handle auto feint. We want to feint before the parry action gets sent out.
 	-- We don't want to do this for any action that has:
 	-- 1. Delay until in hitbox because we don't know the actual timing
@@ -609,13 +615,13 @@ Defender.handle = LPH_NO_VIRTUALIZE(function(self, timing, action, started)
 		self:afeint(timing, action, started)
 	end
 
-	if PP_SCRAMBLE_STR(action._type) ~= "End Block" then
+	if actionType ~= "End Block" then
 		if not self:valid(ValidationOptions.new(action, timing)) then
 			return
 		end
 	end
 
-	self:notify(timing, "Action type '%s' is being executed.", PP_SCRAMBLE_STR(action._type))
+	self:notify(timing, "Action type '%s' is being executed.", actionType)
 
 	local effectReplicator = replicatedStorage:FindFirstChild("EffectReplicator")
 	if not effectReplicator then
@@ -627,23 +633,23 @@ Defender.handle = LPH_NO_VIRTUALIZE(function(self, timing, action, started)
 		return
 	end
 
-	if PP_SCRAMBLE_STR(action._type) == "Start Block" then
+	if actionType == "Start Block" then
 		return QueuedBlocking.invoke(QueuedBlocking.BLOCK_TYPE_NORMAL, "Defender_StartBlock", nil)
 	end
 
-	if PP_SCRAMBLE_STR(action._type) == "End Block" then
-		return QueuedBlocking.stop("Defender_StartBlock")
-	end
-
-	if PP_SCRAMBLE_STR(action._type) == "Dodge" then
+	if actionType == "Dodge" then
 		return InputClient.dodge(false)
 	end
 
-	if PP_SCRAMBLE_STR(action._type) == "Forced Full Dodge" then
+	if actionType == "Forced Full Dodge" then
 		return InputClient.dodge(true)
 	end
 
-	if PP_SCRAMBLE_STR(action._type) == "Jump" then
+	if actionType == "End Block" then
+		return QueuedBlocking.stop("Defender_StartBlock")
+	end
+
+	if actionType == "Jump" then
 		local humanController = InputClient.getHumanController()
 		if not humanController then
 			return
@@ -652,7 +658,7 @@ Defender.handle = LPH_NO_VIRTUALIZE(function(self, timing, action, started)
 		return humanController:Jump()
 	end
 
-	if PP_SCRAMBLE_STR(action._type) == "Teleport Up" then
+	if actionType == "Teleport Up" then
 		local character = players.LocalPlayer.Character
 		if not character then
 			return
