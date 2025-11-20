@@ -88,6 +88,7 @@ function BuilderSection:reset()
 	self.hitboxFacingOffset:SetRawValue(true)
 	self.hitboxShiftOffset:SetRawValue(0)
 	self.blockFallbackHoldTime:SetRawValue(0.3)
+	self.noBlockFallback:SetRawValue(false)
 
 	-- Reset action list.
 	self:arefresh(nil)
@@ -515,6 +516,7 @@ function BuilderSection:timing()
 			self.noDashFallback:SetRawValue(found.ndfb)
 			self.noVentFallback:SetRawValue(found.nvfb)
 			self.blockFallbackHoldTime:SetRawValue(found.bfht)
+			self.noBlockFallback:SetRawValue(found.nbfb)
 
 			-- Load extra elements.
 			self:exload(found)
@@ -858,6 +860,15 @@ function BuilderSection:builder()
 		Default = false,
 		Callback = self:tnc(function(timing, value)
 			timing.nvfb = value
+		end),
+	})
+
+	self.noBlockFallback = tab:AddToggle(nil, {
+		Text = "No Block Fallback",
+		Tooltip = "If enabled, the timing will not fallback to a block.",
+		Default = false,
+		Callback = self:tnc(function(timing, value)
+			timing.nbfb = value
 		end),
 	})
 

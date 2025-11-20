@@ -156,14 +156,6 @@ Defender.srpue = LPH_NO_VIRTUALIZE(function(self, entity, timing, info)
 	if timing.umoa or timing.cbm then
 		timing["_rpd"] = PP_SCRAMBLE_RE_NUM(timing["_rpd"])
 		timing["_rsd"] = PP_SCRAMBLE_RE_NUM(timing["_rsd"])
-		timing["hitbox"] = Vector3.new(
-			PP_SCRAMBLE_RE_NUM(timing.hitbox.X),
-			PP_SCRAMBLE_RE_NUM(timing.hitbox.Y),
-			PP_SCRAMBLE_RE_NUM(timing.hitbox.Z)
-		)
-	end
-
-	if timing.cbm then
 		timing["imdd"] = PP_SCRAMBLE_RE_NUM(timing["imdd"])
 		timing["imxd"] = PP_SCRAMBLE_RE_NUM(timing["imxd"])
 	end
@@ -175,6 +167,13 @@ Defender.srpue = LPH_NO_VIRTUALIZE(function(self, entity, timing, info)
 		["rsd"] = timing:rsd(),
 		["rpd"] = timing:rpd(),
 	}
+
+	local options = HitboxOptions.new(target and target.root or CFrame.new(), timing)
+	options.spredict = not timing.duih
+	options.ptime = self:fsecs(timing)
+	options.entity = entity
+	options.hmid = info.hmid
+	options:ucache()
 
 	self:mark(Task.new(string.format("RPUE_%s_%i", timing.name, 0), function()
 		return cache["rsd"] - info.irdelay - Latency.sdelay()
@@ -205,8 +204,9 @@ end)
 ---@param entity Model
 ---@param timing Timing
 ---@param info RepeatInfo
----@param cache table? Cache table for RPUE to prevent unnecessary recalculations.
-Defender.rpue = LPH_NO_VIRTUALIZE(function(self, entity, timing, info, cache)
+---@param cache table Cache table for RPUE to prevent unnecessary recalculations.
+---@param options HitboxOptions
+Defender.rpue = LPH_NO_VIRTUALIZE(function(self, entity, timing, info, cache, options)
 	local distance = self:distance(entity)
 	if not distance then
 		return Logger.warn("Stopping RPUE '%s' because the distance is not valid.", cache.name)
@@ -217,22 +217,22 @@ Defender.rpue = LPH_NO_VIRTUALIZE(function(self, entity, timing, info, cache)
 	end
 
 	local target = self:target(entity)
-
-	local options = HitboxOptions.new(target and target.root or CFrame.new(), timing)
-	options.spredict = not timing.duih
-	options.ptime = self:fsecs(timing)
-	options.entity = entity
-	options.hmid = info.hmid
-	options:ucache()
-
 	local success = false
+	local reasons = {}
 
 	if timing.duih and target then
 		success = self:hc(options, info)
+		reasons[#reasons + 1] = "hitbox"
 	end
 
-	if timing and (distance < cache.imdd or distance > cache.imxd) then
-		success = false
+	local within = (distance >= cache.imdd and distance <= cache.imxd)
+
+	if timing then
+		success = within
+	end
+
+	if not within then
+		reasons[#reasons + 1] = string.format("distance range (%.2f < %.2f > %.2f)", cache.imdd, distance, cache.imxd)
 	end
 
 	info.index = info.index + 1
@@ -246,11 +246,7 @@ Defender.rpue = LPH_NO_VIRTUALIZE(function(self, entity, timing, info, cache)
 	end
 
 	if not success then
-		return Logger.warn(
-			"Skipping RPUE '%s' because we are not in the %s.",
-			cache.name,
-			timing.duih and "hitbox" or "distance range"
-		)
+		return Logger.warn("Skipping RPUE '%s' (%s)", cache.name, #reasons > 1 and table.concat(reasons, ", ") or "N/A")
 	end
 
 	self:notify(timing, "Action type 'RPUE Parry' is being executed.")
@@ -316,16 +312,23 @@ Defender.valid = LPH_NO_VIRTUALIZE(function(self, options)
 		return internalNotifyFunction(timing, "No effect replicator module found.")
 	end
 
-	if not self.afeinted and not options.sstun and StateListener.astun() then
-		return internalNotifyFunction(timing, "User is in action stun.")
-	end
+	local actionType = options.action._type
 
-	if effectReplicatorModule:FindEffect("Knocked") then
-		return internalNotifyFunction(timing, "User is knocked.")
-	end
+	if
+		not Configuration.expectToggleValue("BlatantRoll")
+		or (actionType ~= PP_SCRAMBLE_STR("Dodge") and actionType ~= PP_SCRAMBLE_STR("Forced Full Dodge"))
+	then
+		if not self.afeinted and not options.sstun and StateListener.astun() then
+			return internalNotifyFunction(timing, "User is in action stun.")
+		end
 
-	if effectReplicatorModule:FindEffect("HitAnim") then
-		return internalNotifyFunction(timing, "User is in hit animation.")
+		if effectReplicatorModule:FindEffect("Knocked") then
+			return internalNotifyFunction(timing, "User is knocked.")
+		end
+
+		if effectReplicatorModule:FindEffect("HitAnim") then
+			return internalNotifyFunction(timing, "User is in hit animation.")
+		end
 	end
 
 	if timing.tag == "M1" and selectedFilters["Filter Out M1s"] then
@@ -738,7 +741,8 @@ Defender.parry = LPH_NO_VIRTUALIZE(function(self, timing, action)
 	end
 
 	-- What fallbacks can we run?
-	local canBlock = Configuration.expectToggleValue("DeflectBlockFallback")
+	local canBlock = Configuration.expectToggleValue("DeflectBlockFallback") and not timing.nbfb
+
 	local canVent = StateListener.cvent()
 		and Configuration.expectToggleValue("VentFallback")
 		and not timing.nvfb

@@ -28,7 +28,7 @@ return function(self, timing)
 	elseif data.type == "Greathammer" then
 		windup = (0.14 / self.track.Speed) + 0.140
 	elseif data.type == "Greatsword" then
-		windup = (0.17 / self.track.Speed) + 0.150
+		windup = (0.17 / self.track.Speed) + 0.100
 	elseif data.type == "Twinblade" then
 		windup = (0.166 / self.track.Speed) + 0.140
 	elseif data.type == "Bow" then

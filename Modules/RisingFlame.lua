@@ -12,7 +12,7 @@ return function(self, timing)
 	local range = data.stratus * 3 + data.cloud * 2
 
 	local action = Action.new()
-	action._when = 400
+	action._when = 500
 	action._type = "Parry"
 	action.hitbox = Vector3.new(25 + range, 25, 25 + range)
 	action.name = "Dynamic Rising Flame Timing"
