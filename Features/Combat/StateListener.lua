@@ -1,6 +1,12 @@
 -- StateListener module. Practically, it is a module to store data / information about what is happening with the character.
-local StateListener =
-	{ lMantraActivated = nil, lAnimTiming = nil, lAnimFaction = nil, lAnimTimestamp = nil, chainStacks = nil }
+local StateListener = {
+	lMantraActivated = nil,
+	lAnimTiming = nil,
+	lAnimFaction = nil,
+	lAnimTimestamp = nil,
+	chainStacks = nil,
+	lastVent = nil,
+}
 
 ---@module Utility.Signal
 local Signal = require("Utility/Signal")
@@ -258,6 +264,10 @@ StateListener.cvent = LPH_NO_VIRTUALIZE(function()
 		return false
 	end
 
+	if StateListener.lastVent and (os.clock() - StateListener.lastVent) <= 8.0 then
+		return false
+	end
+
 	local tempo = character:FindFirstChild("Tempo")
 	if not tempo then
 		return false
@@ -362,6 +372,10 @@ local onEffectReplicated = LPH_NO_VIRTUALIZE(function(effect)
 
 	if effect.Class == "ParryCool" then
 		effect.index.Timestamp = os.clock()
+	end
+
+	if effect.Class == "Vented" then
+		StateListener.lastVent = os.clock()
 	end
 
 	if effect.Class == "PerfectStack" then
