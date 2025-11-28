@@ -1,34 +1,18 @@
 # Deepwoken Rewrite
-**Module diff vs. previous snapshot: +0/-0/~9 (added/removed/changed)**
+**Module diff vs. previous snapshot: +2/-0/~0 (added/removed/changed)**
 ```diff
-+ (changed) WeaponFlourishTest
-+ (changed) WeaponRunningAttackTest
-+ (changed) RapidSlashes
-+ (changed) WeaponAerialAttackTest
-+ (changed) ShadowSludge
-+ (changed) WeaponUppercutTest
-+ (changed) WeaponTest
-+ (changed) RapidPunches
-+ (changed) GlacialArc
-+ (added) IceGuySniper
++ (added) Tornado
++ (added) WyrmCrit
 ```
-*Light weapons now prefer to block when air swinging. This should solve a big issue with them.*
-*Heavy weapons now have reduced hitboxes which are way more strict!*
+*Wyrmtooth critical is fully fixed.*
 
-**Timing diff vs. previous snapshot: +0/-0/~15 (animation: +0/-0/~7, effect: +0/-0/~8)**
+**Timing diff vs. previous snapshot: +1/-5/~0 (part: +1/-0/~0, effect: +0/-5/~0)**
 ```diff
-+ (changed) Animation : ShoulderBashGo (by Blastbrean)
-+ (changed) Animation : KaritaLeap (by Blastbrean)
-+ (changed) Animation : ShadeBringer (by Blastbrean)
-+ (changed) Animation : ShadeBringer2 (by Blastbrean)
-+ (changed) Animation : RisingFrost (by Blastbrean)
-+ (changed) Animation : FrostGrabWindup (by Blastbrean)
-+ (changed) Animation : DarksteelSwordCrit (by Blastbrean)
-+ (changed) Effect : SilentheartWarn (by Blastbrean)
++ (added) Part : Tornado (by Blastbrean)
 ```
-*Silentheart Relentless Hunt should be fixed. I could not replicate the issue. I did it fix it parrying your own Relentless Hunt.*
+*You should not parry your own Tornado anymore.*
 
 **New features?**
 *No new features. They will come later today. ESP Rework and Whitelisting Rework soon!*
 
-*Your commit ID should be "ebc792" when the update is pushed to you.*
+*No change in commit ID. This update is super minor.*
