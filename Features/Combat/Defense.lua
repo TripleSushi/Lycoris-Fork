@@ -222,12 +222,12 @@ local updateGoldenTongue = LPH_NO_VIRTUALIZE(function()
 	end
 
 	local textChannels = textChatService:FindFirstChild("TextChannels")
-	local rbxGeneral = textChannels and textChannels:FindFirstChild("RBXGeneral")
-	if not rbxGeneral then
+	local rbxSystem = textChannels and textChannels:FindFirstChild("RBXSystem")
+	if not rbxSystem then
 		return
 	end
 
-	defenseMaid:mark(TaskSpawner.spawn("Defender_GoldenTongueSendAsync", rbxGeneral.SendAsync, rbxGeneral, ""))
+	defenseMaid:mark(TaskSpawner.spawn("Defender_GoldenTongueSendAsync", rbxSystem.SendAsync, rbxSystem, "/help"))
 end)
 
 ---Toggle visualizations.

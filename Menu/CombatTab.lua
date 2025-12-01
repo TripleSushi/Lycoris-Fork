@@ -274,25 +274,20 @@ end
 local function timingOverrideCallback(callback)
 	return function()
 		local overrideData = Library.OverrideData
-		print(overrideData)
 		if not overrideData then
 			return false
 		end
 
 		local selectedTo = Configuration.expectOptionValue("TimingOverrideList")
-		print(selectedTo)
 		if not selectedTo or #selectedTo == 0 then
 			return false
 		end
 
 		local override = overrideData[selectedTo]
-		print(selectedTo)
 		if not override then
 			return false
 		end
-		for i, v in next, override do
-			print(i, v)
-		end
+
 		callback(override)
 	end
 end
@@ -346,9 +341,7 @@ function CombatTab:initTimingsSection(groupbox)
 			if not override then
 				return false
 			end
-			for i, v in next, override do
-				print(i, v)
-			end
+
 			self.dashInsteadOfParryRate:SetRawValue(override.dipr or 0)
 			self.failureRate:SetRawValue(override.fr or 0)
 			self.ignoreAnimationEndRate:SetRawValue(override.iaer or 0)
@@ -407,7 +400,6 @@ function CombatTab:initProbabilitiesSection(groupbox)
 		Suffix = "%",
 		Rounding = 2,
 		Callback = timingOverrideCallback(function(override)
-			print(override.fr, self.failureRate.Value)
 			override.fr = self.failureRate.Value
 		end),
 	})
@@ -420,7 +412,6 @@ function CombatTab:initProbabilitiesSection(groupbox)
 		Suffix = "%",
 		Rounding = 2,
 		Callback = timingOverrideCallback(function(override)
-			print(override.dipr, self.dashInsteadOfParryRate.Value)
 			override.dipr = self.dashInsteadOfParryRate.Value
 		end),
 	})
@@ -433,7 +424,6 @@ function CombatTab:initProbabilitiesSection(groupbox)
 		Suffix = "%",
 		Rounding = 2,
 		Callback = timingOverrideCallback(function(override)
-			print(override.iaer, self.ignoreAnimationEndRate.Value)
 			override.iaer = self.ignoreAnimationEndRate.Value
 		end),
 	})
@@ -625,6 +615,7 @@ function CombatTab.init(window)
 
 	-- Initialize other sections.
 	CombatTab.initAttackAssistanceSection(tab:AddDynamicGroupbox("Attack Assistance"))
+	CombatTab.initCombatAssistance(tab:AddDynamicGroupbox("Combat Assistance"))
 
 	-- Create timing probability section tab box.
 	local tpTabbox = tab:AddDynamicTabbox()
