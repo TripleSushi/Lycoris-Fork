@@ -35,7 +35,7 @@ return function(self, timing)
 		pt.name = "MetalRodProjectile"
 		pt.hitbox = Vector3.new(100, 100, 100)
 		pt.imdd = 0
-		pt.imxd = 100
+		pt.imxd = 20
 		pt.actions:push(action)
 		pt.cbm = true
 
