@@ -501,7 +501,11 @@ EntityESP.build = LPH_NO_VIRTUALIZE(function(self)
 		local fmodel = self.entity:Clone()
 
 		for _, inst in next, fmodel:GetDescendants() do
-			if inst:IsA("BasePart") then
+			if not inst.Parent then
+				continue
+			end
+
+			if inst:IsA("BasePart") and not inst.Parent:IsA("BasePart") then
 				continue
 			end
 

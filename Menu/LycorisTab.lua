@@ -91,6 +91,15 @@ end
 ---Initialize UI Settings section.
 ---@param groupbox table
 function LycorisTab.initUISettingsSection(groupbox)
+	groupbox:AddSlider("NotificationScale", {
+		Text = "Notification Scale",
+		Min = 50,
+		Max = 300,
+		Default = 100,
+		Rounding = 0,
+		Suffix = "%",
+	})
+
 	local menuBindLabel = groupbox:AddLabel("Menu Bind")
 
 	menuBindLabel:AddKeyPicker("MenuKeybind", { Default = "LeftAlt", NoUI = true, Text = "Menu Keybind" })

@@ -3682,9 +3682,13 @@ return LPH_NO_VIRTUALIZE(function()
 			return
 		end
 
-		local XSize, YSize = Library:GetTextBounds(Text, Library.Font, 14)
+		local NotifScale = tonumber(Options["NotificationScale"] and Options["NotificationScale"].Value) or 100
+		NotifScale = NotifScale / 100
 
-		YSize = YSize + 7
+		local ScaledTextSize = 14 * NotifScale
+		local XSize, YSize = Library:GetTextBounds(Text, Library.Font, ScaledTextSize)
+
+		YSize = YSize + (7 * NotifScale)
 
 		local NotifyOuter = Library:Create("Frame", {
 			BorderColor3 = Color3.new(0, 0, 0),
@@ -3741,7 +3745,7 @@ return LPH_NO_VIRTUALIZE(function()
 			Size = UDim2.new(1, -4, 1, 0),
 			Text = Text,
 			TextXAlignment = Enum.TextXAlignment.Left,
-			TextSize = 14,
+			TextSize = ScaledTextSize,
 			ZIndex = 103,
 			Parent = InnerFrame,
 		})
@@ -3759,12 +3763,17 @@ return LPH_NO_VIRTUALIZE(function()
 			BackgroundColor3 = "AccentColor",
 		}, true)
 
-		pcall(NotifyOuter.TweenSize, NotifyOuter, UDim2.new(0, XSize + 8 + 4, 0, YSize), "Out", "Quad", 0.4, true)
+		local MovingReallyFast = Time and (Time - 0.8) <= 0.3 or false
+		local TweenTime = MovingReallyFast and 0.1 or 0.4
+
+		local ScaledXSize = XSize + 8 + 4
+
+		pcall(NotifyOuter.TweenSize, NotifyOuter, UDim2.new(0, ScaledXSize, 0, YSize), "Out", "Quad", TweenTime, true)
 
 		local function TweenOut()
-			pcall(NotifyOuter.TweenSize, NotifyOuter, UDim2.new(0, 0, 0, YSize), "Out", "Quad", 0.4, true)
+			pcall(NotifyOuter.TweenSize, NotifyOuter, UDim2.new(0, 0, 0, YSize), "Out", "Quad", TweenTime, true)
 
-			task.wait(0.4)
+			task.wait(TweenTime)
 
 			NotifyOuter:Destroy()
 		end

@@ -20,6 +20,12 @@ return LPH_NO_VIRTUALIZE(function()
 		return Library:ManuallyManagedNotify(string.format(str, ...))
 	end
 
+	---Quick notify message.
+	---@param str string
+	function Logger.qnotify(str, ...)
+		Library:Notify(string.format(str, ...), 0.5)
+	end
+
 	---Notify message with a default short cooldown to create consistent cooldowns between files.
 	---@param str string
 	function Logger.notify(str, ...)
