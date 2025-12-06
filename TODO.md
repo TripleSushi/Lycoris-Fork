@@ -59,11 +59,6 @@ Essential Additions
 
 - 1. Auto Execute Fixes
 
-- 2. "Timing Probability" section
-  - How can we tie "Timing Names" to Probabilities when we click on it in the list?
-
-- Look into M1 Feint -> Mantra Feint -> M1
-
 Farming Fixes
 
 - 4. Clean Up "Echo Farm"
@@ -114,6 +109,6 @@ Research
 
 - CTU Logging (v.s. logging, timezone & region logging)
   
-- Menu Scale & Windows Scale & Notification Scale
+- Menu Scale & Windows Scale 
   
 - Auto Echo Farm Use Gun + Fix Server Hop + Enchant In Fight + Tween Under Self Ignore Others + No Holds Barred To Prevent Whitehat

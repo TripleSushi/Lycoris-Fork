@@ -56,44 +56,34 @@ PlayerESP.update = LPH_NO_VIRTUALIZE(function(self)
 		return self:visible(false)
 	end
 
-	-- Update element visibility.
-	local abar = self.abar
-	local pbar = self.pbar
-	local bbar = self.bbar
-	local tbar = self.tbar
-	local sbar = self.sbar
+	-- Bar mapping.
+	local mapping = {
+		["ArmorBar"] = { container = self.abar, vstore = self.entity:FindFirstChild("Armor") },
+		["PostureBar"] = { container = self.pbar, vstore = self.entity:FindFirstChild("BreakMeter") },
+		["BloodBar"] = { container = self.bbar, vstore = self.entity:FindFirstChild("Blood") },
+		["TempoBar"] = { container = self.tbar, vstore = self.entity:FindFirstChild("Tempo") },
+		["SanityBar"] = { container = self.sbar, vstore = self.entity:FindFirstChild("Sanity") },
+	}
 
-	abar.Visible = Configuration.idToggleValue(identifier, "ArmorBar")
-	pbar.Visible = Configuration.idToggleValue(identifier, "PostureBar")
-	bbar.Visible = Configuration.idToggleValue(identifier, "BloodBar")
-	tbar.Visible = Configuration.idToggleValue(identifier, "TempoBar")
-	sbar.Visible = Configuration.idToggleValue(identifier, "SanityBar")
+	for idx, data in next, mapping do
+		local container = data.container
+		if not container then
+			continue
+		end
 
-	-- Update element information.
-	local sanity = self.entity:FindFirstChild("Sanity")
-	local tempo = self.entity:FindFirstChild("Tempo")
-	local armor = self.entity:FindFirstChild("Armor")
-	local blood = self.entity:FindFirstChild("Blood")
-	local posture = self.entity:FindFirstChild("BreakMeter")
+		-- Visibility?
+		container.Visible = Configuration.idToggleValue(identifier, idx)
 
-	if sbar then
-		self.mbs(sbar, false, sanity and sanity.Value / sanity.MaxValue or 0.0)
-	end
+		-- Modify size.
+		self.mbs(container, false, data.vstore and data.vstore.Value / data.vstore.MaxValue or 0.0)
 
-	if tbar then
-		self.mbs(tbar, false, tempo and tempo.Value / tempo.MaxValue or 0.0)
-	end
+		local bar = self.gb(container)
+		if not bar then
+			continue
+		end
 
-	if abar then
-		self.mbs(abar, true, armor and armor.Value / armor.MaxValue or 0.0)
-	end
-
-	if bbar then
-		self.mbs(bbar, false, blood and blood.Value / blood.MaxValue or 0.0)
-	end
-
-	if pbar then
-		self.mbs(pbar, false, posture and posture.Value / posture.MaxValue or 0.0)
+		-- Bar color.
+		bar.BackgroundColor3 = Configuration.idOptionValue(identifier, idx .. "Color") or Color3.new(0.0, 0.0, 0.0)
 	end
 
 	local level = entity:GetAttribute("Level") or -1
@@ -154,23 +144,23 @@ end)
 ---Add extra elements.
 PlayerESP.extra = LPH_NO_VIRTUALIZE(function(self)
 	self.abar = self:add("ArmorBar", "left", 6, function(container)
-		self:cgb(container, false, true, Color3.new(0.00784314, 0.65098, 1))
+		self:cgb(container, false, true, Color3.new(1, 1, 1))
 	end)
 
 	self.pbar = self:add("PostureBar", "bottom", 3, function(container)
-		self:cgb(container, false, false, Color3.new(0.952941, 1, 0.0235294))
+		self:cgb(container, false, false, Color3.new(1, 1, 1))
 	end)
 
 	self.bbar = self:add("BloodBar", "bottom", 3, function(container)
-		self:cgb(container, false, false, Color3.new(1, 0, 0.0156863))
+		self:cgb(container, false, false, Color3.new(1, 1, 1))
 	end)
 
 	self.tbar = self:add("TempoBar", "bottom", 3, function(container)
-		self:cgb(container, false, false, Color3.new(1, 0.54902, 0))
+		self:cgb(container, false, false, Color3.new(1, 1, 1))
 	end)
 
 	self.sbar = self:add("SanityBar", "bottom", 3, function(container)
-		self:cgb(container, false, false, Color3.new(0, 0.0509804, 1))
+		self:cgb(container, false, false, Color3.new(1, 1, 1))
 	end)
 end)
 

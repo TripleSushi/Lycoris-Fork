@@ -13,6 +13,9 @@ local Configuration = require("Utility/Configuration")
 ---@module GUI.Library
 local Library = require("GUI/Library")
 
+---@module Game.Timings.SaveManager
+local SaveManager = require("Game/Timings/SaveManager")
+
 -- Initialize combat targeting section.
 ---@param tab table
 function CombatTab.initCombatTargetingSection(tab)
@@ -350,12 +353,30 @@ function CombatTab:initTimingsSection(groupbox)
 
 	groupbox:AddDivider()
 
-	self.ti = groupbox:AddInput("TimingOverrideNameInput", {
-		Text = "Timing Override Name Input",
-		Placeholder = "Partial or exact timing name.",
+	local names = {}
+	local plist = { SaveManager.as, SaveManager.es, SaveManager.ss, SaveManager.ps }
+
+	---@todo: There should be a specific method for this; I mean as far as I'm aware THERE IS ONE. But, I'm too lazy.
+	for _, pair in next, plist do
+		for _, timing in next, pair:list() do
+			names[#names + 1] = PP_SCRAMBLE_STR(timing.name)
+		end
+	end
+
+	table.sort(names)
+
+	self.ti = groupbox:AddDropdown("TimingOverrideTimingList", {
+		Text = "Timing List",
+		Values = names,
+		Multi = false,
+		AllowNull = true,
 	})
 
 	groupbox:AddButton("Add Timing Override", function()
+		if Library.OverrideData[self.ti.Value] then
+			return Logger.notify("A timing override with that name already exists.")
+		end
+
 		-- Add data.
 		local override = {
 			fr = self.failureRate.Value,
@@ -494,6 +515,12 @@ function CombatTab.initCombatAssistance(groupbox)
 
 	agtDepBox:SetupDependencies({
 		{ agtToggle, true },
+	})
+
+	groupbox:AddToggle("AutoMantraFollowup", {
+		Text = "Auto Mantra Followup",
+		Default = false,
+		Tooltip = "Automatically press the followup button while using a mantra.",
 	})
 
 	groupbox:AddToggle("AutoFlowState", {

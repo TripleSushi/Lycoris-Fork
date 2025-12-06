@@ -283,7 +283,7 @@ Defender.valid = LPH_NO_VIRTUALIZE(function(self, options)
 		return self:notify(...)
 	end
 
-	local overrideData = Library:GetOverrideData(timing.name)
+	local overrideData = Library:GetOverrideData(PP_SCRAMBLE_STR(timing.name))
 
 	if overrideData then
 		rate = overrideData.fr
@@ -342,6 +342,12 @@ Defender.valid = LPH_NO_VIRTUALIZE(function(self, options)
 
 		if effectReplicatorModule:FindEffect("Knocked") then
 			return internalNotifyFunction(timing, "User is knocked.")
+		end
+	end
+
+	if actionType == PP_SCRAMBLE_STR("Parry") then
+		if effectReplicatorModule:FindEffect("AutoParry") then
+			return internalNotifyFunction(timing, "User has auto parry frames.")
 		end
 	end
 
@@ -521,7 +527,7 @@ Defender.notify = LPH_NO_VIRTUALIZE(function(self, timing, str, ...)
 		return
 	end
 
-	Logger.notify("[%s] (%s) %s", PP_SCRAMBLE_STR(timing.name), self.__type, string.format(str, ...))
+	Logger.qnotify("[%s] (%s) %s", PP_SCRAMBLE_STR(timing.name), self.__type, string.format(str, ...))
 end)
 
 ---Repeat conditional.
@@ -746,8 +752,7 @@ Defender.parry = LPH_NO_VIRTUALIZE(function(self, timing, action)
 
 	-- Rate.
 	local rate = (Configuration.expectOptionValue("DashInsteadOfParryRate") or 0.0)
-	local overrideData = Library:GetOverrideData(timing.name)
-
+	local overrideData = Library:GetOverrideData(PP_SCRAMBLE_STR(timing.name))
 	if overrideData then
 		rate = overrideData.dipr
 	end

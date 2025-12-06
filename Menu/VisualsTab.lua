@@ -452,29 +452,49 @@ function VisualsTab.addPlayerESP(identifier, depbox)
 		Default = false,
 	})
 
-	depbox:AddToggle(Configuration.identify(identifier, "ArmorBar"), {
+	local armorBar = depbox:AddToggle(Configuration.identify(identifier, "ArmorBar"), {
 		Text = "Show Armor Bar",
 		Default = false,
 	})
 
-	depbox:AddToggle(Configuration.identify(identifier, "BloodBar"), {
+	armorBar:AddColorPicker(Configuration.identify(identifier, "ArmorBarColor"), {
+		Default = Color3.new(0.388235, 0.686274, 0.984313),
+	})
+
+	local bloodBar = depbox:AddToggle(Configuration.identify(identifier, "BloodBar"), {
 		Text = "Show Blood Bar",
 		Default = false,
 	})
 
-	depbox:AddToggle(Configuration.identify(identifier, "SanityBar"), {
+	bloodBar:AddColorPicker(Configuration.identify(identifier, "BloodBarColor"), {
+		Default = Color3.new(0.8, 0, 0),
+	})
+
+	local sanityBar = depbox:AddToggle(Configuration.identify(identifier, "SanityBar"), {
 		Text = "Show Sanity Bar",
 		Default = false,
 	})
 
-	depbox:AddToggle(Configuration.identify(identifier, "TempoBar"), {
+	sanityBar:AddColorPicker(Configuration.identify(identifier, "SanityBarColor"), {
+		Default = Color3.new(0.6, 0, 0.8),
+	})
+
+	local tempoBar = depbox:AddToggle(Configuration.identify(identifier, "TempoBar"), {
 		Text = "Show Tempo Bar",
 		Default = false,
 	})
 
-	depbox:AddToggle(Configuration.identify(identifier, "PostureBar"), {
+	tempoBar:AddColorPicker(Configuration.identify(identifier, "TempoBarColor"), {
+		Default = Color3.new(0, 1, 1),
+	})
+
+	local postureBar = depbox:AddToggle(Configuration.identify(identifier, "PostureBar"), {
 		Text = "Show Posture Bar",
 		Default = false,
+	})
+
+	postureBar:AddColorPicker(Configuration.identify(identifier, "PostureBarColor"), {
+		Default = Color3.new(1, 0.8, 0),
 	})
 
 	depbox:AddDropdown(Configuration.identify(identifier, "PlayerNameType"), {
@@ -493,7 +513,7 @@ end
 function VisualsTab.addFilterESP(identifier, depbox)
 	local filterObjectsToggle = depbox:AddToggle(Configuration.identify(identifier, "FilterObjects"), {
 		Text = "Filter Objects",
-		Default = true,
+		Default = false,
 	})
 
 	local foDepBox = depbox:AddDependencyBox()
