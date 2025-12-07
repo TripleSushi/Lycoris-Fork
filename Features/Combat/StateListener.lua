@@ -431,8 +431,8 @@ local onEffectReplicated = LPH_NO_VIRTUALIZE(function(effect)
 			local effectReplicatorModule = require(effectReplicator)
 
 			if
-				not Configuration.expectToggleValue("CheckIfMoveHit")
-				and not effectReplicatorModule:FindEffect("LandedMantra")
+				Configuration.expectToggleValue("CheckIfMoveHit")
+				and not effectReplicatorModule:FindEffect("DamagedAnother")
 			then
 				return
 			end

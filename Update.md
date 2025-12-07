@@ -11,6 +11,7 @@
 + (changed) Timing probabilities list is now alphabetically sorted
 + (changed) Auto parry now respects AP frames (please report any issues with this, I remember some on Legacy; it should say it detected AP frames in notifications)
 + (added) Auto mantra followup
++ (added) Visual option to see whether or not someone is above, equal, or below to you relative in HP
 ```
 
 *If you're wondering on what to use or where to buy from...*

@@ -65,7 +65,6 @@ return function(self, timing)
 		timing.phd = false
 		timing.ffh = true
 		timing.pfht = 0.5
-		timing.dp = data.type ~= "Spear"
 	end
 
 	if

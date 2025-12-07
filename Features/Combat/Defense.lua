@@ -221,7 +221,7 @@ local updateGoldenTongue = LPH_NO_VIRTUALIZE(function()
 		return
 	end
 
-	if Configuration.expectToggleValue("CheckIfInCombat") and effectReplicatorModule:FindEffect("Combat") then
+	if Configuration.expectToggleValue("CheckIfInCombat") and not effectReplicatorModule:FindEffect("Combat") then
 		return
 	end
 

@@ -12,6 +12,9 @@ local PlayerESP = setmetatable({}, { __index = EntityESP })
 PlayerESP.__index = PlayerESP
 PlayerESP.__type = "PlayerESP"
 
+-- Services.
+local players = game:GetService("Players")
+
 -- Formats.
 local ESP_HEALTH = "[%i/%i]"
 local ESP_POWER = "[Power %i]"
@@ -39,6 +42,20 @@ end)
 ---Update PlayerESP.
 ---@param self PlayerESP
 PlayerESP.update = LPH_NO_VIRTUALIZE(function(self)
+	local localPlayer = players.LocalPlayer
+	local localCharacter = localPlayer.Character
+
+	local localHumanoid = localCharacter and localCharacter:FindFirstChildOfClass("Humanoid")
+	local localRoot = localCharacter and localCharacter:FindFirstChild("HumanoidRootPart")
+
+	if not localRoot then
+		return self:visible(false)
+	end
+
+	if not localHumanoid then
+		return self:visible(false)
+	end
+
 	local entity = self.entity
 	local player = self.player
 	local identifier = self.identifier
@@ -48,12 +65,54 @@ PlayerESP.update = LPH_NO_VIRTUALIZE(function(self)
 		return self:visible(false)
 	end
 
+	local root = entity:FindFirstChild("HumanoidRootPart")
+	if not root then
+		return self:visible(false)
+	end
+
 	if
 		PlayerScanning.isAlly(player)
 		and Configuration.idToggleValue(identifier, "HideIfAlly")
 		and Configuration.idToggleValue(identifier, "MarkAllies")
 	then
 		return self:visible(false)
+	end
+
+	-- Update text.
+	local state = "NEUTRAL"
+	local delta = localHumanoid.Health - humanoid.Health
+	local color = Color3.new(1, 1, 1)
+
+	if delta < 0 then
+		state = "UNDER"
+	end
+
+	if delta < -50 then
+		color = Color3.new(1, 0, 0)
+	end
+
+	if delta > 0 then
+		state = "OVER"
+	end
+
+	if delta > 50 then
+		color = Color3.new(0, 1, 0)
+	end
+
+	local fcontainer = self.fcontainer
+	local flabel = fcontainer and fcontainer:FindFirstChildOfClass("TextLabel")
+	local distance = (localRoot.Position - root.Position).Magnitude
+
+	if fcontainer and flabel then
+		-- Update flag text.
+		self:utext(fcontainer, string.format("%s\n%iHP", state, math.ceil(delta)))
+
+		-- Text size.
+		flabel.Position = UDim2.new(0, 2, 0, flabel.TextSize + 2)
+		flabel.TextColor3 = color
+
+		-- Visibility?
+		fcontainer.Visible = Configuration.idToggleValue(identifier, "ShowHealthComparison") and distance <= 150
 	end
 
 	-- Bar mapping.
@@ -161,6 +220,23 @@ PlayerESP.extra = LPH_NO_VIRTUALIZE(function(self)
 
 	self.sbar = self:add("SanityBar", "bottom", 3, function(container)
 		self:cgb(container, false, false, Color3.new(1, 1, 1))
+	end)
+
+	self.fcontainer = self:add("Flags", "right", 16, function(container)
+		local TextLabel = Instance.new("TextLabel")
+		TextLabel.Parent = container
+		TextLabel.Text = "NEUTRAL\n0HP"
+		TextLabel.Size = UDim2.new(0, 400, 1, 0)
+		TextLabel.AnchorPoint = Vector2.new(0.0, 0.5)
+		TextLabel.Position = UDim2.new(0, 2, 0, 8 + 2)
+		TextLabel.BackgroundTransparency = 1.0
+		TextLabel.TextStrokeColor3 = Color3.new(0.0, 0.0, 0.0)
+		TextLabel.TextStrokeTransparency = 0.0
+		TextLabel.TextColor3 = Color3.new(1.0, 1.0, 1.0)
+		TextLabel.TextSize = 8
+		TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+		TextLabel.TextWrapped = false
+		TextLabel.Font = Enum.Font.Code
 	end)
 end)
 

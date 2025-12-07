@@ -59,8 +59,8 @@ EntityESP.utext = LPH_NO_VIRTUALIZE(function(self, container, text)
 
 	textLabel.Text = text
 	textLabel.TextSize = Configuration.expectOptionValue("FontSize")
-	textLabel.Font = Enum.Font[Configuration.expectOptionValue("Font")] or Enum.Font.Code
-	textLabel.TextColor3 = Configuration.idOptionValue(self.identifier, "Color")
+	textLabel.Font = Enum.Font[Configuration.expectOptionValue("Font") or "Code"] or Enum.Font.Code
+	textLabel.TextColor3 = Configuration.idOptionValue(self.identifier, "Color") or Color3.new(1, 1, 1)
 end)
 
 ---Get bar in container.
