@@ -1,8 +1,46 @@
 # Deepwoken Rewrite
-**No modules were updated.**
+**Module diff vs. previous snapshot: +3/-1/~6 (added/removed/changed)**
+```diff
++ (added) ElectroCarve
++ (added) FireForgeCast
++ (added) FlameGrab
+- (removed) WindForge
++ (changed) WeaponFlourishTest
++ (changed) IceForgeCast
++ (changed) DreadBreath
++ (changed) WeaponTest
++ (changed) WeaponAerialAttackTest
++ (changed) RapidPunches
+```
 
-**No timings were updated.**
-*If you now see the base combat, you will see something a little different on M1s and Flourishes. I made them more precise, or atleast tried to.*
+**Timing diff vs. previous snapshot: +2/-1/~19 (animation: +1/-0/~18, part: +0/-1/~0, sound: +1/-0/~0, effect: +0/-0/~1)**
+```diff
++ (changed) Animation : ReverieCrit (by Juanito)
++ (changed) Animation : AstralWind (by Juanito)
++ (changed) Animation : TwisterKicks (by Blastbrean)
++ (changed) Animation : SwordCritical (by Blastbrean)
++ (changed) Animation : WindForge (by Blastbrean)
++ (added) Animation : FireForgeCast (by Blastbrean)
++ (changed) Animation : PyreKeeperCritRunningWindup (by Blastbrean)
++ (changed) Animation : PurpleCloudCrit (by Blastbrean)
++ (changed) Animation : SquidwardSlash3 (by Juanito)
++ (changed) Animation : SquidwardSlash2 (by Juanito)
++ (changed) Animation : SquidwardSlash1 (by Juanito)
++ (changed) Animation : OwlPrimeSwipe (by Juanito)
++ (changed) Animation : DeepOwlSwipe1 (by Juanito)
++ (changed) Animation : DeepOwlSwipe2 (by Juanito)
++ (changed) Animation : RadiantDawn (by Blastbrean)
++ (changed) Animation : ScalesplitterCrit (by Blastbrean)
++ (changed) Animation : NightAxeCrit (by Blastbrean)
++ (changed) Animation : Heartwing (by Blastbrean)
++ (changed) Animation : BoltcrusherCrit (by Blastbrean)
+- (removed) Part : GaleTrap (by Blastbrean)
++ (added) Sound : SpecialistStormStrike (by Juanito)
++ (changed) Effect : OwlDisperse (by Juanito)
+```
+*If you now see the base combat, you will see something a little different on M1s and Flourishes.*
+*I made them more precise by using spheres (replicating a crescent shape) - report any issues.*
+*Comparing size wise to the old hitboxes, they should be roughly bigger than they were before.*
 
 **Any new features?**
 ```diff
@@ -21,4 +59,4 @@
 *If you're wondering on what to use or where to buy from...*
 **Buy an executor like Wave @ https://robloxcheatz.com/product?id=6d1f91b5-4599-467a-b9ba-eadef98c63fe&ref=lycoris**
 
-*Your commit ID should == "8d0293" when the update is fully pushed to you.*
+*Your commit ID should == "367501" when the update is fully pushed to you.*
