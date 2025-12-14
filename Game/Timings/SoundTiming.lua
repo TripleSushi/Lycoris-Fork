@@ -16,34 +16,10 @@ function SoundTiming:id()
 	return self._id
 end
 
--- Getter for repeat start delay in seconds.
----@return number
-function SoundTiming:rsd()
-	return PP_SCRAMBLE_NUM(self._rsd) / 1000
-end
-
--- Getter for repeat start delay in seconds.
----@return number
-function SoundTiming:rpd()
-	return PP_SCRAMBLE_NUM(self._rpd) / 1000
-end
-
 ---Equals check.
 ---@param other SoundTiming
 function SoundTiming:equals(other)
 	if not Timing.equals(self, other) then
-		return false
-	end
-
-	if self._rsd ~= other._rsd then
-		return false
-	end
-
-	if self._rpd ~= other._rpd then
-		return false
-	end
-
-	if self.rpue ~= other.rpue then
 		return false
 	end
 
@@ -67,18 +43,6 @@ function SoundTiming:load(values)
 		self._id = values._id
 	end
 
-	if type(values.rsd) == "number" then
-		self._rsd = values.rsd
-	end
-
-	if typeof(values.rpue) == "boolean" then
-		self.rpue = values.rpue
-	end
-
-	if typeof(values.rpd) == "number" then
-		self._rpd = values.rpd
-	end
-
 	if typeof(values.alp) == "boolean" then
 		self.alp = values.alp
 	end
@@ -89,9 +53,6 @@ end
 function SoundTiming:clone()
 	local clone = setmetatable(Timing.clone(self), SoundTiming)
 
-	clone._rpd = self._rpd
-	clone.rpue = self.rpue
-	clone._rsd = self._rsd
 	clone._id = self._id
 	clone.alp = self.alp
 
@@ -104,9 +65,6 @@ function SoundTiming:serialize()
 	local serializable = Timing.serialize(self)
 
 	serializable._id = self._id
-	serializable.rpue = self.rpue
-	serializable.rsd = self._rsd
-	serializable.rpd = self._rpd
 	serializable.alp = self.alp
 
 	return serializable
