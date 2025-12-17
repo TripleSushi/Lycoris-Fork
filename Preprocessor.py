@@ -1077,7 +1077,7 @@ def main(argv: list[str]) -> int:
     parser.add_argument(
         "-S", "--strip-text",
         action="append",
-        default=["BuilderTab.init(window)", "SaveManager.load(result)", "ModuleManager.load(gfs, true)", "ModuleManager.load(fs, false)"],
+        default=["BuilderTab.init(window)", "SaveManager.load(result)", "ModuleManager.load(gfs, true)", "ModuleManager.load(fs, false)", "BuilderTab.detach()"],
         help="Arbitrary text to remove (whitespace-insensitive). Repeatable. Example: -S 'BuilderTab.init(window)'",
     )
     parser.add_argument(
