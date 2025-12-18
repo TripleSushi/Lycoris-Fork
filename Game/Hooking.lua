@@ -951,8 +951,21 @@ function Hooking.init()
 		banRemotes[request] = true
 	end
 
-	if banRemoteCount ~= 2 then
-		return error("Anticheat has less or more than two ban remotes.")
+	-- Did we execute with a standalone AC bypass?
+	local nulledBanRemotes = {}
+
+	for _, instance in next, getnilinstances() do
+		if instance.Name ~= "NulledBanRemote" then
+			continue
+		end
+
+		nulledBanRemotes[#nulledBanRemotes + 1] = instance
+	end
+
+	if #nulledBanRemotes ~= 2 then
+		if banRemoteCount ~= 2 then
+			return error("Anticheat has less or more than two ban remotes.")
+		end
 	end
 
 	oldFireServer = hookfunction(Instance.new("RemoteEvent").FireServer, onFireServer)
