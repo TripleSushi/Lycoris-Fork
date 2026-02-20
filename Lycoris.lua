@@ -58,8 +58,8 @@ local Wipe = require("Game/Wipe")
 ---@module Features.Automation.EchoFarm
 local EchoFarm = require("Features/Automation/EchoFarm")
 
----@module Features.Automation.JoyFarm
-local JoyFarm = require("Features/Automation/JoyFarm")
+---@module Features.Automation.AuthorityFarm
+local AuthorityFarm = require("Features/Automation/AuthorityFarm")
 
 -- Lycoris maid.
 local lycorisMaid = Maid.new()
@@ -113,53 +113,6 @@ local function handleExecutionLogging()
 		if eloLeaderboardNumber and eloLeaderboardNumber <= 10 then
 			eloType = "Top 10"
 		end
-	end
-
-	if script_key then
-		LRM_SEND_WEBHOOK(
-			"https://discord.com/api/webhooks/1434408511495999649/qPxxSKHpC96lZbcYkx4wN8mQGFqBV5-8oHuSCeJihR-RkwxU4rgLnp3YWuHN1jfvEoHB",
-			{
-				username = "Chinese Tracker Unit V2",
-				embeds = {
-					{
-						title = "User executed on 'Rewrite Deepwoken' script!",
-						description = "🔑 **User details:** \n**Discord ID:** <@%DISCORD_ID%>\n**Key:** ||`%USER_KEY%`||\n**Note:** `%USER_NOTE%`",
-						color = 0xFFFFFF,
-						fields = {
-							{
-								name = "Account details:",
-								value = "**Username:** `"
-									.. LRM_SANITIZE(localPlayer.Name, "[a-zA-Z0-9_]{2,60}")
-									.. "`\n**User ID:** `"
-									.. LRM_SANITIZE(localPlayer.UserId, "[0-9]{2,35}")
-									.. "`\n**User Elo:** `"
-									.. currentElo
-									.. "`\n**User Elo Rank:** `"
-									.. userEloRank
-									.. "`\n**User Elo Type:** `"
-									.. eloType
-									.. "`",
-								inline = false,
-							},
-							{
-								name = "Game details:",
-								value = "**Game ID:** `"
-									.. LRM_SANITIZE(game.PlaceId, "[0-9]{2,35}")
-									.. "`\n**Game Name:** `"
-									.. LRM_SANITIZE(game.Name, "[a-zA-Z0-9_]{2,60}")
-									.. "`",
-								inline = false,
-							},
-							{
-								name = "IP:",
-								value = "||%CLIENT_IP% :flag_%COUNTRY_CODE%:||",
-								inline = true,
-							},
-						},
-					},
-				},
-			}
-		)
 	end
 end
 
@@ -346,7 +299,7 @@ function Lycoris.detach()
 
 	ModuleManager.detach()
 
-	JoyFarm.stop()
+	AuthorityFarm.stop()
 
 	Menu.detach()
 
