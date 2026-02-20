@@ -87,6 +87,7 @@ Tweening.update = LPH_NO_VIRTUALIZE(function(dt)
 	end
 
 	if current.swc then
+		current.reached = true
 		return Tweening.stop(current.identifier)
 	end
 

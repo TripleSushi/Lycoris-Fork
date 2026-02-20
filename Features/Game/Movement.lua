@@ -39,6 +39,9 @@ return LPH_NO_VIRTUALIZE(function()
 	---@module Utility.Logger
 	local Logger = require("Utility/Logger")
 
+	---@module Features.Automation.AuthorityFarm
+	local AuthorityFarm = require("Features/Automation/AuthorityFarm")
+
 	-- Services.
 	local runService = game:GetService("RunService")
 	local userInputService = game:GetService("UserInputService")
@@ -80,7 +83,7 @@ return LPH_NO_VIRTUALIZE(function()
 			return
 		end
 
-		if Configuration.expectToggleValue("Fly") then
+		if Configuration.expectToggleValue("Fly") or AuthorityFarm.fly then
 			controllerManager.ActiveController = airController
 		else
 			controllerManager.ActiveController = groundController
@@ -122,7 +125,7 @@ return LPH_NO_VIRTUALIZE(function()
 	---@param rootPart BasePart
 	---@param humanoid Humanoid
 	local function updateSpeedHack(rootPart, humanoid)
-		if Configuration.expectToggleValue("Fly") then
+		if Configuration.expectToggleValue("Fly") or AuthorityFarm.fly then
 			return
 		end
 
@@ -142,7 +145,7 @@ return LPH_NO_VIRTUALIZE(function()
 	---@param humanoid Humanoid
 	---@param deltaTime number
 	local function updateCFrameSpeed(rootPart, humanoid, deltaTime)
-		if Configuration.expectToggleValue("Fly") then
+		if Configuration.expectToggleValue("Fly") or AuthorityFarm.fly then
 			return
 		end
 
@@ -158,7 +161,7 @@ return LPH_NO_VIRTUALIZE(function()
 	---Update infinite jump.
 	---@param rootPart BasePart
 	local function updateInfiniteJump(rootPart)
-		if Configuration.expectToggleValue("Fly") then
+		if Configuration.expectToggleValue("Fly") or AuthorityFarm.fly then
 			return
 		end
 
@@ -329,7 +332,7 @@ return LPH_NO_VIRTUALIZE(function()
 			return
 		end
 
-		if Configuration.expectToggleValue("Fly") then
+		if Configuration.expectToggleValue("Fly") or AuthorityFarm.fly then
 			updateFlyHack(rootPart, humanoid)
 		else
 			movementMaid["flyBodyVelocity"] = nil
