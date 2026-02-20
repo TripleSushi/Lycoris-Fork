@@ -203,7 +203,7 @@ AuthorityFarm.stop = function()
 		Tweening.stop(data.identifier)
 	end
 
-    AuthorityFarm.noFall = falses
+    AuthorityFarm.noFall = false
     AuthorityFarm.pfBreaker = false
 
     authorityFarmMaid:clean()
