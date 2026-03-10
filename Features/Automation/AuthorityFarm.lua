@@ -45,13 +45,14 @@ local function toCaptain(dialogue)
 
     Tweening.stop("AF_TweenToAboveCaptain")
     plr:RequestStreamAroundAsync(Vector3.new(-7038.2333984375, 502.98504638671875, 2736.71044921875), 0.1)
-    task.wait(0.5)
+    task.wait(1)
 
-    Tweening.goal("AF_TweenToCaptain", CFrame.new(hrp.Position.X, 502.98504638671875, hrp.Position.Z), true)
+    Tweening.goal("AF_TweenToCaptain", CFrame.new(hrp.Position.X, 502.98504638671875, hrp.Position.Z), false)
     Tweening.wait("AF_TweenToCaptain")
 
     local captain = workspace:WaitForChild("NPCs"):WaitForChild("Captain Trist")
     Interactions.interact(captain, dialogue, false)
+    Tweening.stop("AF_TweenToCaptain")
 end
 
 local function hostage(region, name, folder)
