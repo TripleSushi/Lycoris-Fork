@@ -28,6 +28,7 @@ local players = game:GetService("Players")
 local httpService = game:GetService("HttpService")
 local collectionService = game:GetService("CollectionService")
 local runService = game:GetService("RunService")
+local replicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Instances.
 local moderatorSound = CoreGuiManager.imark(Instance.new("Sound"))
@@ -42,6 +43,9 @@ local lastPlayerScanTimestamp = os.clock()
 
 -- Seen tools.
 local seenTools = {}
+
+-- Get ReputationSystem module.
+local reputationSystem;
 
 ---Fetch name.
 local function fetchName(player)
@@ -264,8 +268,7 @@ end
 ---@param player Player
 ---@return boolean
 function PlayerScanning.isAlly(player)
-	---@note: bruh we can call ReputationSystem
-	local localPlayerGuild = players.LocalPlayer:GetAttribute("Guild")
+	local localPlayer = players.LocalPlayer
 	local usernameList = Options["UsernameList"]
 
 	if usernameList then
@@ -277,8 +280,15 @@ function PlayerScanning.isAlly(player)
 		end
 	end
 
-	return PlayerScanning.friendCache[player]
-		or ((localPlayerGuild and #localPlayerGuild >= 1) and player:GetAttribute("Guild") == localPlayerGuild)
+	if not localPlayer.Character or not player.Character then
+		return PlayerScanning.friendCache[player]
+	end
+
+	if reputationSystem then
+		return reputationSystem.IsAlly(localPlayer.Character, player.Character, true)
+	end
+
+	return false
 end
 
 ---Get staff rank - nil if they're not a staff.
@@ -366,6 +376,9 @@ end
 
 ---Initialize PlayerScanning.
 function PlayerScanning.init()
+	local modules = replicatedStorage:WaitForChild("Modules"):WaitForChild("ReputationSystem")
+	reputationSystem = require(modules)
+
 	-- Signals.
 	local playerAddedSignal = Signal.new(players.PlayerAdded)
 	local playerRemovingSignal = Signal.new(players.PlayerRemoving)
