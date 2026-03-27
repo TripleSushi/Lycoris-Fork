@@ -1,4 +1,4 @@
-local AuthorityFarm = { pfBreaker = false, noFall = false }
+local AuthorityFarm = { noFall = false }
 
 ---@module Features.Game.Tweening
 local Tweening = require("Features/Game/Tweening")
@@ -21,6 +21,12 @@ local Logger = require("Utility/Logger")
 ---@module Game.InputClient
 local InputClient = require("Game/InputClient")
 
+---@module Game.AntiAFK
+local AntiAFK = require("Game/AntiAFK")
+
+---@module Features.Exploits.Exploits
+local Exploits = require("Features/Exploits/Exploits")
+
 -- Maid.
 local authorityFarmMaid = Maid.new()
 
@@ -31,11 +37,14 @@ local players = game:GetService("Players")
 -- Instances.
 local plr = players.LocalPlayer
 
+-- Currently running?
+local running = false
+
 local function toCaptain(dialogue)
     local char = plr.Character or plr.CharacterAdded:Wait()
     local hrp = char:WaitForChild("HumanoidRootPart")
 
-    Tweening.goal("AF_TweenToAboveCaptain", CFrame.new(-7038.2333984375, 25000, 2736.71044921875), false) 
+    Tweening.goal("AF_TweenToAboveCaptain", CFrame.new(-7038.2333984375, 25000, 2736.71044921875), false)
     Tweening.wait("AF_TweenToAboveCaptain")
 
     Logger.warn("Looking for players around captain.")
@@ -44,8 +53,6 @@ local function toCaptain(dialogue)
     end
 
     Tweening.stop("AF_TweenToAboveCaptain")
-    plr:RequestStreamAroundAsync(Vector3.new(-7038.2333984375, 502.98504638671875, 2736.71044921875), 0.1)
-    task.wait(1)
 
     Tweening.goal("AF_TweenToCaptain", CFrame.new(hrp.Position.X, 502.98504638671875, hrp.Position.Z), false)
     Tweening.wait("AF_TweenToCaptain")
@@ -61,7 +68,7 @@ local function hostage(region, name, folder)
 
     local pos = folder:WaitForChild(region):WaitForChild(name):WaitForChild("Spawns"):WaitForChild("Hostage").Position
 
-    Tweening.goal("AF_TweenToObjective", CFrame.new(pos.X, 25000, (pos.Z - 2)), true) 
+    Tweening.goal("AF_TweenToObjective", CFrame.new(pos.X, 25000, (pos.Z - 2)), true)
     Tweening.wait("AF_TweenToObjective")
 
     plr:RequestStreamAroundAsync(pos, 0.1)
@@ -85,7 +92,7 @@ local function perimeter(region, name, folder)
 
     local pos = folder:WaitForChild(region):WaitForChild(name):WaitForChild("Center").Position
 
-    Tweening.goal("AF_TweenToObjective", CFrame.new(pos.X, 25000, pos.Z), true) 
+    Tweening.goal("AF_TweenToObjective", CFrame.new(pos.X, 25000, pos.Z), true)
     Tweening.wait("AF_TweenToObjective")
 
     plr:RequestStreamAroundAsync(pos, 0.1)
@@ -108,7 +115,7 @@ local function sabotage(region, name, folder)
     local char = plr.Character or plr.CharacterAdded:Wait()
     local hrp = char:WaitForChild("HumanoidRootPart")
 
-    AuthorityFarm.pfBreaker = true
+    Exploits.pfBreaker = true
 
     local pos = folder:WaitForChild(region):WaitForChild(name):WaitForChild("Center").Position
 
@@ -140,7 +147,7 @@ local function sabotage(region, name, folder)
     end
     task.wait(1)
 
-    AuthorityFarm.pfBreaker = false
+    Exploits.pfBreaker = false
 
     char.CharacterHandler.Requests.DrawWeapon:FireServer(false)
 end
@@ -151,7 +158,7 @@ local function grabMission()
 
     AuthorityFarm.noFall = true
 
-    while task.wait() do
+    while task.wait(1) do
         toCaptain({{choice = "Yes, Sir."}})
         task.wait(0.5)
         replicatedStorage.Requests.SendDialogue:FireServer({["exit"] = true})
@@ -174,7 +181,6 @@ local function grabMission()
         local name, region = mission.name, mission.data.region
 
         hrp.CFrame = CFrame.new(hrp.Position.X, 25000, hrp.Position.Z)
-
         plr:RequestStreamAroundAsync(mission.pos, 0.1)
 
         task.wait(0.5)
@@ -192,10 +198,23 @@ local function grabMission()
 end
 
 AuthorityFarm.start = function()
+	if running then
+		return
+	end
+
+	running = true
+
+    AntiAFK.start("AuthorityFarm")
     authorityFarmMaid:add(TaskSpawner.spawn("AutoAuthority", grabMission))
 end
 
 AuthorityFarm.stop = function()
+	if not running then
+		return
+	end
+
+	running = false
+
 	for _, data in next, Tweening.queue do
 		if not data.identifier:match("AF") then
 			continue
@@ -205,9 +224,10 @@ AuthorityFarm.stop = function()
 	end
 
     AuthorityFarm.noFall = false
-    AuthorityFarm.pfBreaker = false
+    Exploits.pfBreaker = false
 
     authorityFarmMaid:clean()
+    AntiAFK.stop("AuthorityFarm")
 end
 
 return AuthorityFarm
