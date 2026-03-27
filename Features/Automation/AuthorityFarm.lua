@@ -99,11 +99,11 @@ local function perimeter(region, name, folder)
 
     task.wait(1)
 
-    hrp.CFrame = CFrame.new(hrp.Position.X, pos.Y, hrp.Position.Z)
-
-    task.wait(1)
-
-    repeat task.wait() until Finder.entity("bandit")
+    -- Fuck waiting for NPCs
+    Tweening.goal("AF_TweenToGround", CFrame.new(hrp.Position.X, pos.Y, hrp.Position.Z), false)
+    Tweening.wait("AF_TweenToGround")
+    task.wait(4)
+    Tweening.stop("AF_TweenToGround")
 
     hrp.CFrame = CFrame.new(hrp.Position.X, 50000, hrp.Position.Z)
 
