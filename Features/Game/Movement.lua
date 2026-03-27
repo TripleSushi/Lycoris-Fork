@@ -39,9 +39,6 @@ return LPH_NO_VIRTUALIZE(function()
 	---@module Utility.Logger
 	local Logger = require("Utility/Logger")
 
-	---@module Features.Automation.AuthorityFarm
-	local AuthorityFarm = require("Features/Automation/AuthorityFarm")
-
 	-- Services.
 	local runService = game:GetService("RunService")
 	local userInputService = game:GetService("UserInputService")
@@ -58,6 +55,11 @@ return LPH_NO_VIRTUALIZE(function()
 
 	-- Instances.
 	local cachedTarget = nil
+
+	-- Control for other modules
+	Movement.ATB = false
+	Movement.HeightOffset = 0
+	Movement.BackOffset = 0
 
 	---Update noclip.
 	---@param character Model
@@ -83,7 +85,7 @@ return LPH_NO_VIRTUALIZE(function()
 			return
 		end
 
-		if Configuration.expectToggleValue("Fly") or AuthorityFarm.fly then
+		if Configuration.expectToggleValue("Fly") then
 			controllerManager.ActiveController = airController
 		else
 			controllerManager.ActiveController = groundController
@@ -125,7 +127,7 @@ return LPH_NO_VIRTUALIZE(function()
 	---@param rootPart BasePart
 	---@param humanoid Humanoid
 	local function updateSpeedHack(rootPart, humanoid)
-		if Configuration.expectToggleValue("Fly") or AuthorityFarm.fly then
+		if Configuration.expectToggleValue("Fly") then
 			return
 		end
 
@@ -145,7 +147,7 @@ return LPH_NO_VIRTUALIZE(function()
 	---@param humanoid Humanoid
 	---@param deltaTime number
 	local function updateCFrameSpeed(rootPart, humanoid, deltaTime)
-		if Configuration.expectToggleValue("Fly") or AuthorityFarm.fly then
+		if Configuration.expectToggleValue("Fly") then
 			return
 		end
 
@@ -161,7 +163,7 @@ return LPH_NO_VIRTUALIZE(function()
 	---Update infinite jump.
 	---@param rootPart BasePart
 	local function updateInfiniteJump(rootPart)
-		if Configuration.expectToggleValue("Fly") or AuthorityFarm.fly then
+		if Configuration.expectToggleValue("Fly") then
 			return
 		end
 
@@ -250,7 +252,7 @@ return LPH_NO_VIRTUALIZE(function()
 			return true
 		end
 
-		local attachTarget = Configuration.expectToggleValue("StickyAttach") and cachedTarget or validTargets[1]
+		local attachTarget = (Movement.ATB or Configuration.expectToggleValue("StickyAttach")) and cachedTarget or validTargets[1]
 		if not attachTarget then
 			return true
 		end
@@ -275,11 +277,21 @@ return LPH_NO_VIRTUALIZE(function()
 
 		cachedTarget = cachedTarget or attachTarget
 
-		local offsetCFrame = CFrame.new(
-			0.0,
-			Configuration.expectOptionValue("HeightOffset"),
-			Configuration.expectOptionValue("BackOffset")
-		)
+		local offsetCFrame;
+
+		if Movement.ATB then
+			offsetCFrame = CFrame.new(
+				0.0,
+				Movement.HeightOffset,
+				Movement.BackOffset
+			)
+		else
+			offsetCFrame = CFrame.new(
+				0.0,
+				Configuration.expectOptionValue("HeightOffset"),
+				Configuration.expectOptionValue("BackOffset")
+			)
+		end
 
 		local targetPosition = (attachTargetHrp.CFrame * offsetCFrame).Position
 		local goalCFrame = CFrame.lookAt(targetPosition, attachTargetHrp.Position)
@@ -308,7 +320,7 @@ return LPH_NO_VIRTUALIZE(function()
 			return
 		end
 
-		if not Configuration.expectToggleValue("TweenToBack") or not updateTweenToBack() then
+		if not (Movement.ATB or Configuration.expectToggleValue("TweenToBack")) or not updateTweenToBack() then
 			cachedTarget = nil
 		end
 
@@ -332,7 +344,7 @@ return LPH_NO_VIRTUALIZE(function()
 			return
 		end
 
-		if Configuration.expectToggleValue("Fly") or AuthorityFarm.fly then
+		if Configuration.expectToggleValue("Fly") then
 			updateFlyHack(rootPart, humanoid)
 		else
 			movementMaid["flyBodyVelocity"] = nil
