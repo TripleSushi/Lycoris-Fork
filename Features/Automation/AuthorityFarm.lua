@@ -95,10 +95,6 @@ local function perimeter(region, name, folder)
     Tweening.goal("AF_TweenToObjective", CFrame.new(pos.X, 25000, pos.Z), true)
     Tweening.wait("AF_TweenToObjective")
 
-    plr:RequestStreamAroundAsync(pos, 0.1)
-
-    task.wait(1)
-
     -- Fuck waiting for NPCs
     Tweening.goal("AF_TweenToGround", CFrame.new(hrp.Position.X, pos.Y, hrp.Position.Z), false)
     Tweening.wait("AF_TweenToGround")
