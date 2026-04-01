@@ -19,6 +19,14 @@ local Tweening = require("Features/Game/Tweening")
 ---@module Features.Automation.AuthorityFarm
 local AuthorityFarm = require("Features/Automation/AuthorityFarm")
 
+---@module Features.Automation.AutoDepths
+local AutoDepths = require("Features/Automation/AutoDepths")
+
+-- Constants.
+local EASTERN_PLACE_ID = 6473861193
+local DEPTHS_PLACE_ID = 5735553160
+local TRIAL_PLACE_ID = 8668476218
+
 ---Attribute section.
 ---@param groupbox table
 function AutomationTab.initAttributeSection(groupbox)
@@ -191,6 +199,17 @@ function AutomationTab.initAuthorityFarmSection(groupbox)
 	groupbox:AddButton("Stop Authority Farm", AuthorityFarm.stop)
 end
 
+---Initialize Authority Farm section.
+---@param groupbox table
+function AutomationTab.initAutoDepthEscapeSection(groupbox)
+	groupbox:AddButton({
+		Text = "Start Auto Depths Trial",
+		Func = AutoDepths.invoke,
+	})
+
+	groupbox:AddButton("Stop Auto Depths Trial", AutoDepths.stop)
+end
+
 ---Initialize Effect Automation section.
 ---@param groupbox table
 function AutomationTab.initEffectAutomation(groupbox)
@@ -279,9 +298,13 @@ function AutomationTab.init(window)
 	AutomationTab.initAttributeSection(tab:AddDynamicGroupbox("Attribute Farm"))
 	AutomationTab.initEffectAutomation(tab:AddDynamicGroupbox("Effect Automation"))
 	AutomationTab.initAutoLootSection(tab:AddLeftGroupbox("Auto Loot"))
-	
-	if game.PlaceId == 6473861193 then
+
+	if game.PlaceId == EASTERN_PLACE_ID then
 		AutomationTab.initAuthorityFarmSection(tab:AddLeftGroupbox("Authority Farm"))
+	end
+
+	if game.PlaceId == DEPTHS_PLACE_ID or game.PlaceId == TRIAL_PLACE_ID then
+		AutomationTab.initAutoDepthEscapeSection(tab:AddLeftGroupbox("Auto Escape"))
 	end
 
 	if LRM_UserNote then

@@ -61,6 +61,9 @@ local EchoFarm = require("Features/Automation/EchoFarm")
 ---@module Features.Automation.AuthorityFarm
 local AuthorityFarm = require("Features/Automation/AuthorityFarm")
 
+---@module Features.Automation.AutoDepths
+local AutoDepths = require("Features/Automation/AutoDepths")
+
 -- Lycoris maid.
 local lycorisMaid = Maid.new()
 
@@ -211,6 +214,10 @@ function Lycoris.init()
 	-- Finally, handle Echo Farming.
 	if PersistentData.get("efdata") then
 		EchoFarm.start()
+	end
+
+	if PersistentData.get("esdata") then
+		AutoDepths.start()
 	end
 
 	if game.PlaceId == LOBBY_PLACE_ID then
