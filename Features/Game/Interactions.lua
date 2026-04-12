@@ -4,9 +4,21 @@ local Interactions = {}
 ---@module Utility.Logger
 local Logger = require("Utility/Logger")
 
+---@module Utility.Maid
+local Maid = require("Utility/Maid")
+
+---@module Utility.Signal
+local Signal = require("Utility/Signal")
+
+---@module Utility.Profiler
+local Profiler = require("Utility/Profiler")
+
 -- Services.
 local players = game:GetService("Players")
 local replicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Maids.
+local ecdMaid = Maid.new()
 
 -- Constants.
 local DEBUGGING_MODE = true
@@ -19,6 +31,21 @@ local function telemetryLog(...)
 
 	Logger.warn(...)
 end
+
+---On Workspace Descendant Added.
+---@param child Instance
+local onWorkspaceDescendantAdded = LPH_NO_VIRTUALIZE(function(child)
+	if not child:IsA("ClickDetector") then
+		return
+	end
+
+	if child:GetAttribute("OldMaxActivationDistance") then
+		return
+	end
+
+	child:SetAttribute("OldMaxActivationDistance", child.MaxActivationDistance)
+	child.MaxActivationDistance = 57
+end)
 
 ---Use a tool.
 ---@param tool Instance
@@ -150,6 +177,55 @@ function Interactions.interact(instance, actions, teleport)
 	end
 
 	telemetryLog("(%s) Completed dialogue.", instance.Name)
+end
+
+---Create listener.
+---@param instance Instance
+---@param identifier string
+---@param addedCallback function
+---@param childFlag boolean
+local createListener = LPH_NO_VIRTUALIZE(function(instance, identifier, addedCallback, childFlag)
+	local instanceType = childFlag and "Child" or "Descendant"
+	local added = Signal.new(childFlag and instance.ChildAdded or instance.DescendantAdded)
+
+	ecdMaid:add(added:connect(string.format("CD_%sOn%sAdded", identifier, instanceType), addedCallback))
+
+	Profiler.run(string.format("ECD_%sInit", identifier), function()
+		for _, child in next, (childFlag and instance:GetChildren() or instance:GetDescendants()) do
+			addedCallback(child)
+		end
+	end)
+end)
+
+function Interactions.invokeECD(value)
+	if not value then
+		Interactions.detachECD()
+		return
+	end
+
+	for _, v in game:QueryDescendants("ClickDetector") do
+		if v:GetAttribute("OldMaxActivationDistance") then
+			continue
+		end
+
+		v:SetAttribute("OldMaxActivationDistance", v.MaxActivationDistance)
+		-- Max distance from what ive tested.
+		v.MaxActivationDistance = 57
+	end
+
+	createListener(workspace, "ECDWorkspace", onWorkspaceDescendantAdded, false)
+end
+
+function Interactions.detachECD()
+	ecdMaid:clean()
+	print("DETACHING.")
+
+	for _, v in game:QueryDescendants("ClickDetector") do
+		if v:GetAttribute("OldMaxActivationDistance") then
+			v.MaxActivationDistance = v:GetAttribute("OldMaxActivationDistance")
+			v:SetAttribute("OldMaxActivationDistance", nil)
+		end
+	end
 end
 
 -- Return Interactions module.

@@ -55,7 +55,8 @@
     - Optimize it (Sou) ❌ (I will do this by probably using querydescendants so it filters out exact property & cheaper)
   - Local Character Exploits ❌
     - Extended Item Pickup ❌
-    - Extended Job Board Interact ❌
+    <!-- Not only job but all click detectors. -->
+    - Extended Job Board Interact ✅
 
 Essential Additions
 

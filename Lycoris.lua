@@ -64,6 +64,9 @@ local AuthorityFarm = require("Features/Automation/AuthorityFarm")
 ---@module Features.Automation.AutoDepths
 local AutoDepths = require("Features/Automation/AutoDepths")
 
+---@module Features.Game.Interactions
+local Interactions = require("Features/Game/Interactions")
+
 -- Lycoris maid.
 local lycorisMaid = Maid.new()
 
@@ -307,6 +310,8 @@ function Lycoris.detach()
 	ModuleManager.detach()
 
 	AuthorityFarm.stop()
+
+	Interactions.detachECD()
 
 	Menu.detach()
 
