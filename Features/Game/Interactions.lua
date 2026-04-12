@@ -218,7 +218,6 @@ end
 
 function Interactions.detachECD()
 	ecdMaid:clean()
-	print("DETACHING.")
 
 	for _, v in game:QueryDescendants("ClickDetector") do
 		if v:GetAttribute("OldMaxActivationDistance") then
