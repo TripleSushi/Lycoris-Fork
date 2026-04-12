@@ -19,6 +19,9 @@ local players = game:GetService("Players")
 ---@module Features.Game.Tweening
 local Tweening = require("Features/Game/Tweening")
 
+---@module Features.Game.Interactions
+local Interactions = require("Features/Game/Interactions")
+
 ---Initialize local character section.
 ---@param groupbox table
 function GameTab.initLocalCharacterSection(groupbox)
@@ -735,6 +738,16 @@ function GameTab.initInfoSpoofingSection(groupbox)
 	})
 end
 
+---Extended Interactions section.
+---@param groupbox table
+function GameTab.initExtendInteractions(groupbox)
+	groupbox:AddToggle("ClickDetectorExtended", {
+		Text = "Extend Click Detector Range",
+		Default = false,
+		Callback = Interactions.invokeECD
+	})
+end
+
 ---Tweening section.
 ---@param groupbox table
 function GameTab.initTweeningSection(groupbox)
@@ -761,6 +774,7 @@ function GameTab.init(window)
 	GameTab.initPlayerMonitoringSection(tab:AddDynamicGroupbox("Player Monitoring"))
 	GameTab.initInfoSpoofingSection(tab:AddDynamicGroupbox("Info Spoofing"))
 	GameTab.initTweeningSection(tab:AddDynamicGroupbox("Tweening Customization"))
+	GameTab.initExtendInteractions(tab:AddDynamicGroupbox("Extended Interactions"))
 end
 
 -- Return GameTab module.
