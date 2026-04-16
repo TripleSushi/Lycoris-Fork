@@ -23,13 +23,20 @@ local ESP_DANGER_TIME = "[%s]"
 ---Check if a player has an oath.
 ---@return boolean
 local hasOath = LPH_NO_VIRTUALIZE(function(player)
-	local backpack = player:FindFirstChildOfClass("Backpack")
-	if not backpack then
+	local character = player.Character
+	if not character then
 		return false
 	end
 
-	for _, instance in next, backpack:GetChildren() do
-		if not instance.Name:match("Oath") then
+	local ssvPassives = character:GetAttribute("ssv_Passives")
+	if not ssvPassives then
+		return false
+	end
+
+	local filtered = ssvPassives:split(";") or {}
+
+	for _, passive in next, filtered do
+		if not passive:match("Oath") then
 			continue
 		end
 
