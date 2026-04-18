@@ -307,10 +307,6 @@ function AutomationTab.init(window)
 		AutomationTab.initAutoDepthEscapeSection(tab:AddLeftGroupbox("Auto Escape"))
 	end
 
-	if LRM_UserNote then
-		return
-	end
-
 	AutomationTab.initDebuggingSection(tab:AddRightGroupbox("Debugging"))
 end
 

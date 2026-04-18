@@ -2,7 +2,10 @@
 ---@todo: The first issue is that the farm can be broken when user gets kicked for any reason. It cannot detect that, when it should rejoin the lobby again.
 ---@todo: The second issue is that we don't have any proper player checks in place.
 ---@todo: The third issue is that we don't have any proper validity checks. For example, does the user even have a Battleaxe to swap down initially? Do we even have a 'Fort Merit' spawn before trying?
-local EchoFarm = { voiding = false }
+local EchoFarm = {}
+
+---@module Features.Exploits.Exploits
+local Exploits = require("Features/Exploits/Exploits")
 
 ---@module Utility.PersistentData
 local PersistentData = require("Utility/PersistentData")
@@ -25,6 +28,9 @@ local ServerHop = require("Game/ServerHop")
 ---@module Utility.TaskSpawner
 local TaskSpawner = require("Utility/TaskSpawner")
 
+---@module Game.KeyHandling
+local KeyHandling = require("Game/KeyHandling")
+
 ---@module Features.Game.Interactions
 local Interactions = require("Features/Game/Interactions")
 
@@ -40,9 +46,13 @@ local AutoLoot = require("Features/Automation/AutoLoot")
 ---@module Features.Automation.Objects.AutoLootOptions
 local AutoLootOptions = require("Features/Automation/Objects/AutoLootOptions")
 
+---@module Features.Game.Movement
+local Movement = require("Features/Game/Movement")
+
 -- Services.
 local players = game:GetService("Players")
 local replicatedStorage = game:GetService("ReplicatedStorage")
+local teleportService = game:GetService("TeleportService")
 
 -- Constants.
 local EASTERN_PLACE_ID = 6473861193
@@ -72,33 +82,45 @@ function EchoFarm.ccreation()
 	local changeWeapon = characterCreator:WaitForChild("ChangeWeapon")
 	local finishCreation = characterCreator:WaitForChild("FinishCreation")
 	local toggleMetaModifier = requests:WaitForChild("ToggleMetaModifier")
+	local playerGui = players.LocalPlayer:WaitForChild("PlayerGui")
+	local characterGui = playerGui:WaitForChild("CharacterCreator")
+	local gameMode = characterGui:WaitForChild("GameMode"):WaitForChild("Options")
+	local standard = gameMode:WaitForChild("Standard"):WaitForChild("Element")
+	local suc;
 
-	local success = pickSpawn:InvokeServer("Merit")
-	if not success then
-		return error("Does the user not have the 'Fort Merit' spawn?")
+	pcall(function()
+		for _ = 1, 5 do
+			firesignal(standard.MouseButton1Click)
+			task.wait(0.1)
+		end
+	end)
+
+	for _ = 1, 10 do
+		suc = pickSpawn:InvokeServer("Merit")
+		if suc then
+			break
+		end
+		task.wait(0.1)
 	end
 
-	success = changeWeapon:InvokeServer("Battleaxe")
-	if not success then
-		return error("Does the user not have the 'Battleaxe' weapon?")
+	for _ = 1, 10 do
+		suc = changeWeapon:InvokeServer("Battleaxe")
+		if suc then
+			break
+		end
+		task.wait(0.1)
 	end
 
 	toggleMetaModifier:FireServer("All")
 
-	local playerGui = players.LocalPlayer:WaitForChild("PlayerGui")
+	task.spawn(function()
+		finishCreation:InvokeServer()
+	end)
 
-	repeat
-		-- Choice prompt?
-		local choicePrompt = playerGui:FindFirstChild("ChoicePrompt")
-		local choice = choicePrompt and choicePrompt:FindFirstChild("Choice")
+	local choicePrompt = playerGui:WaitForChild("ChoicePrompt")
+	local choice = choicePrompt:WaitForChild("Choice")
 
-		if choice then
-			choice:FireServer(true)
-		end
-
-		-- Wait.
-		task.wait()
-	until finishCreation:InvokeServer()
+	choice:FireServer(true)
 end
 
 ---Go to the Titus fight.
@@ -194,15 +216,11 @@ function EchoFarm.wfc(tdata)
 	local character = players.LocalPlayer.Character or players.LocalPlayer.CharacterAdded:Wait()
 	local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
 	local startTimestamp = os.clock()
-	local voidingTicks = 0
 
 	while task.wait() do
-		if os.clock() - startTimestamp >= 60 then
+		if os.clock() - startTimestamp >= 35 then
 			return ServerHop.hop(data.slot, false)
 		end
-
-		EchoFarm.voiding = voidingTicks % 10 == 0
-		voidingTicks = voidingTicks + 1
 
 		local chest = Finder.chest(humanoidRootPart.Position, 300)
 		if not chest then
@@ -259,10 +277,12 @@ function EchoFarm.ktitus(tdata)
 		return error("No EchoFarm data found in PersistentData.")
 	end
 
-	-- Enable voiding.
-	telemetryLog("(EchoFarm) Enabling voiding.")
+	local serverSwim = KeyHandling.getRemote("ServerSwim")
+	serverSwim:Destroy()
 
-	EchoFarm.voiding = true
+	-- Enable Pathfinder Breaker.
+	telemetryLog("(EchoFarm) Enabling Pathfinder Breaker.")
+
 	AutoLoot.ignore = true
 
 	-- Is anyone with us?
@@ -271,6 +291,47 @@ function EchoFarm.ktitus(tdata)
 	if #players:GetPlayers() > 1 then
 		return ServerHop.hop(data.slot, false)
 	end
+
+	local titus
+	repeat task.wait() until Finder.entity("titus")
+	titus = Finder.entity("titus")
+
+	Tweening.goal("EF_Titus", titus.HumanoidRootPart.CFrame, true)
+	Tweening.wait("EF_Titus")
+
+	Movement.ATB = true
+	Movement.HeightOffset = 0
+	Movement.BackOffset = -0.01
+
+	local anim = Instance.new("Animation")
+	anim.AnimationId = "rbxassetid://84577348154610"
+
+	local char = players.LocalPlayer.Character or players.LocalPlayer.CharacterAdded:Wait()
+	local humanoid = char:WaitForChild("Humanoid")
+	local track = humanoid:LoadAnimation(anim)
+
+	Exploits.pfBreaker = true
+
+	track:Play()
+	track.Looped = true
+
+	local vim = Instance.new("VirtualInputManager")
+	vim:SendKeyEvent(true, Enum.KeyCode.A, false, game)
+	task.wait(0.5)
+	vim:SendKeyEvent(false, Enum.KeyCode.A, false, game)
+
+	local ogY = titus.HumanoidRootPart.Position.Y
+	local timeOut = os.clock()
+
+	while math.abs(titus.HumanoidRootPart.Position.Y - ogY) < 100 and (os.clock() - timeOut) < 35 do
+		task.wait()
+	end
+
+	Movement.ATB = false
+	Tweening.stop("TweenToBack")
+
+	track:Stop()
+	char.HumanoidRootPart.CFrame = CFrame.new(char.HumanoidRootPart.Position.X, 0.1, char.HumanoidRootPart.Position.Z)
 
 	-- Wait for chest to spawn near us.
 	telemetryLog("(EchoFarm) Waiting for chest to spawn on us.")
@@ -337,14 +398,8 @@ function EchoFarm.ktitus(tdata)
 	end
 
 	-- Teleport to exit.
-	telemetryLog("(EchoFarm) Teleporting to dungeon exit.")
-
-	local detainmentCore = workspace:WaitForChild("DetainmentCore")
-	local dungeonExit = detainmentCore:WaitForChild("DungeonExit")
-
-	while task.wait() do
-		players.LocalPlayer.Character:PivotTo(CFrame.new(dungeonExit.Position))
-	end
+	telemetryLog("(EchoFarm) Using enchant stone.")
+	EchoFarm.tkilled(tdata)
 end
 
 ---End the cycle and wipe the character.
@@ -369,41 +424,33 @@ end
 ---Titus killed.
 ---@param tdata table Fake data.
 function EchoFarm.tkilled(tdata)
-	-- Request start.
-	local requests = replicatedStorage:WaitForChild("Requests")
-	local startMenu = requests:WaitForChild("StartMenu")
-	local start = startMenu:WaitForChild("Start")
-
-	telemetryLog("(EchoFarm) Requesting start.")
-
-	start:FireServer()
-
 	local data = tdata or PersistentData.get("efdata")
 	if not data then
 		return error("No EchoFarm data found in PersistentData.")
 	end
 
-	-- Tween up in the air.
-	telemetryLog("(EchoFarm) Tweening up in the air after killing Titus.")
-
-	Tweening.goal("EchoFarm_TitusKilledAirTween", CFrame.new(-6877.50, 4825.94, 2829.21), false)
-	Tweening.wait("EchoFarm_TitusKilledAirTween")
-
 	-- Enchant Battleaxe.
 	telemetryLog("(EchoFarm) Enchanting Battleaxe.")
 
+	pcall(function()
+		replicatedStorage.Requests.Unequip:InvokeServer("Weapon", true)
+	end)
+
+	task.wait(5)
+
 	local weapon = Finder.weweapon("Battleaxe")
 	if not weapon then
-		return Logger.longNotify("You do not have a valid Battleaxe to enchant.")
+		return Logger.warn("You do not have a valid Battleaxe to enchant.")
 	end
 
 	Interactions.etool(weapon)
 
 	weapon:Activate()
+	task.wait()
 
 	local stone = Finder.tool("Enchant Stone", false)
 	if not stone then
-		return Logger.longNotify("You do not have an Enchant Stone to use.")
+		return Logger.warn("You do not have an Enchant Stone to use.")
 	end
 
 	Interactions.utool(stone, true)
@@ -422,6 +469,8 @@ function EchoFarm.tkilled(tdata)
 	if idol then
 		Interactions.utool(idol, "Give me relief from my Flaws.")
 	end
+
+	task.wait(5)
 
 	-- Invoke end.
 	EchoFarm.cend(tdata)
@@ -471,10 +520,6 @@ function EchoFarm.start()
 
 	if game.PlaceId == TITUS_PLACE_ID then
 		return echoFarmMaid:mark(TaskSpawner.spawn("EchoFarm_Dungeon_KillTitusFSM", EchoFarm.ktitus))
-	end
-
-	if game.PlaceId == EASTERN_PLACE_ID and data.tkill then
-		return echoFarmMaid:mark(TaskSpawner.spawn("EchoFarm_Eastern_KilledTitusFSM", EchoFarm.tkilled))
 	end
 end
 
