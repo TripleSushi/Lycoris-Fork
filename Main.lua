@@ -3,6 +3,52 @@ if not shared then
 	return warn("No shared, no script.")
 end
 
+-- Constants.
+local LOBBY_PLACE_ID = 4111023553
+
+-- Kendus fix.
+-- Wait for game to fully load before running.
+if not game:IsLoaded() then
+	game.Loaded:Wait()
+end
+
+-- Services.
+local services = {
+	Players = game:GetService("Players"),
+	CollectionService = game:GetService("CollectionService"),
+ 	ReplicatedStorage = game:GetService("ReplicatedStorage"),
+}
+
+-- To avoid interrumping if we are in the lobby.
+if game.PlaceId ~= LOBBY_PLACE_ID then
+	-- Wait for character to be ready.
+	local character
+	repeat
+		task.wait()
+		pcall(function()
+			local requests = services.ReplicatedStorage:FindFirstChild("Requests")
+			local startMenu = requests and requests:FindFirstChild("StartMenu")
+			local start = startMenu and startMenu:FindFirstChild("Start")
+
+			start:FireServer()
+			task.wait(0.1)
+		end)
+		character = services.Players.LocalPlayer.Character
+	until
+		character
+		and character:FindFirstChild("Head")
+		and character:FindFirstChild("Torso")
+		and character:FindFirstChild("CharacterHandler")
+
+	-- Wait for backpack to be loaded.
+	repeat
+		task.wait()
+	until services.CollectionService:HasTag(services.Players.LocalPlayer:WaitForChild("Backpack"), "Loaded")
+end
+
+-- Wait for game to settle.
+task.wait(2)
+
 -- Initialize Luraph globals if they do not exist.
 loadstring("getfenv().LPH_NO_VIRTUALIZE = function(...) return ... end")()
 
