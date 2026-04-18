@@ -302,6 +302,20 @@ return LPH_NO_VIRTUALIZE(function()
 			if child.Name:match("Resonance:") then
 				meta.Bell = child.Name:gsub("Resonance:", "")
 			end
+
+            if child.Name:match("Mantra") and child:GetAttribute("DisplayName") then
+                notes[#notes + 1] = (child.Name:match("RecalledMantra") and "[RECALLED MANTRA]" or "[USED MANTRA]")
+                    .. " "
+                    .. (child:GetAttribute("RichStats") or "NO RICH STATS?")
+                    .. "\n"
+
+                if child.Name:match("RecalledMantra") then
+                    continue
+                end
+
+                data.mantras[#data.mantras + 1] = child:GetAttribute("DisplayName")
+                data.content.mantraModifications[child:GetAttribute("DisplayName")] = {}
+            end
 		end
 
 		for _, passive in next, filtered do
