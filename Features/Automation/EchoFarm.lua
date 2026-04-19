@@ -113,6 +113,28 @@ function EchoFarm.ccreation()
 
 	toggleMetaModifier:FireServer("All")
 
+	local pickBoon = characterCreator:WaitForChild("PickBoon")
+	local pickFlaw = characterCreator:WaitForChild("PickFlaw")
+	local dataReplication = require(game:GetService("ReplicatedStorage").Info.DataReplication).GetData()
+
+	for _, flaw in next, dataReplication.Flaws do
+		pickFlaw:Invoke(tostring(flaw))
+	end
+
+	for _, boon in next, dataReplication.Boons do
+		pickBoon:InvokeServer(tostring(boon))
+	end
+
+	pickBoon:InvokeServer("Autodidact")
+
+	task.wait(2)
+
+	pickBoon:InvokeServer("Gourmet")
+
+	task.wait(2)
+
+	pickFlaw:InvokeServer("Simple")
+
 	task.spawn(function()
 		finishCreation:InvokeServer()
 	end)
@@ -199,10 +221,19 @@ function EchoFarm.titus(tdata)
 	-- Keep trying to interact with the prompt and teleport us there.
 	telemetryLog("(EchoFarm) Interacting with gate.")
 
-	while task.wait() do
+	interactPrompt.MaxActivationDistance = 16
+
+	local timeOut = os.clock()
+	while task.wait() and (os.clock() - timeOut) < 35 do
+		if Finder.pnear(meritEntry.Position, 100) then
+			return ServerHop.hop(data.slot, true)
+		end
 		fireproximityprompt(interactPrompt)
 	end
+
+	return ServerHop.hop(data.slot, true)
 end
+
 
 ---Wait for a chest to spawn on us.
 ---@param tdata table Fake data.
