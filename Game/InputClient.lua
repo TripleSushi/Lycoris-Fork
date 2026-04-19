@@ -429,8 +429,8 @@ end)
 ---Fetch human controller.
 ---@return table?
 InputClient.getHumanController = LPH_NO_VIRTUALIZE(function()
-	---@note: Shouldn't be too many connections to PreAnimation.
-	for _, connection in next, getconnections(runService.PreAnimation) do
+	---@note: Shouldn't be too many connections to PreSimulation.
+	for _, connection in next, getconnections(runService.PreSimulation) do
 		local func = connection.Function
 		if not func then
 			continue
@@ -460,7 +460,6 @@ InputClient.getHumanController = LPH_NO_VIRTUALIZE(function()
 
 	return nil
 end)
-
 ---Fetch input data.
 ---@return table?
 InputClient.getInputData = LPH_NO_VIRTUALIZE(function()
