@@ -316,6 +316,10 @@ return LPH_NO_VIRTUALIZE(function()
                 data.mantras[#data.mantras + 1] = child:GetAttribute("DisplayName")
                 data.content.mantraModifications[child:GetAttribute("DisplayName")] = {}
             end
+
+			if child.Name == "Weapon" then
+				notes[#notes + 1] = "[USED WEAPON] " .. child:GetAttribute("RichStats")
+			end
 		end
 
 		for _, passive in next, filtered do
