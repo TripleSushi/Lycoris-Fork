@@ -78,6 +78,16 @@ return LPH_NO_VIRTUALIZE(function()
 			return
 		end
 
+		local commFrame = gestureFrame:FindFirstChild("CommFrame")
+		if not commFrame then
+			return
+		end
+
+		local commScroll = commFrame and commFrame:FindFirstChild("GestureScroll")
+		if not commScroll then
+			return
+		end
+
 		local mainFrame = gestureFrame:FindFirstChild("MainFrame")
 		local gestureScroll = mainFrame and mainFrame:FindFirstChild("GestureScroll")
 		if not gestureScroll then
@@ -100,6 +110,18 @@ return LPH_NO_VIRTUALIZE(function()
 			return
 		end
 
+		for _, instance in next, gestureScroll:GetDescendants() do
+			if not instance:IsA("UIListLayout") and not instance:IsA("UIPadding") then
+				instance:Destroy()
+			end
+		end
+
+		for _, instance in next, commScroll:GetDescendants() do
+			if not instance:IsA("UIListLayout") and not instance:IsA("UIPadding") then
+				instance:Destroy()
+			end
+		end
+
 		local newGestureGui = gestureGui:Clone()
 		gestureGui:Destroy()
 		newGestureGui.Parent = playerGui
@@ -117,12 +139,35 @@ return LPH_NO_VIRTUALIZE(function()
 		end
 
 		for _, tag in next, EMOTE_SPOOFER_TAGS do
-			if not originalTags[tag] then
+			if originalTags[tag] then
 				continue
 			end
 
 			collectionService:RemoveTag(localPlayer, tag)
 		end
+
+		local playerGui = localPlayer.PlayerGui
+		if not playerGui then
+			return
+		end
+
+		local gestureGui = playerGui:FindFirstChild("GestureGui")
+		if not gestureGui then
+			return
+		end
+
+		local clientStarterGui = replicatedStorage:FindFirstChild("ClientStarterGui")
+		if not clientStarterGui then
+			return
+		end
+
+		local copyGestureGui = clientStarterGui:FindFirstChild("GestureGui")
+		if not copyGestureGui then
+			return
+		end
+
+		gestureGui:Destroy()
+		copyGestureGui:Clone().Parent = playerGui
 	end
 
 	---Update freestyler band spoof.
