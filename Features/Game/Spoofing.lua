@@ -47,6 +47,7 @@ return LPH_NO_VIRTUALIZE(function()
 
 	-- Variables.
 	local originalTags = nil
+	local modified = nil
 
 	-- Constants.
 	local EXPECTED_EMOTE_CHILDREN = 20 + 1
@@ -74,7 +75,7 @@ return LPH_NO_VIRTUALIZE(function()
 		end
 
 		local gestureFrame = gestureGui:FindFirstChild("GestureFrame")
-    	if not gestureFrame then
+    if not gestureFrame then
 			return
 		end
 
@@ -125,6 +126,7 @@ return LPH_NO_VIRTUALIZE(function()
 		local newGestureGui = gestureGui:Clone()
 		gestureGui:Destroy()
 		newGestureGui.Parent = playerGui
+		modified = true
 	end
 
 	---Reset emote spoofer.
@@ -144,6 +146,10 @@ return LPH_NO_VIRTUALIZE(function()
 			end
 
 			collectionService:RemoveTag(localPlayer, tag)
+		end
+
+		if not modified then
+			return
 		end
 
 		local playerGui = localPlayer.PlayerGui
@@ -168,6 +174,7 @@ return LPH_NO_VIRTUALIZE(function()
 
 		gestureGui:Destroy()
 		copyGestureGui:Clone().Parent = playerGui
+		modified = nil
 	end
 
 	---Update freestyler band spoof.
