@@ -337,13 +337,15 @@ local updateCardFrames = LPH_NO_VIRTUALIZE(function()
 			)
 		end
 
-		if title.Text:match("Mystery Mantra") then
-			local selection = drinfo.TalentChoice.Selection
-			local _, mantra = Table.find(selection, function(mantra) return mantra.Name == frame.Parent.Name end)
-			local desc = frame:FindFirstChild("Details") and frame.Details:FindFirstChild("Desc")
-			if mantra and desc then
-				buildAssistanceMap:add(desc, "Text", "From revealer: " .. mantra.MantraName)
-			end
+		if not title.Text:match("Mystery Mantra") then
+			return
+		end
+
+		local selection = drinfo.TalentChoice.Selection
+		local _, mantra = Table.find(selection, function(mantra) return mantra.Name == frame.Parent.Name end)
+		local desc = frame:FindFirstChild("Details") and frame.Details:FindFirstChild("Desc")
+		if mantra and desc then
+			buildAssistanceMap:add(desc, "Text", "From revealer: " .. mantra.MantraName)
 		end
 	end
 end)
@@ -569,23 +571,37 @@ local updateTalentSheet = LPH_NO_VIRTUALIZE(function(rframe)
 		return
 	end
 
-	local divider = talentScroll:FindFirstChild("8ZQuestDivider")
+	local divider = talentScroll:FindFirstChild("Origin")
 	if not divider then
 		return
 	end
 
 	-- Find a frame template with title child (new ui structure).
+	local tClone = divider:Clone()
 	local talentFrameTemplate = nil
-	for _, child in next, talentScroll:GetChildren() do
-		if child:IsA("Frame") and not child.Name:match("Divider$") and child:FindFirstChild("Title") then
-			talentFrameTemplate = child
-			break
+
+	for _, child in next, tClone:QueryDescendants("Frame") do
+		if child:FindFirstChild("Title") then
+			talentFrameTemplate = child:Clone()
+			child:Destroy()
 		end
 	end
 
 	if not talentFrameTemplate then
 		return
 	end
+
+	tClone.Name = "MISSING TALENTS"
+	tClone.Title.Text = "MISSING TALENTS"
+
+	local mClone = divider:Clone()
+
+	for _, child in next, mClone:QueryDescendants("Frame") do
+		child:Destroy()
+	end
+
+	mClone.Name = "MISSING MANTRAS"
+	mClone.Title.Text = "MISSING MANTRAS"
 
 	-- Disable UIVanity script while modifying GUI.
 	local playerGui = players.LocalPlayer:FindFirstChild("PlayerGui")
@@ -631,8 +647,7 @@ local updateTalentSheet = LPH_NO_VIRTUALIZE(function(rframe)
 	end
 
 	-- Pre second step: create a nice looking separator.
-	local tseparator = InstanceWrapper.mark(builderAssistanceMaid, "tdivider", divider:Clone())
-	tseparator.Name = "LMissingTalentDivider"
+	local tseparator = InstanceWrapper.mark(builderAssistanceMaid, "tdivider", tClone)
 	tseparator.LayoutOrder = 9990
 	tseparator.Parent = talentScroll
 
@@ -665,14 +680,13 @@ local updateTalentSheet = LPH_NO_VIRTUALIZE(function(rframe)
 			title.TextTransparency = 0.4
 		end
 
-		newFrame.Parent = talentScroll
+		newFrame.Parent = tseparator
 
 		labelMap["M" .. cleanTalent] = data
 	end
 
 	-- Pre third step: create a nice looking separator.
-	local mseparator = InstanceWrapper.mark(builderAssistanceMaid, "mdivider", divider:Clone())
-	mseparator.Name = "XMissingMantraDivider"
+	local mseparator = InstanceWrapper.mark(builderAssistanceMaid, "mdivider", mClone)
 	mseparator.LayoutOrder = 9995
 	mseparator.Parent = talentScroll
 
@@ -718,7 +732,7 @@ local updateTalentSheet = LPH_NO_VIRTUALIZE(function(rframe)
 			end
 		end
 
-		newFrame.Parent = talentScroll
+		newFrame.Parent = mseparator
 
 		labelMap["Z" .. cleanMantra] = data
 	end
