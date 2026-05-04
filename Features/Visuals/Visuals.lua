@@ -337,15 +337,13 @@ local updateCardFrames = LPH_NO_VIRTUALIZE(function()
 			)
 		end
 
-		if not title.Text:match("Mystery Mantra") then
-			return
-		end
-
-		local selection = drinfo.TalentChoice.Selection
-		local _, mantra = Table.find(selection, function(mantra) return mantra.Name == frame.Parent.Name end)
-		local desc = frame:FindFirstChild("Details") and frame.Details:FindFirstChild("Desc")
-		if mantra and desc then
-			buildAssistanceMap:add(desc, "Text", "From revealer: " .. mantra.MantraName)
+		if title.Text:match("Mystery Mantra") then
+			local selection = drinfo.TalentChoice.Selection
+			local _, mantra = Table.find(selection, function(mantra) return mantra.Name == frame.Parent.Name end)
+			local desc = frame:FindFirstChild("Details") and frame.Details:FindFirstChild("Desc")
+			if mantra and desc then
+				buildAssistanceMap:add(desc, "Text", "From revealer: " .. mantra.MantraName)
+			end
 		end
 	end
 end)
